@@ -80,6 +80,7 @@ Pages:
 - `/` — overview
 - `/import` — local-only import interface, automatic account discovery and multi-account sync
 - `/trades` — read-only imported completed-order snapshots, with associated order fees
+- `/performance` — localhost-development-only provisional FIFO realized P&L, account filter, unmatched sales and open imported lots
 
 Routes:
 - `GET /api/health`
@@ -91,12 +92,21 @@ Routes:
 - `GET /api/orders` — locally saved orders and fees
 - `GET /api/trades` — locally saved execution records
 
+## Provisional realized performance
+
+Open **http://localhost:3000/performance** after importing a sufficiently complete transaction history. The page recalculates the ledger from earliest available imported completed-order snapshots, matches stock sales FIFO **within each brokerage account and symbol**, and shows matched gross P&L, net P&L where actual fees are present, and missing opening history. Original cost basis excludes fees; matched net results subtract allocated entry and exit order fees. Database decimal strings are processed as eight-place fixed-point integers to avoid floating point arithmetic drift.
+
+**Do not treat this report as tax reporting.** It cannot yet account for wash sales, stock splits, transferred positions, specific-lot identification, incomplete historical purchases, short positions, missing corporate actions, or non-snapshot partial fills. Missing fee entries are **unknown**, not automatically $0, so net P&L is withheld where fees are incomplete. If unmatched sales exist, the aggregate results are labeled incomplete. A 20,000-row safety cap prevents silent partial-ledger calculations.
+
+The report is locked to localhost Next.js development until authenticated sessions exist. Run `npm test` to execute accounting and import unit tests.
+
 ## Next steps
 
 - Verify live API order response and fee schema using your own account (no credentials in chat).
 - Add broker execution-level data when available. Never infer individual fills from average prices.
 - Design authenticated dashboard and background scheduling with bounded jobs.
-- Build FIFO/tax-lot reconciliation and wash sale monitoring only after complete historical imports and review of corporate actions and cross-account trades.
+- Reconcile FIFO provisional results against brokerage statements; add opening holdings, splits, transfers, short-sale handling, and correct fee availability flags.
+- Build tax-lot cost basis and wash sale monitoring only after complete historical imports and review of corporate actions and cross-account trades.
 - Keep trade-performance P&L distinct from tax-adjusted P&L.
 
 Docs: https://developer.webull.com/apis/docs/reference/order-history/ and https://developer.webull.com/apis/docs/reference/order-detail/
