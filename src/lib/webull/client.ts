@@ -17,30 +17,61 @@ const PATHS = {
   orderHistory: '/trading/orders/historical-orders/list',
   orderDetail: '/trading/orders/get',
 } as const;
-let previousRequestAt = 0;
-let requestQueue: Promise<void> = Promise.resolve();
+
+// Webull's account-level limit is 60 requests/minute. Target 50/minute to
+// allow for timing jitter and requests outside this app. All calls made by
+// this Next.js process share one serialized limiter across ALL accounts.
+const REQUEST_INTERVAL_MS = 1200;
+const MAX_RATE_LIMIT_RETRIES = 3;
+type LimiterState = { nextRequestAt: number; queue: Promise<void> };
+const runtime = globalThis as typeof globalThis & { webullLimiter?: LimiterState };
+const limiter = runtime.webullLimiter ??= {nextRequestAt:0,queue:Promise.resolve()};
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve=>setTimeout(resolve,ms));
+}
 async function throttle(): Promise<void> {
- const waiter=requestQueue.then(async()=>{
-  const delay=Math.max(0,1100-(Date.now()-previousRequestAt));
-  if(delay) await new Promise(resolve=>setTimeout(resolve,delay));
-  previousRequestAt=Date.now();
- });
- requestQueue=waiter.catch(()=>{});
- await waiter;
+  const turn = limiter.queue.then(async()=>{
+    const now=Date.now();
+    const scheduled=Math.max(now,limiter.nextRequestAt);
+    limiter.nextRequestAt=scheduled+REQUEST_INTERVAL_MS;
+    if(scheduled>now) await sleep(scheduled-now);
+  });
+  limiter.queue=turn.catch(()=>{});
+  await turn;
+}
+function retryDelay(header: string | null, attempt: number): number {
+  const seconds=header!==null ? Number(header) : NaN;
+  if(Number.isFinite(seconds) && seconds >= 0) return Math.min(120_000,Math.max(1000,Math.ceil(seconds*1000)));
+  if(header) {
+    const date=Date.parse(header);
+    if(Number.isFinite(date)) return Math.min(120_000,Math.max(1000,date-Date.now()));
+  }
+  return Math.min(60_000,5000*2**attempt);
 }
 async function get(path: string, params: Record<string,string> = {}): Promise<JsonValue> {
-  await throttle();
-  const {host, headers} = signingHeaders(path, params);
-  const url = new URL('https://' + host + path);
-  Object.entries(params).forEach(([k,v]) => url.searchParams.set(k,v));
-  const res = await fetch(url, { headers, cache: 'no-store', signal: AbortSignal.timeout(15000) });
-  const raw = await res.text();
-  let parsed: unknown;
-  try { parsed = JSON.parse(raw); }
-  catch { parsed = null; }
-  if (!res.ok) throw new WebullApiError(res.status,errorCode(parsed));
-  if (!parsed || typeof parsed !== 'object') throw new WebullApiError(res.status,'INVALID_RESPONSE');
-  return parsed as JsonValue;
+  const urlParams = new URLSearchParams(params);
+  for(let attempt=0;attempt<=MAX_RATE_LIMIT_RETRIES;attempt++){
+    // Re-sign on every attempt to refresh timestamp and nonce.
+    await throttle();
+    const {host,headers} = signingHeaders(path,params);
+    const url = new URL('https://' + host + path);
+    url.search=urlParams.toString();
+    const res=await fetch(url,{headers,cache:'no-store',signal:AbortSignal.timeout(15000)});
+    if(res.status===429 && attempt<MAX_RATE_LIMIT_RETRIES){
+      const delay=retryDelay(res.headers.get('retry-after'),attempt);
+      console.warn('[Webull] HTTP 429: waiting before retry', {attempt:attempt+1,delayMs:delay});
+      await res.body?.cancel();
+      await sleep(delay);
+      continue;
+    }
+    const raw=await res.text();
+    let parsed:unknown;
+    try{parsed=JSON.parse(raw);}catch{parsed=null;}
+    if(!res.ok) throw new WebullApiError(res.status,errorCode(parsed));
+    if(!parsed || typeof parsed!=='object') throw new WebullApiError(res.status,'INVALID_RESPONSE');
+    return parsed as JsonValue;
+  }
+  throw new WebullApiError(429,'RATE_LIMITED');
 }
 export const webull = {
   accounts: () => get(PATHS.accounts),
