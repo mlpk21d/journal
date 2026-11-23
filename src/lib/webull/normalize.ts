@@ -17,10 +17,25 @@ export function orderPages(response: unknown): {orders: Obj[],next: string | nul
  if(!outer) throw new Error('Unexpected Webull history response');
  const data=outer.data;
  if(!Array.isArray(data)) throw new Error('Webull history response missing data array');
- const orders=data.map(object);
- if(orders.some(x=>!x)) throw new Error('Unexpected Webull order data');
+ const orders: Obj[] = [];
+ for (const entry of data) {
+  const group=object(entry);
+  if(!group) throw new Error('Unexpected Webull order group');
+  const children=group.orders;
+  if (children === undefined) { orders.push(group); continue; }
+  if(!Array.isArray(children)) throw new Error('Unexpected Webull order group children');
+  for(const child of children) {
+   const order=object(child);
+   if(!order) throw new Error('Unexpected Webull child order');
+   orders.push({
+    ...order,
+    client_order_id: stringField(order,'client_order_id') ?? stringField(group,'client_order_id'),
+    _history_group: group
+   });
+  }
+ }
  const next=stringField(outer,'pagination_key');
- return {orders:orders as Obj[],next:next || null};
+ return {orders,next:next || null};
 }
 export type NormalizedOrder = {brokerOrderId:string;clientOrderId:string|null;symbol:string|null;side:string|null;status:string|null;orderedAt:string|null;raw:Obj};
 export function normalizeOrder(o:Obj):NormalizedOrder | null {
@@ -63,19 +78,26 @@ export function orderFees(o:Obj): {type:string,amount:string}[] {
  return result;
 }
 
-/** Webull order detail can wrap one or more child orders in an orders array. */
+/** Order details can be a single object, a data wrapper, or a list of order groups. */
 export function detailOrder(response: unknown, historyOrder: Obj): Obj {
  const outer=object(response);
  if(!outer) throw new Error('Unexpected Webull order detail response');
- const root=object(outer.data) ?? outer;
- const nested=root.orders;
- if(!Array.isArray(nested)) return root;
+ const root:unknown=outer.data ?? outer;
+ const candidates:Obj[]=[];
+ function collect(value:unknown) {
+  if(Array.isArray(value)) { for(const entry of value) collect(entry);return; }
+  const entry=object(value);
+  if(!entry) return;
+  if(Array.isArray(entry.orders)) { for(const child of entry.orders) collect(child);return; }
+  candidates.push(entry);
+ }
+ collect(root);
  const historyId=stringField(historyOrder,'order_id','id');
  const historyClientId=stringField(historyOrder,'client_order_id');
- const matches=nested.map(object).filter((x):x is Obj => !!x).filter(x =>
-   (historyId!==null && stringField(x,'order_id')===historyId) ||
-   (historyClientId!==null && stringField(x,'client_order_id')===historyClientId)
+ const matches=candidates.filter(x =>
+   (historyId!==null && stringField(x,'order_id','id')===historyId) ||
+   (historyId===null && historyClientId!==null && stringField(x,'client_order_id')===historyClientId)
  );
- if(matches.length!==1) throw new Error('Ambiguous Webull detail orders: cannot safely match historical order');
+ if(matches.length!==1) throw new Error('Unable to match exactly one Webull order detail');
  return matches[0];
 }
