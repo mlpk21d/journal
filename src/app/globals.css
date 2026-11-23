@@ -26,3 +26,5 @@
 .manual-check{display:flex;align-items:flex-start;gap:11px;color:#b8cad5;font-size:13px;line-height:1.5;margin:22px 0}
 .manual-check input{width:auto!important;flex:0 0 auto;margin:2px 0 0;accent-color:#91d2c5}
 .manual-lot-form .primary-button{margin-top:0}
+
+.manual-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.manual-secondary{padding:12px 17px;border:1px solid #456075;border-radius:8px;background:#203346;color:#d4e5ee;cursor:pointer}.manual-actions .primary-button{margin:0}.manual-actions .text-button{white-space:nowrap}
