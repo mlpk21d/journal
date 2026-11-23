@@ -38,7 +38,7 @@ export async function addManualOpeningLot(form:FormData):Promise<ManualResult>{
   if(!acct.rowCount)return {ok:false,message:'Select a valid Webull brokerage account.'};
   await pool.query(`INSERT INTO manual_opening_lots (brokerage_account_id,symbol,acquired_at,quantity,unit_basis,notes)
      VALUES ($1,$2,$3,$4::numeric,$5::numeric,$6)`,[account,symbol,acquired.toISOString(),quantity,unitBasis,notes]);
-  revalidatePath('/manual');revalidatePath('/performance');
+  revalidatePath('/manual');revalidatePath('/performance');revalidatePath('/trades');
   return {ok:true,message:'Historical opening lot saved. Recheck provisional performance.'};
  }catch(error){
   console.error('[Manual lots] Add failed',error);
@@ -51,7 +51,7 @@ export async function deleteManualOpeningLot(id:string):Promise<ManualResult>{
   if(!/^\d{1,19}$/.test(id))return {ok:false,message:'Invalid lot identifier.'};
   const result=await db().query('DELETE FROM manual_opening_lots WHERE id=$1 RETURNING id',[id]);
   if(!result.rowCount)return {ok:false,message:'Lot not found.'};
-  revalidatePath('/manual');revalidatePath('/performance');
+  revalidatePath('/manual');revalidatePath('/performance');revalidatePath('/trades');
   return {ok:true,message:'Manual opening lot deleted.'};
  }catch(error){
   console.error('[Manual lots] Delete failed',error);
