@@ -2,6 +2,7 @@ import Link from 'next/link';
 import {headers} from 'next/headers';
 import {db} from '@/lib/db';
 import {buildLedger,type LedgerInput} from '@/lib/performance/ledger';
+import {cachedAccounts} from '@/lib/webull/accounts-cache';
 export const dynamic='force-dynamic';
 type Params={account?:string};
 function usd(s:string|null):string{
@@ -18,6 +19,7 @@ export default async function Performance({searchParams}:{searchParams:Promise<P
  const selected=typeof query.account==='string'&&/^\d{1,19}$/.test(query.account)?query.account:'all';
  let accounts:{id:string;external_account_id:string;account_type:string|null}[]=[];
  let data:LedgerInput[]=[];
+ let accountLabels:Record<string,string>={};
  let error='';
  let truncated=false;
  try{
@@ -25,6 +27,8 @@ export default async function Performance({searchParams}:{searchParams:Promise<P
   const a=await pool.query<{id:string;external_account_id:string;account_type:string|null}>(
    'SELECT id::text,external_account_id,account_type FROM brokerage_accounts ORDER BY id');
   accounts=a.rows;
+  const cached=await cachedAccounts();
+  accountLabels=Object.fromEntries(cached.map(x=>[x.id,x.label]));
   const valid=selected==='all'||accounts.some(a=>a.id===selected);
   if(!valid)throw new Error('Unknown account selection');
   // Matching starts with earliest available history; never filter to a recent
@@ -55,7 +59,7 @@ export default async function Performance({searchParams}:{searchParams:Promise<P
  const incomplete=!!report?.unmatchedSales.length;
  const missingFeeMatches=report?.matches.filter(x=>x.net===null).length??0;
  const missingFeeOrders=new Set(report?.matches.filter(x=>x.net===null).map(x=>x.sellId)??[]).size;
- const accountName=(id:string)=>'•••• '+(accounts.find(a=>a.id===id)?.external_account_id.slice(-4)??id.slice(-4));
+ const accountName=(id:string)=>{const a=accounts.find(a=>a.id===id);return a ? accountLabels[a.external_account_id]??'ID •••• '+a.external_account_id.slice(-4) : 'Unknown account';};
  const recent=[...(report?.matches??[])].reverse().slice(0,80);
  return <main className="shell"><header><Link href="/" className="brand">TRADE / JOURNAL</Link><span className="muted">Provisional performance · Local only</span></header>
   <section className="page-title"><p className="eyebrow">TRADE ACCOUNTING</p><h1>Realized performance</h1>
@@ -65,7 +69,7 @@ export default async function Performance({searchParams}:{searchParams:Promise<P
    <label htmlFor="performance-account">Account</label>
    <select id="performance-account" name="account" defaultValue={selected}>
     <option value="all">All accounts (separate matching)</option>
-    {accounts.map(a=><option value={a.id} key={a.id}>{a.account_type??'Brokerage'} · {accountName(a.id)}</option>)}
+    {accounts.map(a=><option value={a.id} key={a.id}>{accountName(a.id)}</option>)}
    </select>
    <button type="submit">Apply</button>
   </form>
