@@ -34,7 +34,7 @@ test('does not match one brokerage account against another',()=>{
   row('2','B','NVDA','SELL','10','12','0','2026-11-02T10:00:00Z')
  ]);
  assert.equal(r.matches.length,0);
- assert.equal(r.unmatchedSales.length,1);
+ assert.equal(r.unverifiedOpeningSales.length,1);
  assert.equal(r.openPositions.length,1);
  assert.equal(r.net,null);
 });
@@ -45,7 +45,61 @@ test('missing fees withhold net, never assume zero',()=>{
  ]);
  assert.equal(r.gross,'2');assert.equal(r.net,null);assert.equal(r.matches[0].net,null);
 });
-test('missing initial buy history flags unmatched sale',()=>{
+test('opening sell creates provisional short, not an unmatched sale',()=>{
  const r=buildLedger([row('2','A','ABC','SELL','3','12','0','2026-11-02T10:00:00Z')]);
- assert.equal(r.unmatchedSales[0].quantity,'3');assert.equal(r.net,null);
+ assert.equal(r.unverifiedOpeningSales[0].quantity,'3');
+ assert.equal(r.openPositions[0].side,'SHORT');
+ assert.equal(r.openPositions[0].quantity,'-3');
+ assert.equal(r.matches.length,0);
+});
+test('100 short then 100 buy-to-cover leaves no open shares',()=>{
+ const r=buildLedger([
+  row('short','A','AMZN','SELL','100','180','1','2026-11-01T10:00:00Z'),
+  row('cover','A','AMZN','BUY','100','170','1','2026-11-02T10:00:00Z')
+ ]);
+ assert.equal(r.openPositions.length,0);
+ assert.equal(r.closedShares,'100');
+ assert.equal(r.matches[0].direction,'SHORT');
+ assert.equal(r.matches[0].gross,'1000');
+ assert.equal(r.net,'998');
+ assert.equal(r.unverifiedOpeningSales.length,1);
+});
+test('partially covering short leaves negative signed shares',()=>{
+ const r=buildLedger([
+  row('short','A','AMZN','SELL','100','180','1','2026-11-01T10:00:00Z'),
+  row('cover','A','AMZN','BUY','40','170','0.4','2026-11-02T10:00:00Z')
+ ]);
+ assert.equal(r.openPositions[0].quantity,'-60');
+ assert.equal(r.openPositions[0].side,'SHORT');
+ assert.equal(r.gross,'400');
+ assert.equal(r.matches[0].net,'399.2');
+});
+test('buy larger than short covers it and opens new long inventory',()=>{
+ const r=buildLedger([
+  row('short','A','AMZN','SELL','100','180','1','2026-11-01T10:00:00Z'),
+  row('buy','A','AMZN','BUY','125','170','1.25','2026-11-02T10:00:00Z')
+ ]);
+ assert.equal(r.closedShares,'100');
+ assert.equal(r.openPositions[0].quantity,'25');
+ assert.equal(r.openPositions[0].side,'LONG');
+ assert.equal(r.matches[0].net,'998');
+});
+test('sell larger than long position closes long and opens residual short',()=>{
+ const r=buildLedger([
+  row('buy','A','AMZN','BUY','40','100','0.4','2026-11-01T10:00:00Z'),
+  row('sell','A','AMZN','SELL','100','110','1','2026-11-02T10:00:00Z')
+ ]);
+ assert.equal(r.matches[0].direction,'LONG');
+ assert.equal(r.gross,'400');
+ assert.equal(r.openPositions[0].quantity,'-60');
+ assert.equal(r.unverifiedOpeningSales[0].quantity,'60');
+});
+test('matched short is isolated between accounts',()=>{
+ const r=buildLedger([
+  row('short','A','AMZN','SELL','100','180','0','2026-11-01T10:00:00Z'),
+  row('buy','B','AMZN','BUY','100','170','0','2026-11-02T10:00:00Z')
+ ]);
+ assert.equal(r.matches.length,0);
+ assert.equal(r.openPositions.find(p=>p.accountId==='A').quantity,'-100');
+ assert.equal(r.openPositions.find(p=>p.accountId==='B').quantity,'100');
 });
