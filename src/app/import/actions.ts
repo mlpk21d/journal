@@ -6,7 +6,7 @@ import { object, stringField } from '@/lib/webull/normalize';
 export type BrokerAccount = { id: string; type: string };
 export type AccountResult = { ok: true; accounts: BrokerAccount[] } | { ok: false; error: string };
 export type SyncResult =
-  | { ok: true; scanned: number; savedOrders: number; savedExecutions: number; skippedSnapshots: number; pages: number }
+  | { ok: true; results: Array<{ account: string; ok: boolean; scanned?: number; savedOrders?: number; savedExecutions?: number; skippedSnapshots?: number; pages?: number; error?: string }> }
   | { ok: false; error: string };
 
 /** Temporary local-only browser boundary. Not a substitute for session auth on a deployed server. */
@@ -65,15 +65,27 @@ export async function syncWebullFromBrowser(accountId: string, start: string, en
     // Never trust a browser-supplied account ID; re-fetch from Webull on the server.
     const data = await webull.accounts();
     const rows = Array.isArray(data) ? data : object(data)?.data;
-    if (!Array.isArray(rows) || !rows.some(x => {
-      const obj=object(x);
-      return obj && stringField(obj,'account_id')===accountId;
-    })) return {ok:false,error:'Account is not available in this Webull connection.'};
-    console.info('[Webull UI] Starting import:', {start,end});
-    const summary = await importWebullOrders(accountId,new Date(startMs).toISOString(),new Date(endMs).toISOString());
-    console.info('[Webull UI] Import completed:', {runId:summary.runId,scanned:summary.scanned,savedExecutions:summary.savedExecutions});
-    return {ok:true,scanned:summary.scanned,savedOrders:summary.savedOrders,savedExecutions:summary.savedExecutions,
-      skippedSnapshots:summary.skippedSnapshots,pages:summary.pages};
+    if (!Array.isArray(rows)) return {ok:false,error:'Webull account discovery returned an unexpected response.'};
+    const ids=[...new Set(rows.flatMap(x=>{
+      const item=object(x);const id=item ? stringField(item,'account_id') : null;
+      return id && /^[a-zA-Z0-9_-]{6,80}$/.test(id) ? [id]:[];
+    }))];
+    const selected=accountId==='__all__' ? ids : ids.filter(id=>id===accountId);
+    if(!selected.length) return {ok:false,error:'No matching accounts available for import.'};
+    const results: Array<{account:string;ok:boolean;scanned?:number;savedOrders?:number;savedExecutions?:number;skippedSnapshots?:number;pages?:number;error?:string}>=[];
+    for(const id of selected){
+      console.info('[Webull UI] Starting import:', {accountSuffix:id.slice(-4),start,end});
+      try{
+        const summary=await importWebullOrders(id,new Date(startMs).toISOString(),new Date(endMs).toISOString());
+        console.info('[Webull UI] Import completed:', {accountSuffix:id.slice(-4),runId:summary.runId,scanned:summary.scanned});
+        results.push({account:id.slice(-4),ok:true,scanned:summary.scanned,savedOrders:summary.savedOrders,savedExecutions:summary.savedExecutions,
+          skippedSnapshots:summary.skippedSnapshots,pages:summary.pages});
+      }catch(err){
+        console.error('[Webull UI] Account import failed:',err);
+        results.push({account:id.slice(-4),ok:false,error:'See server terminal for error details'});
+      }
+    }
+    return {ok:true,results};
   } catch (error) {
     console.error('[Webull UI] Import failed:',error);
     return {ok:false,error:'Import failed. Check the Next.js terminal output for details.'};
