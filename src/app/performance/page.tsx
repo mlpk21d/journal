@@ -3,6 +3,7 @@ import {headers} from 'next/headers';
 import {db} from '@/lib/db';
 import {buildLedger,parseFixed,formatFixed,type LedgerInput} from '@/lib/performance/ledger';
 import {formatBrokerageAccount} from '@/lib/webull/account-format';
+import {normalizeWebullOrderFee} from '@/lib/performance/fee-policy';
 export const dynamic='force-dynamic';
 type Params={account?:string};
 function usd(s:string|null):string{
@@ -36,7 +37,7 @@ export default async function Performance({searchParams}:{searchParams:Promise<P
   }>(`WITH ledger_rows AS (
     SELECT e.id::text AS id,e.brokerage_account_id::text AS account_id,
      e.symbol,e.side,e.quantity::text,e.price::text,e.executed_at,
-     f.total_fees::text AS fees,COALESCE(f.fee_count,0)::text AS fee_count
+     COALESCE(f.total_fees,0)::text AS fees,COALESCE(f.fee_count,0)::text AS fee_count
     FROM executions e
     LEFT JOIN LATERAL (
       SELECT SUM(amount) AS total_fees,COUNT(*) AS fee_count
@@ -56,14 +57,12 @@ export default async function Performance({searchParams}:{searchParams:Promise<P
   truncated=r.rows.length>20000;
   if(!truncated)data=r.rows.map(x=>({id:x.id,accountId:x.account_id,symbol:x.symbol,
    side:x.side,quantity:x.quantity,price:x.price,executedAt:x.executed_at.toISOString(),
-   fees:x.fees,feeKnown:Number(x.fee_count)>0}));
+   ...(x.id.startsWith('manual:')?{fees:x.fees??'0',feeKnown:true}:normalizeWebullOrderFee(x.fees))}));
  }catch(e){console.error('[Performance] ledger loading failed:',e);error='Unable to calculate performance. Check the Next.js terminal.';}
  let report:ReturnType<typeof buildLedger>|null=null;
  if(!error&&!truncated){try{report=buildLedger(data);}catch(e){console.error('[Performance] matching failed:',e);error='Unable to match imported orders. Check server terminal.';}}
  const totalClosed=report?.matches.length??0;
  const gross=report?.gross??'0';
- const missingFeeMatches=report?.matches.filter(x=>x.net===null).length??0;
- const missingFeeOrders=new Set(report?.matches.filter(x=>x.net===null).map(x=>x.sellId)??[]).size;
  const accountName=(id:string)=>{const a=accounts.find(a=>a.id===id);return a?formatBrokerageAccount(a.account_type,a.external_account_id):'Unknown account';};
  const summaries=accounts.filter(a=>selected==='all'||a.id===selected).map(a=>{
   const matched=report?.matches.filter(m=>m.accountId===a.id)??[];
@@ -103,8 +102,8 @@ export default async function Performance({searchParams}:{searchParams:Promise<P
    <div className="table-scroll"><table><thead><tr><th>Account</th><th>Records</th><th>FIFO matches</th><th>Closed shares</th><th>Gross realized P&amp;L</th><th>Net realized P&amp;L</th><th>Open symbols</th></tr></thead><tbody>
     {summaries.map(a=><tr key={a.id}><td><Link href={'/performance?account='+a.id}>{a.label}</Link></td><td>{a.sourceCount}</td><td>{a.matched}</td><td>{a.shares}</td><td>{usd(a.gross)}</td><td>{usd(a.net)}</td><td>{a.positionCount}</td></tr>)}
    </tbody></table></div>
-   <p className="helper">If an account total differs from Webull, compare the transactions imported for that specific account, missing fee information, short covers and any manual entries. Manual records are included in the record count. Opening short sales do not create realized P&amp;L until covered.</p>
-   {missingFeeMatches>0&&<p className="notice"><strong>Fees not verified:</strong> {missingFeeMatches} FIFO lot match(es), involving {missingFeeOrders} sale order(s), lack complete entry/exit fee records. Complete net P&amp;L is withheld rather than treating missing fees as $0. A missing fee record may mean Webull did not report a fee, not necessarily that one was charged.</p>}
+   <p className="helper">If an account total differs from Webull, compare the transactions imported for that specific account, recorded order fees, short covers and any manual entries. Manual records are included in the record count. Opening short sales do not create realized P&amp;L until covered.</p>
+   <p className="helper">Fee policy: an imported Webull order without a fee record is treated as $0 for this journal report. Reported nonzero Webull fees and fees entered on manual trades are deducted from realized net P&amp;L. This assumption does not verify the broker's actual fee total.</p>
    <h2>Recent FIFO closures</h2>
    {!recent.length?<p className="notice">No matched stock sales yet. Import older buy and sell orders to calculate realized performance.</p>:<div className="table-scroll"><table><thead><tr><th>Closed (UTC)</th><th>Account</th><th>Symbol</th><th>Direction</th><th>Shares</th><th>Gross P&amp;L</th><th>Net P&amp;L</th></tr></thead><tbody>
     {recent.map((m,i)=><tr key={m.sellId+'-'+m.buyId+'-'+i}><td>{m.closedAt.replace('T',' ').slice(0,19)}</td><td>{accountName(m.accountId)}</td><td>{m.symbol}</td><td>{m.direction}</td><td>{m.quantity}</td><td>{usd(m.gross)}</td><td>{usd(m.net)}</td></tr>)}
