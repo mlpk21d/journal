@@ -2,3 +2,21 @@
 .import-panel{max-width:720px;background:#121d28;border:1px solid #2a3948;padding:30px;border-radius:14px;margin:0 0 60px}.import-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:25px}.import-heading h2{margin:0;font-size:21px}.local-indicator{font-size:11px;color:#8dcfb8;border:1px solid #3b655e;padding:8px 12px;border-radius:20px}.field-label{display:block;color:#b6c8d4;font-size:13px;margin:15px 0 9px}.import-panel select,.import-panel input{appearance:auto;width:100%;border:1px solid #334858;background:#0b151f;color:#e9f0f5;padding:13px;border-radius:8px;font-size:15px}.date-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px}.helper{font-size:13px;color:#99aebb;line-height:1.65;margin:18px 0}.primary-button{border:0;border-radius:8px;background:#91d2c5;color:#09231e;padding:14px 24px;font-weight:700;cursor:pointer;margin-top:8px}.primary-button:disabled{opacity:.45;cursor:not-allowed}.import-result{border-top:1px solid #324552;margin-top:25px;padding-top:20px}.import-result h3{font-size:18px}.account-result{padding:15px 0;border-bottom:1px solid #30414e}.account-result-header{display:flex;justify-content:space-between;gap:12px}.account-result p{margin:10px 0 0;color:#a8bdca;font-size:13px}@media(max-width:600px){.date-grid{grid-template-columns:1fr}.import-panel{padding:18px}.import-heading{align-items:flex-start;flex-direction:column}}
 
 .performance-filter{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin:35px 0}.performance-filter label{color:#acc0cb;font-size:14px}.performance-filter select{min-width:225px;background:#142331;color:#f0f6f9;border:1px solid #344d5d;border-radius:8px;padding:12px}.performance-filter button{padding:12px 18px;border:0;border-radius:8px;background:#9dcfc6;color:#072018;font-weight:700;cursor:pointer}.performance-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:24px 0}.performance-metrics div{background:#121f2b;border:1px solid #2b4150;padding:22px;border-radius:10px;min-width:0}.performance-metrics small{display:block;color:#a2bac6;font-size:12px;margin-bottom:12px}.performance-metrics strong{font-size:clamp(18px,2.4vw,30px);overflow-wrap:anywhere}.shell h2{margin-top:35px}@media(max-width:760px){.performance-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Global top-right slide-out navigation */
+.nav-menu-button{position:fixed;right:23px;top:18px;z-index:80;display:flex;flex-direction:column;justify-content:center;gap:5px;width:44px;height:44px;background:#152434;border:1px solid #355063;border-radius:10px;cursor:pointer;padding:12px}
+.nav-menu-button span{display:block;background:#dce9ef;width:100%;height:2px;border-radius:2px}
+.nav-menu-button:hover{background:#243b4b}
+.nav-overlay{position:fixed;inset:0;background:#030a11b8;z-index:85}
+.nav-drawer{position:fixed;inset:0 0 0 auto;width:min(360px,90vw);transform:translateX(102%);visibility:hidden;z-index:90;background:#101e2b;border-left:1px solid #345164;box-shadow:-12px 0 55px #0008;transition:transform .22s ease,visibility .22s;display:flex;flex-direction:column;padding:28px}
+.nav-drawer-open{transform:translateX(0);visibility:visible}
+.nav-drawer-head{display:flex;align-items:center;justify-content:space-between;gap:12px;letter-spacing:.13em;font-size:13px;padding-bottom:22px;border-bottom:1px solid #304656}
+.nav-drawer-head button{border:1px solid #456075;background:#203346;color:white;width:36px;height:36px;border-radius:8px;font-size:24px;cursor:pointer}
+.nav-drawer nav{display:flex;flex-direction:column;margin-top:22px;gap:8px}
+.nav-drawer nav a{display:block;padding:15px 14px;border-radius:8px;color:#d2e4ed}
+.nav-drawer nav a:hover,.nav-drawer nav a[aria-current="page"]{background:#223747;color:#fff}
+.nav-drawer p{margin-top:auto;font-size:12px;color:#8da1af}
+.account-alias{margin:12px 0}.account-alias input{max-width:100%}
+.text-button{border:0;background:transparent;padding:6px 0;color:#9ed9e9;cursor:pointer;text-decoration:underline}
+.alias-actions{display:flex;gap:12px;margin-top:12px}.alias-actions button{background:#264557;border:1px solid #456a7a;color:#eaf5f8;border-radius:6px;padding:9px 14px;cursor:pointer}
+@media(prefers-reduced-motion:reduce){.nav-drawer{transition:none}}
