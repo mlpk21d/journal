@@ -1,6 +1,6 @@
 import { db } from '@/lib/db';
 import { webull } from './client';
-import { normalizeOrder, normalizeSnapshot, object, orderFees, orderPages, type Obj } from './normalize';
+import { normalizeOrder, normalizeSnapshot, detailOrder, orderFees, orderPages, type Obj } from './normalize';
 export type ImportSummary={runId:string;pages:number;scanned:number;savedOrders:number;savedExecutions:number;skippedSnapshots:number;status:'completed'};
 export async function importWebullOrders(accountId:string,start:string,end:string):Promise<ImportSummary> {
  const pool=db();
@@ -28,14 +28,10 @@ export async function importWebullOrders(accountId:string,start:string,end:strin
     scanned++;
     const order=normalizeOrder(item);
     if(!order) {skippedSnapshots++;continue;}
-    // Do not request per-order detail without a client ID or explicit broker order id.
     let detail:Obj=item;
-    if(order.clientOrderId || !order.brokerOrderId.startsWith('client:')) {
-     const raw=await webull.orderDetail(accountId,order.clientOrderId ?? undefined,order.brokerOrderId.startsWith('client:') ? undefined : order.brokerOrderId);
-     const parsed=object(raw);
-     const nested=parsed ? object(parsed.data) : null;
-     if(nested) detail=nested; else if(parsed) detail=parsed;
-     else throw new Error('Unexpected Webull order detail response');
+    if(order.clientOrderId){
+     const raw=await webull.orderDetail(accountId,order.clientOrderId);
+     detail=detailOrder(raw,item);
     }
     const normalized=normalizeOrder(detail) ?? order;
     await conn.query('BEGIN');
