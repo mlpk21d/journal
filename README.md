@@ -8,8 +8,7 @@ Next.js / TypeScript / PostgreSQL / Webull Trading API. Read-only stock-order jo
 npm install
 cp .env.example .env.local
 # fill DATABASE_URL, WEBULL_APP_KEY, WEBULL_APP_SECRET, JOURNAL_API_TOKEN
-set -a; source .env.local; set +a
-npm run db:migrate
+npm run db:migrate  # automatically loads .env.local when present
 npm run dev
 ```
 
