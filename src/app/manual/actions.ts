@@ -30,7 +30,7 @@ export async function addManualOpeningLot(form:FormData):Promise<ManualResult>{
      !/^\d{4}-\d{2}-\d{2}$/.test(date)||!decimal.test(quantity)||!decimal.test(unitBasis)||
      notes.length>400||!acknowledged)return {ok:false,message:'Check the required fields and acknowledge the basis warning.'};
   const acquired=new Date(date+'T12:00:00.000Z');
-  if(Number.isNaN(acquired.valueOf())||acquired.toISOString().slice(0,10)!==date||acquired>Date.now())return {ok:false,message:'Enter a valid historical acquisition date.'};
+  if(Number.isNaN(acquired.valueOf())||acquired.toISOString().slice(0,10)!==date||acquired.getTime()>Date.now())return {ok:false,message:'Enter a valid historical acquisition date.'};
   if(Number(quantity)<=0||Number(unitBasis)<0||!Number.isFinite(Number(quantity))||!Number.isFinite(Number(unitBasis)))
    return {ok:false,message:'Share count must exceed zero; cost basis cannot be negative.'};
   const pool=db();
