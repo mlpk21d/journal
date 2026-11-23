@@ -71,6 +71,8 @@ export function orderFees(o:Obj): {type:string,amount:string}[] {
   const counts=new Map<string,number>();
   for(const item of o.fees) {const f=object(item); if(!f) continue; const type=stringField(f,'type'); const amount=decimal(f.actual_value);
    if(!type || amount===null) continue;
+   // A separate commission object already contains this actual charge.
+   if(type.toUpperCase()==='COMMISSION' && commissionValue!==null) continue;
    const count=(counts.get(type)??0)+1;counts.set(type,count);
    result.push({type:count===1 ? type : type+'#'+count,amount});
   }
