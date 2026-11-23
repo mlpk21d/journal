@@ -53,11 +53,17 @@ Sync jobs paginate grouped historical orders, flatten the child orders, and quer
 
 **Accuracy limitation:** Historical order records may lag. Fully filled orders with confirmed quantity, average fill price, and fill timestamp are represented by a *weighted-average order snapshot*, not exchange-level executions. Partial orders and records lacking trustworthy fields are retained as raw orders but deliberately excluded from executions. No fabricated timestamps or synthetic individual fills. Commissions and regulatory fees are saved at **order level** and never multiplied by number of fills. This initial dataset is NOT a validated tax ledger, and does not yet calculate realized P&L.
 
+## Local browser import (recommended)
+
+Start Next.js with `npm run dev` and open **http://localhost:3000/import**. The server discovers available brokerage accounts from Webull automatically; you can select one account or **All accounts**. Choose a date range (first test: 1–3 trading days) and click **Import Webull trades**. Each account is synced sequentially, with its own success/failure summary. The browser does not require the journal bearer token or expose Webull credentials.
+
+This browser workflow is deliberately restricted to Next.js development requests addressed to localhost/127.0.0.1. It is **not** a production authentication system. For deployment, implement signed-in sessions and authorization before enabling it. If running the app on a remote Ubuntu machine, access it through an SSH local-port tunnel rather than exposing the local-only import feature publicly.
+
 ## Verify the first real import
 
 1. Restart Next.js after pulling updates. Make sure `WEBULL_ENV=production` and `WEBULL_USE_ACCESS_TOKEN=false`.
-2. Use `GET /api/webull/accounts` to obtain an account ID (keep the ID private).
-3. Run a **small** range (1–3 trading days) through `POST /api/webull/sync` before attempting a month.
+2. Visit `/import`; account IDs are detected automatically.
+3. Choose a **small** range (1–3 trading days), select an account or All Accounts, then click **Import Webull trades**.
 4. Confirm `GET /api/webull/imports`, `GET /api/orders`, and `GET /api/trades` report the expected quantities and fees. The trade page is also available at `/trades`.
 5. Run the **same** sync again and verify record counts do not increase. Compare against Webull's own account statement before relying on any P&L calculation.
 6. Run `npm test` to execute parser and signature regression tests (Node.js 24).
@@ -72,6 +78,7 @@ All API routes require `Authorization: Bearer <JOURNAL_API_TOKEN>`. UI pages mus
 
 Pages:
 - `/` — overview
+- `/import` — local-only import interface, automatic account discovery and multi-account sync
 - `/trades` — read-only imported completed-order snapshots, with associated order fees
 
 Routes:
