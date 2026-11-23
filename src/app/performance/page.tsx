@@ -49,9 +49,9 @@ export default async function Performance({searchParams}:{searchParams:Promise<P
       AND ($1::bigint IS NULL OR e.brokerage_account_id=$1::bigint)
     UNION ALL
     SELECT 'manual:'||m.id::text AS id,m.brokerage_account_id::text AS account_id,
-     m.symbol,'BUY'::text AS side,m.quantity::text,m.unit_basis::text AS price,
-     m.acquired_at AS executed_at,'0'::text AS fees,'1'::text AS fee_count
-    FROM manual_opening_lots m
+     m.symbol,m.side,m.quantity::text,m.price::text,
+     m.executed_at,m.fees::text AS fees,'1'::text AS fee_count
+    FROM manual_trades m
     WHERE ($1::bigint IS NULL OR m.brokerage_account_id=$1::bigint)
    )
    SELECT * FROM ledger_rows ORDER BY executed_at ASC,id ASC LIMIT 20001`,
@@ -72,8 +72,8 @@ export default async function Performance({searchParams}:{searchParams:Promise<P
  const recent=[...(report?.matches??[])].reverse().slice(0,80);
  return <main className="shell"><header><Link href="/" className="brand">TRADE / JOURNAL</Link><span className="muted">Provisional performance · Local only</span></header>
   <section className="page-title"><p className="eyebrow">TRADE ACCOUNTING</p><h1>Realized performance</h1>
-   <p className="intro">Signed FIFO matching of imported completed-order snapshots and user-entered historical opening shares. Sales can open short positions; subsequent buys first cover those shorts. Results remain provisional until verified against brokerage records.</p></section>
-  <nav className="pill-row"><Link href="/import">Import trades ↗</Link><Link href="/manual">Add historical shares ↗</Link><Link href="/trades">Trade history ↗</Link></nav>
+   <p className="intro">Signed FIFO matching of Webull completed-order snapshots and manually entered stock trades or historical opening shares. Sales can open short positions; subsequent buys first cover those shorts. Results remain provisional until verified against brokerage records.</p></section>
+  <nav className="pill-row"><Link href="/import">Import trades ↗</Link><Link href="/manual">Manual trades ↗</Link><Link href="/trades">Trade history ↗</Link></nav>
   <form action="/performance" method="get" className="performance-filter">
    <label htmlFor="performance-account">Account</label>
    <select id="performance-account" name="account" defaultValue={selected}>
