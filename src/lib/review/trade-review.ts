@@ -12,7 +12,6 @@ export type ReviewSession={
 };
 export type ReviewResult={trades:ReviewedTrade[];sessions:ReviewSession[];openPositions:ReturnType<typeof buildLedger>['openPositions']};
 type Cycle={id:string;accountId:string;symbol:string;direction:'LONG'|'SHORT';openedAt:string;matches:ClosedMatch[]};
-const min=(a:bigint,b:bigint)=>a<b?a:b;
 const money=(qty:bigint,price:bigint)=>qty*price/100000000n;
 const dateET=(iso:string)=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(iso));
 const sum=(values:string[])=>formatFixed(values.reduce((s,v)=>s+parseFixed(v),0n));
@@ -63,7 +62,7 @@ export function buildTradeReview(input:LedgerInput[]):ReviewResult{
  const trades:ReviewedTrade[]=[];
  for(const row of ordered){
   const key=row.accountId+'\0'+row.symbol;
-  const state=positions.get(key)??{balance:0n,cycle:null};
+  const state:{balance:bigint;cycle:Cycle|null}=positions.get(key)??{balance:0n,cycle:null};
   const qty=parseFixed(row.quantity)*(row.side==='BUY'?1n:-1n);
   const matched=closures.get(key+'\0'+row.id)??[];
   if(state.cycle&&matched.length)state.cycle.matches.push(...matched);
