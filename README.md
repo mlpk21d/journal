@@ -55,7 +55,7 @@ Sync jobs paginate grouped historical orders, flatten the child orders, and quer
 
 ## Local browser import (recommended)
 
-Start Next.js with `npm run dev` and open **http://localhost:3000/import**. The server discovers available brokerage accounts from Webull automatically; you can select one account or **All accounts**. Choose a date range (first test: 1–3 trading days) and click **Import Webull trades**. Each account is synced sequentially, with its own success/failure summary. The browser does not require the journal bearer token or expose Webull credentials.
+Apply database migration **003** with `npm run db:migrate`, start Next.js with `npm run dev`, and open **http://localhost:3000/import**. The page reads saved Webull accounts from PostgreSQL immediately, then triggers a non-blocking refresh when the cache is due; you can select one account or **All accounts**. Choose a date range (first test: 1–3 trading days) and click **Import Webull trades**. Each account is synced sequentially, with its own success/failure summary. The browser does not require the journal bearer token or expose Webull credentials. The account cache refresh is claimed atomically in PostgreSQL and runs at most once per 30 minutes while the import page is being used (failed requests retry after 5 minutes). There is no persistent background daemon: refresh is initiated silently when visiting the page, but does not delay rendering cached data. Import account authorization uses the cached list rather than an extra Webull request.
 
 This browser workflow is deliberately restricted to Next.js development requests addressed to localhost/127.0.0.1. It is **not** a production authentication system. For deployment, implement signed-in sessions and authorization before enabling it. If running the app on a remote Ubuntu machine, access it through an SSH local-port tunnel rather than exposing the local-only import feature publicly.
 
@@ -76,7 +76,7 @@ Webull may omit recently executed orders from historical data for a period, so r
 
 All API routes require `Authorization: Bearer <JOURNAL_API_TOKEN>`. UI pages must be restricted to trusted networks until session authentication exists.
 
-Pages:
+Pages (accessible through the global top-right hamburger menu and right-side drawer):
 - `/` — overview
 - `/import` — local-only import interface, automatic account discovery and multi-account sync
 - `/trades` — read-only imported completed-order snapshots, with associated order fees
@@ -91,6 +91,10 @@ Routes:
 - `GET /api/webull/imports` — import job history
 - `GET /api/orders` — locally saved orders and fees
 - `GET /api/trades` — locally saved execution records
+
+## Account cache and navigation
+
+Migration `003_account_cache.sql` adds account display names, user aliases, masked account references, refresh timestamps, and one row to coordinate Webull cache refreshes. Existing imported accounts are retained. On initial page load, saved account IDs appear immediately; the server-side refresh asynchronously updates any richer metadata returned by Webull. Aliases override Webull metadata. Account labels also appear on `/performance`. The right-side slide-out menu links to the four existing pages. No new public pages or unprotected credential-editing endpoints were added. The cache is protected by existing local-development-only server actions.
 
 ## Provisional realized performance
 
