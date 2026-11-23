@@ -26,6 +26,12 @@ This sends a signed token-creation request and writes `WEBULL_ACCESS_TOKEN` to t
 
 Webull's documentation: https://developer.webull.com/apis/docs/authentication/token/. This command must not be run as part of deployment or CI. If token creation fails, inspect the sanitized HTTP status and error code; never share credentials.
 
+## Troubleshooting production 401 UNAUTHORIZED
+
+Webull documents HTTP 401 UNAUTHORIZED as commonly caused by a credential/environment mismatch. Confirm the exact newly issued **production** App Key/Secret pair is saved in `.env.local`, `WEBULL_ENV=production`, and `WEBULL_USE_ACCESS_TOKEN=false` when API 2FA is disabled. A leftover `WEBULL_ACCESS_TOKEN` is ignored unless `WEBULL_USE_ACCESS_TOKEN=true`. Fully stop and restart the Next.js server after changing credentials. Note that environment variables already exported by your shell may override `.env.local`.
+
+If the 401 persists, verify the production application/key is active and has Trading API permission in Webull's developer console. Never share App Keys, App Secrets or Tokens in bug reports. The app's journal bearer token is unrelated to the upstream Webull 401.
+
 ## Read-only Webull synchronization
 
 Retrieve available accounts:
