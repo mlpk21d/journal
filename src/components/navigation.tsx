@@ -5,7 +5,7 @@ import {useEffect,useRef,useState} from 'react';
 const links=[
  {href:'/',name:'Dashboard'},
  {href:'/import',name:'Import Trades'},
- {href:'/manual',name:'Manual Opening Lots'},
+ {href:'/manual',name:'Manual Trades'},
  {href:'/trades',name:'Trade History'},
  {href:'/performance',name:'Realized Performance'}
 ];
