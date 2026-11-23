@@ -45,3 +45,38 @@ test('no mutation of source rows; fractional quantities and same-price closes',(
  assert.equal(v.trades[0].quantity,'0.5');assert.equal(v.trades[0].net,'-0.03');
  assert.equal(parseFixed(v.trades[0].fees),3000000n);
 });
+
+test('audit matches the existing ledger for a multi-fill completed trade',async()=>{
+ const {auditTrade}=await import('../src/lib/review/details.ts');
+ const data=[row('a','1','Z','BUY','5','100','0.5',at('14:00')),
+ row('b','1','Z','BUY','5','110','0.5',at('14:02')),
+ row('c','1','Z','SELL','10','120','1',at('14:10'))];
+ const trade=buildTradeReview(data).trades[0];
+ const audit=auditTrade(data,trade.id);
+ assert.ok(audit);
+ assert.equal(audit.gross,trade.gross);
+ assert.equal(audit.net,trade.net);
+ assert.deepEqual(audit.executions.map(e=>e.id),['a','b','c']);
+ assert.equal(audit.matches.length,2);
+ assert.equal(auditTrade(data,'not-found'),null);
+});
+test('session audit includes partial exits without showing a completed trade',async()=>{
+ const {auditSession}=await import('../src/lib/review/details.ts');
+ const data=[row('a','1','A','BUY','10','10','0',at('14:00')),
+ row('b','1','A','SELL','2','12','0',at('14:10'))];
+ const result=auditSession(data,'1','2026-11-23');
+ assert.ok(result);
+ assert.equal(result.gross,'4');
+ assert.equal(result.closedShares,'2');
+ assert.equal(result.matches.length,1);
+ assert.equal(auditSession(data,'1','2026-11-22'),null);
+});
+test('session audit filters symbols without mixing account totals',async()=>{
+ const {auditSession}=await import('../src/lib/review/details.ts');
+ const data=[row('a','1','A','BUY','1','10','0',at('14:00')),row('b','1','A','SELL','1','11','0',at('14:10')),
+ row('c','1','B','BUY','1','20','0',at('14:12')),row('d','1','B','SELL','1','25','0',at('14:13')),
+ row('e','2','A','BUY','1','10','0',at('14:00')),row('f','2','A','SELL','1','100','0',at('14:14'))];
+ const a=auditSession(data,'1','2026-11-23','A');
+ assert.ok(a);assert.equal(a.gross,'1');
+ assert.equal(auditSession(data,'1','2026-11-23')?.gross,'6');
+});
