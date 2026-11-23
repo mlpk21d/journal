@@ -42,7 +42,7 @@ export default async function Trades({searchParams}:{searchParams:Promise<Params
  error?<p className="notice">Database unavailable or migrations pending.</p>:
  rows.length===0?<p className="notice">{symbol?'No transactions found for '+symbol+'.':'No transactions yet. Import Webull orders or enter a manual trade.'}</p>:<>
  <p className="helper">{symbol?'Showing '+rows.length+' most recent '+symbol+' transaction(s) across all accounts.':'Showing the 100 most recent transactions across all symbols.'}{rows.length===100?' Results are limited to the most recent 100 matching records.':''}</p>
- <div className="table-scroll"><table><thead><tr><th>Symbol</th><th>Side</th><th>Quantity</th><th>Avg Price</th><th>Fees</th></tr></thead><tbody>
- {rows.map(r=><tr key={String(r.row_id)}><td>{String(r.symbol)}</td><td><span className={r.side==='BUY'?'trade-side-buy':'trade-side-sell'}>{String(r.side)}</span></td><td>{String(r.quantity)}</td><td>{twoDecimals(r.price)}</td><td>{twoDecimals(r.order_fees)}</td></tr>)}
+ <div className="table-scroll"><table><thead><tr><th>Symbol</th><th>Side</th><th>Quantity</th><th>Avg Price</th><th>Fees</th><th>Filled Time (UTC)</th></tr></thead><tbody>
+ {rows.map(r=><tr key={String(r.row_id)}><td>{String(r.symbol)}</td><td><span className={r.side==='BUY'?'trade-side-buy':'trade-side-sell'}>{String(r.side)}</span></td><td>{String(r.quantity)}</td><td>{twoDecimals(r.price)}</td><td>{twoDecimals(r.order_fees)}</td><td>{new Date(String(r.executed_at)).toISOString().replace('T',' ').slice(0,19)}</td></tr>)}
  </tbody></table></div></>}</main>;
 }
