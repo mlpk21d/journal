@@ -1,5 +1,5 @@
 'use client';
-import {useState,useTransition} from 'react';
+import {useRef,useState,useTransition,type FormEvent} from 'react';
 import {useRouter} from 'next/navigation';
 import {deleteManualTrade,saveManualTrade} from './actions';
 
@@ -16,15 +16,27 @@ export default function ManualTradeEditor({accounts,trades,title='Manual trade e
  const [message,setMessage]=useState('');
  const [error,setError]=useState(false);
  const router=useRouter();
+ const formRef=useRef<HTMLFormElement>(null);
  const editingId=editing?.id??null;
  function reset(){setEditing(null);setFormKey(x=>x+1);}
- function submit(form:FormData){
+ function submit(event:FormEvent<HTMLFormElement>){
+  event.preventDefault();
+  if(pending)return;
+  const form=new FormData(event.currentTarget);
   if(editingId)form.set('id',editingId);
   setMessage('');
+  setError(false);
   start(async()=>{
-   const result=await saveManualTrade(form);
-   setMessage(result.message);setError(!result.ok);
-   if(result.ok){reset();router.refresh();}
+   try{
+    const result=await saveManualTrade(form);
+    setMessage(result.message);setError(!result.ok);
+    if(result.ok){reset();router.refresh();}
+    else formRef.current?.scrollIntoView({behavior:'smooth',block:'start'});
+   }catch(err){
+    console.error('[Manual trades] Submit failed',err);
+    setMessage('Unable to reach the save action. Check your Next.js terminal and reload this page.');
+    setError(true);
+   }
   });
  }
  function remove(id:string){
@@ -40,7 +52,7 @@ export default function ManualTradeEditor({accounts,trades,title='Manual trade e
   <section className="import-panel">
    <h2>{editing?'Edit manual trade':title}</h2>
    {description&&<p className="helper">{description}</p>}
-   <form key={editing?.id??'new-'+formKey} action={submit} className="manual-lot-form">
+   <form key={editing?.id??'new-'+formKey} ref={formRef} onSubmit={submit} className="manual-lot-form">
     <label className="field-label" htmlFor="manual-account">Brokerage account</label>
     <select id="manual-account" name="account" required disabled={pending||!accounts.length} defaultValue={editing?.accountId??''}>
      <option value="" disabled>Select account</option>
@@ -72,12 +84,12 @@ export default function ManualTradeEditor({accounts,trades,title='Manual trade e
     <textarea id="manual-notes" name="notes" rows={3} maxLength={400} defaultValue={editing?.notes??''} placeholder="E.g. free stock award, transfer, or verified trade statement"/>
     <p className="notice">Manual entries affect provisional FIFO P&amp;L but are not Webull executions. A $0 entry price is allowed; gifted or promotional shares may have a nonzero tax basis. Verify your records. Use Opening shares only for historical BUY acquisitions.</p>
     <label className="manual-check"><input name="acknowledged" type="checkbox" value="yes" required/> I understand this is a manually supplied, unverified record.</label>
+    {message&&<p className="notice" role={error?'alert':'status'}>{message}</p>}
     <div className="manual-actions">
      <button className="primary-button" type="submit" disabled={pending||!accounts.length}>{pending?'Saving…':editing?'Update trade':'Add trade'}</button>
      {editing&&<button className="manual-secondary" type="button" disabled={pending} onClick={reset}>Cancel edit</button>}
     </div>
    </form>
-   {message&&<p className="notice" role={error?'alert':'status'}>{message}</p>}
   </section>
   {showHistory&&<>
    <h2>Manual entries</h2>
