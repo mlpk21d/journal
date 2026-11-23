@@ -32,3 +32,9 @@
 /* Trade history execution side colors */
 .trade-side-buy{color:#70d7a0;font-weight:700}
 .trade-side-sell{color:#f18383;font-weight:700}
+
+/* Completed-trade and trading-session review */
+.review-tabs{display:flex;gap:12px;margin-top:28px;flex-wrap:wrap}
+.review-tabs a{padding:12px 18px;border:1px solid #344d5d;border-radius:8px;color:#c5d7e1}
+.review-tabs a.review-active{background:#254537;border-color:#79c1ac;color:#f2fcf8}
+.performance-filter input{min-width:145px;max-width:230px;background:#142331;color:#f0f6f9;border:1px solid #344d5d;border-radius:8px;padding:12px}

@@ -82,6 +82,7 @@ Pages (accessible through the global top-right hamburger menu and right-side dra
 - `/manual` — local-only generic manual stock BUY/SELL and historical opening entries, with create/edit/delete
 - `/trades` — read-only imported and manually entered transactions in six columns: Symbol, Side (green BUY/red SELL), Quantity (whole shares without trailing zeroes; fractional shares preserved), Avg Price (2 decimals), Fees (2 decimals), Filled Time (UTC); case-insensitive exact ticker filter (`/trades?symbol=NVDA`) applied to all stored history before limiting to the latest 100 matches
 - `/performance` — localhost-development-only provisional FIFO realized P&L, per-account breakdown/filter, short covers and open journal lots
+- `/review` — localhost-development-only completed flat-to-flat trade cycles and separate Eastern Time session reviews; ticker, account and exit-date filters
 
 Routes:
 - `GET /api/health`
@@ -144,3 +145,11 @@ Future `/settings/brokerages` UI requirements:
 - Migrate legacy environment-based credentials safely and support credential rotation; do not delete existing credentials until replacements are verified.
 
 **Implementation order:** application authentication/security first, then encrypted brokerage credential storage, then settings UI and optional token activation.
+
+## Trade Review architecture
+
+Open **/review** on localhost in Next.js development mode. The **Completed trades** tab treats an account/symbol position from flat to flat as one trade, including several BUY/SELL orders and partial exits. A position reversal closes the first trade and begins a new one. Only fully completed position cycles appear here; open positions with realized partial exits appear in **Trading sessions**. The account filter keeps inventory isolated; ticker and exit-date filters are applied only **after** the entire account history is FIFO-matched. Trade dates and daily session boundaries use **America/New_York**, including daylight saving adjustments; displayed execution timestamps remain UTC.
+
+The review layer in \`src/lib/review/trade-review.ts\` consumes the unchanged \`buildLedger\` output. Trade entry/exit prices are quantity-weighted from matched FIFO shares and may differ from a simple average of all orders. Aggregate trade gross and net are sums of the original FIFO matches; allocated fees equal gross minus net and are not subtracted again. Webull missing fees follow the same $0 policy as \`/performance\`. The session view aggregates FIFO realized closures by exit date and brokerage account, including partial exits of still-open positions. Closure count means number of FIFO lot matches, not number of order executions.
+
+Trade IDs are stable within a given input history and based on brokerage account, symbol, first opening execution ID, and direction. They are **derived identifiers, not permanent database keys**: importing older orders or editing manual entries can rebuild position cycles. Before attaching persistent notes, screenshots, or strategies, add a review metadata model with a durable cycle identity and reconciliation/migration policy. Do not store annotations in imported execution or order tables. Both views are read-only; there is no database migration or change to Webull imports, original fee rows, or FIFO calculations. A 20,000-row safeguard prevents incomplete historical basis from being displayed as complete. Run \`npm test\` and \`npm run typecheck\` to verify the feature.
