@@ -43,7 +43,7 @@ export function summarizeAnalytics(trades:AnalyticsTrade[]):AnalyticsReport{
 /** Never associate a strategy or mistake with a trade whose fingerprint changed. */
 export function buildAnalytics(trades:ReviewedTrade[],executions:LedgerInput[],notes:AnalyticsNote[]):AnalyticsReport{
  const noteMap=new Map(notes.map(note=>[note.cycleKey,note]));
- return summarizeAnalytics(trades.map(trade=>{
+ return summarizeAnalytics(trades.map((trade):AnalyticsTrade=>{
   const note=noteMap.get(trade.id);
   if(!note)return {trade,strategy:'Unreviewed',mistake:'Not reviewed',status:'missing' as const};
   if(note.fingerprint!==tradeFingerprint(trade,executions))
