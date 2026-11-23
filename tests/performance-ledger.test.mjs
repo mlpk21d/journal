@@ -108,3 +108,25 @@ test('matched short is isolated between accounts',()=>{
  assert.equal(r.openPositions.find(p=>p.accountId==='A').quantity,'-100');
  assert.equal(r.openPositions.find(p=>p.accountId==='B').quantity,'100');
 });
+
+test('historical manual acquisition at zero unit basis matches later imported sale',()=>{
+ const r=buildLedger([
+  row('manual:1','A','FREE','BUY','7','0','0','2021-06-01T12:00:00.000Z'),
+  row('webull:1','A','FREE','SELL','7','120','1','2026-11-23T15:00:00.000Z')
+ ]);
+ assert.equal(r.matches.length,1);
+ assert.equal(r.matches[0].direction,'LONG');
+ assert.equal(r.matches[0].gross,'840');
+ assert.equal(r.matches[0].net,'839');
+ assert.equal(r.unverifiedOpeningSales.length,0);
+ assert.equal(r.openPositions.length,0);
+});
+test('manual opening lot does not cancel a short in a different account',()=>{
+ const r=buildLedger([
+  row('manual:1','A','FREE','BUY','7','0','0','2021-06-01T12:00:00.000Z'),
+  row('webull:2','B','FREE','SELL','7','120','0','2026-11-23T15:00:00.000Z')
+ ]);
+ assert.equal(r.matches.length,0);
+ assert.equal(r.unverifiedOpeningSales.length,1);
+ assert.deepEqual(r.openPositions.map(p=>p.quantity),['7','-7']);
+});
