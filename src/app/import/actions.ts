@@ -2,7 +2,7 @@
 import { headers } from 'next/headers';
 import { webull, WebullRateLimitError } from '@/lib/webull/client';
 import { importWebullOrders } from '@/lib/webull/import';
-import { cachedAccounts, refreshAccountCache, setAccountLabel } from '@/lib/webull/accounts-cache';
+import { cachedAccounts, refreshAccountCache } from '@/lib/webull/accounts-cache';
 
 export type BrokerAccount = { id: string; type: string; label: string; masked: string };
 export type AccountResult = { ok: true; accounts: BrokerAccount[] } | { ok: false; error: string };
@@ -42,14 +42,6 @@ export async function refreshWebullAccounts():Promise<AccountResult> {
   return {ok:true,accounts:await cachedAccounts()};
  }catch(e){console.error('[Webull UI] Account refresh failed:',e);return {ok:false,error:'Cached accounts are temporarily unavailable.'};}
 }
-export async function renameWebullAccount(id:string,name:string):Promise<AccountResult>{
- try{
-  await assertLocalBrowser();
-  await setAccountLabel(id,name);
-  return {ok:true,accounts:await cachedAccounts()};
- }catch(e){console.error('[Webull UI] Account label failed:',e);return {ok:false,error:'Could not save account label.'};}
-}
-
 export async function syncWebullFromBrowser(accountId: string, start: string, end: string): Promise<SyncResult> {
   try {
     await assertLocalBrowser();
@@ -62,7 +54,9 @@ export async function syncWebullFromBrowser(accountId: string, start: string, en
     }
     // Validate against the locally cached, previously discovered Webull accounts.
     // Avoid a fresh brokerage API call on every import click.
-    const ids=(await cachedAccounts()).map(a=>a.id);
+    const available=await cachedAccounts();
+    const ids=available.map(a=>a.id);
+    const display=(id:string)=>available.find(a=>a.id===id)?.label??'Brokerage';
     const selected=accountId==='__all__' ? ids : ids.filter(id=>id===accountId);
     if(!selected.length) return {ok:false,error:'No matching accounts available for import.'};
     const results: Array<{account:string;ok:boolean;scanned?:number;savedOrders?:number;savedExecutions?:number;skippedSnapshots?:number;pages?:number;error?:string}>=[];
@@ -71,11 +65,11 @@ export async function syncWebullFromBrowser(accountId: string, start: string, en
       try{
         const summary=await importWebullOrders(id,new Date(startMs).toISOString(),new Date(endMs).toISOString());
         console.info('[Webull UI] Import completed:', {accountSuffix:id.slice(-4),runId:summary.runId,scanned:summary.scanned});
-        results.push({account:id.slice(-4),ok:true,scanned:summary.scanned,savedOrders:summary.savedOrders,savedExecutions:summary.savedExecutions,
+        results.push({account:display(id),ok:true,scanned:summary.scanned,savedOrders:summary.savedOrders,savedExecutions:summary.savedExecutions,
           skippedSnapshots:summary.skippedSnapshots,pages:summary.pages});
       }catch(err){
         console.error('[Webull UI] Account import failed:',err);
-        results.push({account:id.slice(-4),ok:false,error:err instanceof WebullRateLimitError ? 'Webull rate limit reached; import stopped. Try again later.' : 'See server terminal for error details'});
+        results.push({account:display(id),ok:false,error:err instanceof WebullRateLimitError ? 'Webull rate limit reached; import stopped. Try again later.' : 'See server terminal for error details'});
         if(err instanceof WebullRateLimitError) break;
       }
     }
