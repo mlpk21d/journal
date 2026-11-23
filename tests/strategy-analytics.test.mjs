@@ -22,7 +22,8 @@ test('metrics count wins, losses, flat and verified values without rounding sour
  assert.equal(m.trades,4);assert.equal(m.verified,3);assert.equal(m.unverified,1);
  assert.equal(m.wins,1);assert.equal(m.losses,1);assert.equal(m.breakeven,1);
  assert.equal(m.net,'5');assert.equal(m.average,'1.66666666');
- assert.equal(m.winRate,100/3);assert.equal(m.profitFactor,2);
+ assert.ok(Math.abs(m.winRate-100/3)<1e-10,'win rate should be approximately one third');
+ assert.equal(m.profitFactor,2);
 });
 test('profit factor handles no losses, no wins, and missing net',()=>{
  const mk=(net)=>({trade:{net}});
