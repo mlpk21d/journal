@@ -1,4 +1,3 @@
-BEGIN;
 CREATE TABLE brokerage_accounts (
  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
  broker TEXT NOT NULL DEFAULT 'webull',
@@ -72,4 +71,3 @@ CREATE TABLE wash_sale_adjustments (
  UNIQUE(loss_execution_id,replacement_tax_lot_id)
 );
 CREATE INDEX wash_sales_by_loss ON wash_sale_adjustments(loss_execution_id);
-COMMIT;
