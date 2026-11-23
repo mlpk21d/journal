@@ -57,7 +57,11 @@ export async function importWebullOrders(accountId:string,start:string,end:strin
       DO UPDATE SET symbol=EXCLUDED.symbol,side=EXCLUDED.side,quantity=EXCLUDED.quantity,price=EXCLUDED.price,
       executed_at=EXCLUDED.executed_at,raw_payload=EXCLUDED.raw_payload`,[localId,orderId,snapshot.symbol,snapshot.side,snapshot.quantity,snapshot.price,snapshot.executedAt,JSON.stringify(detail)]);
       savedExecutions++;
-     } else skippedSnapshots++;
+     } else {
+      // If an order was corrected or cancelled, remove an earlier stale snapshot.
+      await conn.query("DELETE FROM executions WHERE brokerage_order_id=$1 AND source='webull_order_snapshot'",[orderId]);
+      skippedSnapshots++;
+     }
      await conn.query('COMMIT');
      savedOrders++;
     }catch(e){await conn.query('ROLLBACK');throw e;}
