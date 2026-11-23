@@ -3,7 +3,21 @@ import {headers} from 'next/headers';
 import {revalidatePath} from 'next/cache';
 import {db} from '@/lib/db';
 
-export type ManualTradeResult={ok:boolean;message:string};
+export type ManualTradeResult={ok:boolean;message:string;code?:string};
+function publicError(error:unknown):ManualTradeResult {
+ const e=error as {code?:string;message?:string;constraint?:string};
+ if(e?.code==='42P01'||e?.code==='42703')
+  return {ok:false,code:'MIGRATION_REQUIRED',message:'Manual trade database is not updated. Run npm run db:migrate (migration 005), then restart Next.js.'};
+ if(e?.code==='23503')return {ok:false,code:'UNKNOWN_ACCOUNT',message:'This brokerage account is no longer available. Refresh the page and select an account.'};
+ if(e?.code==='23514'||e?.code==='22003'||e?.code==='22P02')
+  return {ok:false,code:'INVALID_VALUE',message:'One of the trade values exceeds database limits or violates a constraint. Check shares, price and fees.'};
+ if(e?.code==='23505')return {ok:false,code:'DUPLICATE',message:'This record conflicts with an existing database entry.'};
+ if(e?.message?.startsWith('Check account')||e?.message?.startsWith('Enter a')||
+    e?.message?.startsWith('Acknowledge')||e?.message?.startsWith('Select a')||
+    e?.message==='Manual trade not found.')
+  return {ok:false,code:'VALIDATION',message:e.message};
+ return {ok:false,code:'SERVER_ERROR',message:'Manual trade could not be saved. Check the Next.js terminal for the PostgreSQL error code.'};
+}
 async function assertLocal():Promise<void>{
  const h=await headers(),host=h.get('host')??'',origin=h.get('origin');
  if(process.env.NODE_ENV!=='development'||!/^(localhost|127\.0\.0\.1|\[::1\])(?::\d+)?$/i.test(host))
@@ -72,12 +86,9 @@ export async function saveManualTrade(form:FormData):Promise<ManualTradeResult>{
   refresh();
   return {ok:true,message:id?'Manual trade updated.':'Manual trade saved.'};
  }catch(error){
-  console.error('[Manual trades] Save failed:',error);
-  return {ok:false,message:error instanceof Error&&(
-    error.message.startsWith('Check account')||error.message.startsWith('Enter a')||
-    error.message.startsWith('Acknowledge')||error.message.startsWith('Select a')||
-    error.message==='Manual trade not found.')?error.message:
-   'Unable to save manual trade. Check migrations and server logs.'};
+  const e=error as {code?:string;constraint?:string;message?:string};
+  console.error('[Manual trades] Save failed:',{code:e?.code, constraint:e?.constraint,message:e?.message});
+  return publicError(error);
  }
 }
 export async function deleteManualTrade(id:string):Promise<ManualTradeResult>{
@@ -88,7 +99,8 @@ export async function deleteManualTrade(id:string):Promise<ManualTradeResult>{
   if(!result.rowCount)return {ok:false,message:'Manual trade not found.'};
   refresh();return {ok:true,message:'Manual trade deleted.'};
  }catch(error){
-  console.error('[Manual trades] Delete failed:',error);
-  return {ok:false,message:'Unable to delete manual trade. Check server logs.'};
+  const e=error as {code?:string;message?:string};
+  console.error('[Manual trades] Delete failed:',{code:e?.code,message:e?.message});
+  return publicError(error);
  }
 }
