@@ -9,6 +9,7 @@ import {formatBrokerageAccount} from '@/lib/webull/account-format';
 export const dynamic='force-dynamic';
 type Params={symbol?:string;account?:string;date?:string;view?:string};
 const usd=(s:string|null)=>s===null?'Unverified':new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(Number(s));
+const qty=(s:string)=>s.replace(/(\.\d*?[1-9])0+$|\.0+$/,(match,fraction:string|undefined)=>fraction??'');
 const etDate=(iso:string)=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(iso));
 export default async function Review({searchParams}:{searchParams:Promise<Params>}){
  const host=(await headers()).get('host')??'';
