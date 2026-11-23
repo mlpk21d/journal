@@ -35,8 +35,13 @@ test('does not match one brokerage account against another',()=>{
  ]);
  assert.equal(r.matches.length,0);
  assert.equal(r.unverifiedOpeningSales.length,1);
- assert.equal(r.openPositions.length,1);
- assert.equal(r.net,null);
+ assert.equal(r.openPositions.length,2);
+ assert.deepEqual(r.openPositions.map(p=>[p.accountId,p.side,p.quantity]),[
+  ['A','LONG','10'],['B','SHORT','-10']
+ ]);
+ // No closing trades were matched; the arithmetic realized subtotal is zero.
+ // The opening sell in B remains unverified until broker positions/history reconcile.
+ assert.equal(r.net,'0');
 });
 test('missing fees withhold net, never assume zero',()=>{
  const r=buildLedger([
