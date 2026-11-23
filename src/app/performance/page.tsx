@@ -36,17 +36,25 @@ export default async function Performance({searchParams}:{searchParams:Promise<P
   const r=await pool.query<{
    id:string;account_id:string;symbol:string;side:'BUY'|'SELL';quantity:string;
    price:string;executed_at:Date;fees:string|null;fee_count:string
-  }>(`SELECT e.id::text,e.brokerage_account_id::text AS account_id,e.symbol,e.side,
-   e.quantity::text,e.price::text,e.executed_at,
-   f.total_fees::text AS fees,COALESCE(f.fee_count,0)::text AS fee_count
-   FROM executions e
-   LEFT JOIN LATERAL (
+  }>(`WITH ledger_rows AS (
+    SELECT e.id::text AS id,e.brokerage_account_id::text AS account_id,
+     e.symbol,e.side,e.quantity::text,e.price::text,e.executed_at,
+     f.total_fees::text AS fees,COALESCE(f.fee_count,0)::text AS fee_count
+    FROM executions e
+    LEFT JOIN LATERAL (
       SELECT SUM(amount) AS total_fees,COUNT(*) AS fee_count
       FROM brokerage_order_fees WHERE brokerage_order_id=e.brokerage_order_id
-   ) f ON TRUE
-   WHERE e.source='webull_order_snapshot' AND e.instrument_type='EQUITY'
-   AND ($1::bigint IS NULL OR e.brokerage_account_id=$1::bigint)
-   ORDER BY e.executed_at ASC,e.id ASC LIMIT 20001`,
+    ) f ON TRUE
+    WHERE e.source='webull_order_snapshot' AND e.instrument_type='EQUITY'
+      AND ($1::bigint IS NULL OR e.brokerage_account_id=$1::bigint)
+    UNION ALL
+    SELECT 'manual:'||m.id::text AS id,m.brokerage_account_id::text AS account_id,
+     m.symbol,'BUY'::text AS side,m.quantity::text,m.unit_basis::text AS price,
+     m.acquired_at AS executed_at,'0'::text AS fees,'1'::text AS fee_count
+    FROM manual_opening_lots m
+    WHERE ($1::bigint IS NULL OR m.brokerage_account_id=$1::bigint)
+   )
+   SELECT * FROM ledger_rows ORDER BY executed_at ASC,id ASC LIMIT 20001`,
    [selected==='all'?null:selected]);
   truncated=r.rows.length>20000;
   if(!truncated)data=r.rows.map(x=>({id:x.id,accountId:x.account_id,symbol:x.symbol,
@@ -64,8 +72,8 @@ export default async function Performance({searchParams}:{searchParams:Promise<P
  const recent=[...(report?.matches??[])].reverse().slice(0,80);
  return <main className="shell"><header><Link href="/" className="brand">TRADE / JOURNAL</Link><span className="muted">Provisional performance · Local only</span></header>
   <section className="page-title"><p className="eyebrow">TRADE ACCOUNTING</p><h1>Realized performance</h1>
-   <p className="intro">Signed FIFO matching of imported completed-order snapshots. Sales can open short positions; subsequent buys first cover those shorts. Results remain provisional without verified opening holdings.</p></section>
-  <nav className="pill-row"><Link href="/import">Import trades ↗</Link><Link href="/trades">Trade history ↗</Link></nav>
+   <p className="intro">Signed FIFO matching of imported completed-order snapshots and user-entered historical opening shares. Sales can open short positions; subsequent buys first cover those shorts. Results remain provisional until verified against brokerage records.</p></section>
+  <nav className="pill-row"><Link href="/import">Import trades ↗</Link><Link href="/manual">Add historical shares ↗</Link><Link href="/trades">Trade history ↗</Link></nav>
   <form action="/performance" method="get" className="performance-filter">
    <label htmlFor="performance-account">Account</label>
    <select id="performance-account" name="account" defaultValue={selected}>
@@ -81,7 +89,7 @@ export default async function Performance({searchParams}:{searchParams:Promise<P
     <div><small>Complete net P&amp;L</small><strong>{!uncertainOpening&&report.netKnown?usd(report.net):'Unverified'}</strong></div>
     <div><small>FIFO lot matches</small><strong>{totalClosed}</strong></div>
    </div>
-   <p className="notice">The gross figure is a <strong>partial subtotal for matched shares only</strong>, not your complete account profit or loss. It excludes fees and may assume an initial sale opened a short when older long holdings were not imported. These provisional FIFO results are not tax-adjusted and do not account for wash sales, splits, transfers, or specific-lot identification.</p>
+   <p className="notice">The gross figure is a <strong>partial subtotal for matched shares only</strong>, not your complete account profit or loss. It excludes fees and may assume an initial sale opened a short when older long holdings were not imported. Manually entered costs, including $0, are unverified inputs. These provisional FIFO results are not tax-adjusted and do not account for wash sales, splits, transfers, or specific-lot identification.</p>
    {report.unverifiedOpeningSales.length>0&&<><div className="notice"><strong>Opening sells need verification:</strong> {report.unverifiedOpeningSales.length} sale(s) initially had no earlier buy in the imported history. They are provisionally treated as short openings. A later buy can cover them, but they might instead be sales of older shares not yet imported. Confirm them against Webull before trusting the P&amp;L.</div>
     <h2>Unverified opening sells</h2>
     <div className="table-scroll"><table><thead><tr><th>Sold (UTC)</th><th>Account</th><th>Symbol</th><th>Shares provisionally shorted</th></tr></thead><tbody>
