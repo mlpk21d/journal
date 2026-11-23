@@ -20,3 +20,9 @@
 .text-button{border:0;background:transparent;padding:6px 0;color:#9ed9e9;cursor:pointer;text-decoration:underline}
 .alias-actions{display:flex;gap:12px;margin-top:12px}.alias-actions button{background:#264557;border:1px solid #456a7a;color:#eaf5f8;border-radius:6px;padding:9px 14px;cursor:pointer}
 @media(prefers-reduced-motion:reduce){.nav-drawer{transition:none}}
+
+.manual-lot-form textarea{display:block;width:100%;background:#0b151f;color:#e9f0f5;border:1px solid #334858;padding:13px;border-radius:8px;resize:vertical;font:inherit}
+.manual-lot-form .notice{margin-top:22px;line-height:1.6}
+.manual-check{display:flex;align-items:flex-start;gap:11px;color:#b8cad5;font-size:13px;line-height:1.5;margin:22px 0}
+.manual-check input{width:auto!important;flex:0 0 auto;margin:2px 0 0;accent-color:#91d2c5}
+.manual-lot-form .primary-button{margin-top:0}
