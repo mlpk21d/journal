@@ -31,7 +31,7 @@ export function normalizeOrder(o:Obj):NormalizedOrder | null {
   brokerOrderId:brokerOrderId ?? 'client:'+clientOrderId,
   clientOrderId, symbol:stringField(o,'symbol'),
   side:stringField(o,'side'),status:stringField(o,'status','order_status'),
-  orderedAt:timestamp(field(o,'create_time','created_time','placed_time','place_time','order_time')), raw:o
+  orderedAt:timestamp(field(o,'place_time_at','create_time','created_time','placed_time','order_time')), raw:o
  };
 }
 export type Snapshot = {symbol:string;side:'BUY'|'SELL';quantity:string;price:string;executedAt:string};
@@ -41,8 +41,8 @@ export function normalizeSnapshot(o:Obj):Snapshot|null {
  const symbol=stringField(o,'symbol');
  const side=stringField(o,'side')?.toUpperCase();
  const quantity=decimal(field(o,'filled_quantity'));
- const price=decimal(field(o,'avg_filled_price','average_filled_price','filled_price'));
- const executedAt=timestamp(field(o,'filled_time','fill_time'));
+ const price=decimal(field(o,'filled_price','avg_filled_price','average_filled_price'));
+ const executedAt=timestamp(field(o,'filled_time_at','fill_time_at'));
  if(!symbol || !/^[A-Z0-9.^_-]{1,30}$/i.test(symbol) || (side!=='BUY' && side!=='SELL') || !quantity || Number(quantity)<=0 || !price || !executedAt) return null;
  return {symbol,side,quantity,price,executedAt};
 }
@@ -61,4 +61,21 @@ export function orderFees(o:Obj): {type:string,amount:string}[] {
   }
  }
  return result;
+}
+
+/** Webull order detail can wrap one or more child orders in an orders array. */
+export function detailOrder(response: unknown, historyOrder: Obj): Obj {
+ const outer=object(response);
+ if(!outer) throw new Error('Unexpected Webull order detail response');
+ const root=object(outer.data) ?? outer;
+ const nested=root.orders;
+ if(!Array.isArray(nested)) return root;
+ const historyId=stringField(historyOrder,'order_id','id');
+ const historyClientId=stringField(historyOrder,'client_order_id');
+ const matches=nested.map(object).filter((x):x is Obj => !!x).filter(x =>
+   (historyId!==null && stringField(x,'order_id')===historyId) ||
+   (historyClientId!==null && stringField(x,'client_order_id')===historyClientId)
+ );
+ if(matches.length!==1) throw new Error('Ambiguous Webull detail orders: cannot safely match historical order');
+ return matches[0];
 }
