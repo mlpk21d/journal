@@ -76,7 +76,7 @@ export default async function Review({searchParams}:{searchParams:Promise<Params
   {invalid?<p className="notice">Invalid ticker, account or date filter.</p>:error||truncated?<p className="notice">{error||'More than 20,000 rows. Review stopped rather than silently losing historical opening lots.'}</p>:view==='trades'?<>
    <p className="helper">{trades.length} completed trade(s). A trade closes only when the full position returns to flat or reverses. Entry/exit prices are quantity-weighted across matched FIFO shares; prices are displayed to two decimals. Time is UTC; date filtering uses Eastern Time.</p>
    {!trades.length?<p className="notice">No completed trades match these filters. Partially exited open positions may still appear in the Sessions view.</p>:
-   <ReviewTradesTable trades={trades} accountNames={Object.fromEntries(accounts.map(a=>[a.id,name(a.id)]))}/>
+   <ReviewTradesTable trades={trades} accountNames={Object.fromEntries(accounts.map(a=>[a.id,name(a.id)]))}/>}
   </>:<>
    <p className="helper">{sessions.length} account session(s). Session P&amp;L is attributed to each realized exit on its Eastern Time calendar date. This includes partial exits of positions that remain open. Sessions from different accounts are not combined.</p>
    {!sessions.length?<p className="notice">No realized exit activity matches these filters.</p>:
