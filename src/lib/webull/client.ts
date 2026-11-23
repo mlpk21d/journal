@@ -17,7 +17,19 @@ const PATHS = {
   orderHistory: '/trading/orders/historical-orders/list',
   orderDetail: '/trading/orders/get',
 } as const;
+let previousRequestAt = 0;
+let requestQueue: Promise<void> = Promise.resolve();
+async function throttle(): Promise<void> {
+ const waiter=requestQueue.then(async()=>{
+  const delay=Math.max(0,1100-(Date.now()-previousRequestAt));
+  if(delay) await new Promise(resolve=>setTimeout(resolve,delay));
+  previousRequestAt=Date.now();
+ });
+ requestQueue=waiter.catch(()=>{});
+ await waiter;
+}
 async function get(path: string, params: Record<string,string> = {}): Promise<JsonValue> {
+  await throttle();
   const {host, headers} = signingHeaders(path, params);
   const url = new URL('https://' + host + path);
   Object.entries(params).forEach(([k,v]) => url.searchParams.set(k,v));
