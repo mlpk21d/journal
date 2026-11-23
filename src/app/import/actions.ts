@@ -1,6 +1,6 @@
 'use server';
 import { headers } from 'next/headers';
-import { webull } from '@/lib/webull/client';
+import { webull, WebullRateLimitError } from '@/lib/webull/client';
 import { importWebullOrders } from '@/lib/webull/import';
 import { object, stringField } from '@/lib/webull/normalize';
 
@@ -81,7 +81,8 @@ export async function syncWebullFromBrowser(accountId: string, start: string, en
           skippedSnapshots:summary.skippedSnapshots,pages:summary.pages});
       }catch(err){
         console.error('[Webull UI] Account import failed:',err);
-        results.push({account:id.slice(-4),ok:false,error:'See server terminal for error details'});
+        results.push({account:id.slice(-4),ok:false,error:err instanceof WebullRateLimitError ? 'Webull rate limit reached; import stopped. Try again later.' : 'See server terminal for error details'});
+        if(err instanceof WebullRateLimitError) break;
       }
     }
     return {ok:true,results};
