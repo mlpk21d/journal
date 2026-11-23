@@ -82,7 +82,7 @@ Pages (accessible through the global top-right hamburger menu and right-side dra
 - `/manual` — local-only generic manual stock BUY/SELL and historical opening entries, with create/edit/delete
 - `/trades` — read-only imported and manually entered transactions in six columns: Symbol, Side (green BUY/red SELL), Quantity (whole shares without trailing zeroes; fractional shares preserved), Avg Price (2 decimals), Fees (2 decimals), Filled Time (UTC); case-insensitive exact ticker filter (`/trades?symbol=NVDA`) applied to all stored history before limiting to the latest 100 matches
 - `/performance` — localhost-development-only provisional FIFO realized P&L, per-account breakdown/filter, short covers and open journal lots
-- `/review` — localhost-development-only completed flat-to-flat trade cycles and separate Eastern Time session reviews; ticker, account and exit-date filters
+- `/review` — localhost-development-only completed flat-to-flat trade cycles and separate Eastern Time session reviews; ticker, account and exit-date filters; wide completed-trades table, persistent column visibility preferences (ticker/direction/net P&L mandatory), and trade details/journal editing in a modal
 - `/review/trade?id=...` — completed-trade FIFO audit plus independently saved strategy, setup, entry/exit reasoning, mistakes, lessons, and HTTPS screenshot reference
 - `/review/session?account=...&date=...` — read-only account/session detail with daily realized FIFO matches and contributing executions (optional `symbol=...`)
 
@@ -169,3 +169,9 @@ Run `npm run db:migrate` to create `trade_journal_entries`, then visit a complet
 Each entry has a persistent database UUID; `cycle_key` is a lookup key, **not** a durable identity. An SHA-256 fingerprint guards the exact completed-trade execution composition and values. If later import history changes the cycle under the same lookup key, existing notes are preserved and editing is blocked. If the trade lookup key itself changes, the journal record remains in the database but will need manual reconciliation; automatic migration to another trade is deliberately avoided. Durable annotations should not be interpreted as tax-lot attribution. The journal is for development-only use pending application authentication and authorization. Screenshot links are external and should not contain secrets.
 
 Run `npm test`, `npm run typecheck`, and `npm run build` before use.
+
+### Trade Review table and modal interaction
+
+The **/review** page uses a wider responsive container (up to 1900px) to accommodate the completed-trades table while other pages retain their previous widths. On smaller screens, the table scrolls horizontally rather than crushing numeric and date columns. Use **Columns** to show or hide optional columns; **Ticker**, **Direction** and **Net P&L** are always visible. Preferences are stored in the current browser's localStorage; **Show all columns** resets the view. There is no schema migration for these settings.
+
+Click a ticker to open an accessible, scrollable trade review modal with the original FIFO audit, contributing executions, and saved trade journal fields. The modal fetches only the selected trade's detail through a server action restricted to localhost development, preserving the existing fingerprint checks and read-only Webull data. Escape and the close control dismiss the modal without leaving the page. The legacy direct `/review/trade?id=...` address remains available for bookmarks, but normal review now happens in the modal.

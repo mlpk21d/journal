@@ -1,3 +1,4 @@
+import {ReviewTradesTable} from '@/components/review-trades-table';
 import Link from 'next/link';
 import {headers} from 'next/headers';
 import {db} from '@/lib/db';
@@ -8,14 +9,6 @@ import {formatBrokerageAccount} from '@/lib/webull/account-format';
 export const dynamic='force-dynamic';
 type Params={symbol?:string;account?:string;date?:string;view?:string};
 const usd=(s:string|null)=>s===null?'Unverified':new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(Number(s));
-const qty=(s:string)=>s.replace(/(\.\d*?[1-9])0+$|\.0+$/,(m,p:string|undefined)=>p??'');
-const timestamp=(s:string)=>s.replace('T',' ').slice(0,19);
-const duration=(ms:number)=>{
- const minutes=Math.floor(ms/60000);
- if(minutes<60)return minutes+'m';
- const hours=Math.floor(minutes/60);
- return hours<24?hours+'h '+minutes%60+'m':Math.floor(hours/24)+'d '+hours%24+'h';
-};
 const etDate=(iso:string)=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(iso));
 export default async function Review({searchParams}:{searchParams:Promise<Params>}){
  const host=(await headers()).get('host')??'';
@@ -65,7 +58,7 @@ export default async function Review({searchParams}:{searchParams:Promise<Params
  const name=(id:string)=>{const a=accounts.find(a=>a.id===id);return a?formatBrokerageAccount(a.account_type,a.external_account_id):'Unknown account';};
  const trades=(review?.trades??[]).filter(t=>(!symbol||t.symbol.toUpperCase()===symbol)&&(!date||etDate(t.exitedAt)===date));
  const sessions=(review?.sessions??[]).filter(s=>(!date||s.date===date)&&(!symbol||s.symbols.includes(symbol)));
- return <main className="shell"><header><Link href="/" className="brand">TRADE / JOURNAL</Link><span className="muted">Local-only · Provisional FIFO review</span></header>
+ return <main className="shell review-shell"><header><Link href="/" className="brand">TRADE / JOURNAL</Link><span className="muted">Local-only · Provisional FIFO review</span></header>
   <section className="page-title"><p className="eyebrow">TRADE JOURNAL</p><h1>Trade Review</h1>
    <p className="intro">Completed flat-to-flat positions and daily realized exit activity from imported Webull order snapshots and manual trades. Raw broker transactions remain untouched.</p></section>
   <nav className="pill-row"><Link href="/trades">Transactions ↗</Link><Link href="/performance">Performance ↗</Link><Link href="/import">Import ↗</Link></nav>
@@ -82,9 +75,7 @@ export default async function Review({searchParams}:{searchParams:Promise<Params
   {invalid?<p className="notice">Invalid ticker, account or date filter.</p>:error||truncated?<p className="notice">{error||'More than 20,000 rows. Review stopped rather than silently losing historical opening lots.'}</p>:view==='trades'?<>
    <p className="helper">{trades.length} completed trade(s). A trade closes only when the full position returns to flat or reverses. Entry/exit prices are quantity-weighted across matched FIFO shares; prices are displayed to two decimals. Time is UTC; date filtering uses Eastern Time.</p>
    {!trades.length?<p className="notice">No completed trades match these filters. Partially exited open positions may still appear in the Sessions view.</p>:
-   <div className="table-scroll"><table><thead><tr><th>Ticker</th><th>Account</th><th>Direction</th><th>Quantity</th><th>Entry price</th><th>Exit price</th><th>Entry (UTC)</th><th>Exit (UTC)</th><th>Duration</th><th>Gross P&amp;L</th><th>Fees</th><th>Net P&amp;L</th></tr></thead><tbody>
-    {trades.map(t=><tr key={t.id}><td><Link href={'/review/trade?id='+encodeURIComponent(t.id)}><strong>{t.symbol}</strong></Link></td><td>{name(t.accountId)}</td><td className={t.direction==='LONG'?'trade-side-buy':'trade-side-sell'}>{t.direction}</td><td>{qty(t.quantity)}</td><td>{usd(t.entryPrice)}</td><td>{usd(t.exitPrice)}</td><td>{timestamp(t.enteredAt)}</td><td>{timestamp(t.exitedAt)}</td><td>{duration(t.durationMs)}</td><td>{usd(t.gross)}</td><td>{usd(t.fees)}</td><td className={t.net!==null&&Number(t.net)<0?'trade-side-sell':'trade-side-buy'}>{usd(t.net)}</td></tr>)}
-   </tbody></table></div>}
+   <ReviewTradesTable trades={trades} accountNames={Object.fromEntries(accounts.map(a=>[a.id,name(a.id)]))}/>
   </>:<>
    <p className="helper">{sessions.length} account session(s). Session P&amp;L is attributed to each realized exit on its Eastern Time calendar date. This includes partial exits of positions that remain open. Sessions from different accounts are not combined.</p>
    {!sessions.length?<p className="notice">No realized exit activity matches these filters.</p>:

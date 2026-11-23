@@ -49,3 +49,30 @@
 .journal-editor button{justify-self:start;border:0;border-radius:8px;background:#9dcfc6;color:#08221b;padding:12px 18px;font-weight:700;cursor:pointer}
 .journal-editor button:disabled{opacity:.6}
 @media(max-width:700px){.journal-grid{grid-template-columns:1fr}}
+
+/* Full-width Trade Review, without widening the rest of the application. */
+.shell.review-shell{max-width:1900px;width:100%;padding-inline:clamp(20px,2.4vw,48px)}
+.review-table-section{margin-bottom:32px}
+.review-column-toolbar{display:flex;justify-content:flex-end;align-items:center;gap:16px;flex-wrap:wrap;margin:10px 0 14px}
+.review-column-toolbar .helper{margin:0}
+.review-config-button,.review-reset-button{background:#203346;border:1px solid #456075;color:#e4f0f7;border-radius:8px;padding:10px 14px;cursor:pointer}
+.review-column-options{border:1px solid #344d5d;border-radius:12px;background:#121f2b;padding:20px;margin:0 0 16px}
+.review-column-options legend{padding:0 8px;color:#cee3ec;font-weight:700}
+.review-column-options-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.review-column-options-grid label{display:flex;align-items:center;gap:9px;font-size:13px;color:#d4e6ef}
+.review-column-options-grid input{accent-color:#91d2c5;width:17px;height:17px}
+.review-reset-button{margin-top:18px}
+.review-trade-table{width:100%;min-width:max-content}
+.review-trade-table th,.review-trade-table td{padding:15px 13px}
+.review-ticker-button{background:none;border:0;color:#a6d8ec;font:inherit;font-weight:700;cursor:pointer;padding:0;text-decoration:underline;text-underline-offset:3px}
+.review-ticker-button:hover,.review-ticker-button:focus-visible{color:white}
+.review-modal-backdrop{position:fixed;inset:0;background:#02070bdb;z-index:110;display:flex;align-items:center;justify-content:center;padding:clamp(12px,2vw,36px)}
+.review-modal{width:min(1440px,100%);max-height:calc(100dvh - 32px);display:flex;flex-direction:column;min-height:0;border:1px solid #496679;border-radius:14px;background:#0c1721;box-shadow:0 20px 80px #000c}
+.review-modal-header{display:flex;justify-content:space-between;align-items:center;gap:18px;padding:20px 28px;border-bottom:1px solid #344957}
+.review-modal-header h2{font-size:24px;margin:8px 0 0}
+.review-modal-header .eyebrow{margin:0}
+.review-modal-close{border:1px solid #456075;background:#203346;color:white;border-radius:8px;font-size:26px;width:42px;height:42px;cursor:pointer;flex:none}
+.review-modal-body{overflow:auto;overscroll-behavior:contain;padding:16px 28px 32px}
+.review-modal-body .journal-editor{margin:24px 0}
+.review-modal-body .performance-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:700px){.review-modal-header,.review-modal-body{padding-inline:16px}.review-modal-body .performance-metrics{grid-template-columns:1fr}.review-modal{max-height:calc(100dvh - 16px)}}
