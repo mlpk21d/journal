@@ -1,5 +1,6 @@
 'use client';
 import {useActionState} from 'react';
+import {TradeScreenshots} from '@/components/trade-screenshots';
 import {saveTradeJournal,type JournalSaveState} from '@/features/trade-journal/actions';
 import type {StoredJournal} from '@/lib/review/journal-store';
 const initial:JournalSaveState={ok:false,message:''};
@@ -22,6 +23,8 @@ export function TradeJournalEditor({cycleKey,fingerprint,journal}:{cycleKey:stri
    <button type="submit" disabled={pending}>{pending?'Saving…':'Save journal entry'}</button>
    {state.message&&<p role="status" className="notice">{state.message}</p>}
   </form>
+  {journal&&<TradeScreenshots cycleKey={cycleKey} fingerprint={fingerprint} journalId={journal.id}/>}
+  {!journal&&state.ok&&<p className="helper">Journal saved. Close and reopen this trade to attach screenshots.</p>}
   {journal&&<p className="helper">Journal ID: {journal.id} · Updated: {journal.updatedAt.slice(0,19).replace('T',' ')} UTC
   {journal.screenshotUrl&&<> · <a href={journal.screenshotUrl} target="_blank" rel="noopener noreferrer">Open screenshot ↗</a></>}</p>}
  </section>;

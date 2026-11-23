@@ -76,3 +76,13 @@
 .review-modal-body .journal-editor{margin:24px 0}
 .review-modal-body .performance-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}
 @media(max-width:700px){.review-modal-header,.review-modal-body{padding-inline:16px}.review-modal-body .performance-metrics{grid-template-columns:1fr}.review-modal{max-height:calc(100dvh - 16px)}}
+
+.journal-screenshots{padding:22px 0;border-top:1px solid #344d5d;margin-top:22px}
+.journal-screenshots h3{margin:0 0 10px}
+.screenshot-controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.screenshot-controls input{max-width:390px}
+.screenshot-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:15px;margin-top:20px}
+.screenshot-card{background:#0c1721;border:1px solid #354c5e;padding:12px;border-radius:9px;min-width:0}
+.screenshot-card img{display:block;width:100%;height:145px;object-fit:contain;background:#09121a}
+.screenshot-card>div{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px}
+.screenshot-card button{background:#442b32;color:#f9dce0;padding:7px 10px;border:1px solid #87525c;border-radius:6px;cursor:pointer}

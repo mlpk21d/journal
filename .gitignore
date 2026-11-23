@@ -6,3 +6,6 @@ node_modules/
 *.tsbuildinfo
 coverage/
 *:Zone.Identifier
+
+# Private journal screenshot files
+data/
