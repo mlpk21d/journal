@@ -86,3 +86,13 @@
 .screenshot-card img{display:block;width:100%;height:145px;object-fit:contain;background:#09121a}
 .screenshot-card>div{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px}
 .screenshot-card button{background:#442b32;color:#f9dce0;padding:7px 10px;border:1px solid #87525c;border-radius:6px;cursor:pointer}
+
+/* Strategy analytics */
+.analytics-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:30px 0}
+.analytics-metrics>div{background:#121f2b;border:1px solid #2b4150;border-radius:10px;min-width:0;padding:20px}
+.analytics-metrics small{display:block;font-size:12px;color:#9fb4c1;margin-bottom:12px}
+.analytics-metrics strong{font-size:clamp(18px,1.8vw,28px);overflow-wrap:anywhere}
+.analytics-table{min-width:1050px}
+.analytics-table td:first-child{max-width:340px;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:900px){.analytics-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:540px){.analytics-metrics{grid-template-columns:1fr}}

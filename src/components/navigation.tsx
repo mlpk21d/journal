@@ -8,6 +8,7 @@ const links=[
  {href:'/manual',name:'Manual Trades'},
  {href:'/trades',name:'Trade History'},
  {href:'/review',name:'Trade Review'},
+ {href:'/analytics',name:'Strategy Analytics'},
  {href:'/performance',name:'Realized Performance'}
 ];
 export default function Navigation(){
