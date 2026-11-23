@@ -59,7 +59,7 @@ export default async function Review({searchParams}:{searchParams:Promise<Params
    ...(x.id.startsWith('manual:')?{fees:x.fees??'0',feeKnown:true}:normalizeWebullOrderFee(x.fees))}));
  }catch(e){console.error('[Review] data loading failed:',e);error='Unable to load review data. Check the Next.js terminal.';}
  let review:ReturnType<typeof buildTradeReview>|null=null;
- if(!invalid&&!error&&!truncated)try{review=buildTradeReview(data);}catch(e){
+ if(!invalid&&!error&&!truncated)try{review=buildTradeReview(symbol?data.filter(row=>row.symbol.toUpperCase()===symbol):data);}catch(e){
   console.error('[Review] grouping failed:',e);error='Unable to group trades. Check the Next.js terminal.';
  }
  const name=(id:string)=>{const a=accounts.find(a=>a.id===id);return a?formatBrokerageAccount(a.account_type,a.external_account_id):'Unknown account';};
