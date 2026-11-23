@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, useTransition } from 'react';
 import Link from 'next/link';
-import { loadWebullAccounts, refreshWebullAccounts, renameWebullAccount, syncWebullFromBrowser, type BrokerAccount, type SyncResult } from './actions';
+import { loadWebullAccounts, refreshWebullAccounts, syncWebullFromBrowser, type BrokerAccount, type SyncResult } from './actions';
 
 function localDate(offset: number): string {
  const d=new Date();d.setDate(d.getDate()+offset);
@@ -15,9 +15,6 @@ export default function ImportPage() {
  const [loading,setLoading]=useState(true);
  const [message,setMessage]=useState('');
  const [result,setResult]=useState<SyncResult|null>(null);
- const [rename,setRename]=useState('');
- const [editing,setEditing]=useState(false);
- const [savingLabel,setSavingLabel]=useState(false);
  const [refreshing,setRefreshing]=useState(false);
  const [pending,startTransition]=useTransition();
  useEffect(()=>{
@@ -50,16 +47,6 @@ export default function ImportPage() {
   void initialize();
   return()=>{mounted=false;};
  },[]);
- async function saveLabel(){
-  if(!editing||account==='__all__')return;
-  setSavingLabel(true);
-  try{
-   const updated=await renameWebullAccount(account,rename);
-   if(updated.ok){setAccounts(updated.accounts);setEditing(false);setMessage('Account label saved.');}
-   else setMessage(updated.error);
-  }catch{setMessage('Could not save account label. Check server logs.');}
-  finally{setSavingLabel(false);}
- }
 
  function sync() {
   if(pending || loading || !accounts.length) return;
@@ -82,21 +69,13 @@ export default function ImportPage() {
   <section className="import-panel">
    <div className="import-heading"><h2>Import settings</h2><span className="local-indicator">Local development</span></div>
    <label className="field-label" htmlFor="account">Brokerage account</label>
-   <select id="account" value={account} disabled={loading||pending||!accounts.length} onChange={e=>{setAccount(e.target.value);setEditing(false);}}>
+   <select id="account" value={account} disabled={loading||pending||!accounts.length} onChange={e=>setAccount(e.target.value)}>
     {loading?<option value="__all__">Loading saved accounts…</option>:!accounts.length?<option value="__all__">No saved accounts yet</option>:<>
      {accounts.length>1&&<option value="__all__">All accounts ({accounts.length})</option>}
      {accounts.map(a=><option value={a.id} key={a.id}>{a.label}</option>)}
     </>}
    </select>
    <p className="helper">{refreshing?'Checking for account updates quietly…':'Account list loaded from local PostgreSQL cache.'}</p>
-   {account!=='__all__'&&accounts.some(a=>a.id===account)&&<div className="account-alias">
-    {!editing?<button type="button" className="text-button" disabled={pending} onClick={()=>{
-     setRename(accounts.find(a=>a.id===account)?.label??'');setEditing(true);}}>Edit account display name</button>:<>
-      <label htmlFor="account-rename" className="field-label">Account display name</label>
-      <input id="account-rename" type="text" maxLength={100} value={rename} onChange={e=>setRename(e.target.value)} placeholder="Individual Margin (CVY*6)" />
-      <div className="alias-actions"><button type="button" disabled={savingLabel} onClick={()=>void saveLabel()}>Save label</button><button type="button" disabled={savingLabel} onClick={()=>setEditing(false)}>Cancel</button></div>
-     </>}
-   </div>}
    <div className="date-grid">
     <div><label htmlFor="from" className="field-label">From date</label><input id="from" type="date" value={from} max={through} disabled={pending} onChange={e=>setFrom(e.target.value)}/></div>
     <div><label htmlFor="through" className="field-label">Through date</label><input id="through" type="date" value={through} max={localDate(0)} disabled={pending} onChange={e=>setThrough(e.target.value)}/></div>
@@ -109,7 +88,7 @@ export default function ImportPage() {
    {message&&<p role="alert" className="notice">{message}</p>}
    {result?.ok&&<div className="import-result" role="status"><h3>Import results</h3>
     {result.results.map((r,i)=><div className="account-result" key={i}>
-      <div className="account-result-header"><strong>Account •••• {r.account}</strong><span>{r.ok?'Completed':'Failed'}</span></div>
+      <div className="account-result-header"><strong>{r.account}</strong><span>{r.ok?'Completed':'Failed'}</span></div>
       {r.ok?<p>{r.scanned} scanned · {r.savedOrders} saved/updated · {r.savedExecutions} completed snapshots · {r.skippedSnapshots} without snapshots</p>:<p>{r.error}</p>}
      </div>)}
     <p className="helper">Saved counts include updates, not only new trades. Fees remain recorded at the order level. Validate against Webull before using tax calculations.</p>
