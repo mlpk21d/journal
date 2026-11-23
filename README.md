@@ -80,7 +80,7 @@ Pages (accessible through the global top-right hamburger menu and right-side dra
 - `/` — overview
 - `/import` — local-only import interface, automatic account discovery and multi-account sync
 - `/manual` — local-only generic manual stock BUY/SELL and historical opening entries, with create/edit/delete
-- `/trades` — read-only imported and manually entered transactions in six columns: Symbol, Side (green BUY/red SELL), Quantity, Avg Price (2 decimals), Fees (2 decimals), Filled Time (UTC); case-insensitive exact ticker filter (`/trades?symbol=NVDA`) applied to all stored history before limiting to the latest 100 matches
+- `/trades` — read-only imported and manually entered transactions in six columns: Symbol, Side (green BUY/red SELL), Quantity (whole shares without trailing zeroes; fractional shares preserved), Avg Price (2 decimals), Fees (2 decimals), Filled Time (UTC); case-insensitive exact ticker filter (`/trades?symbol=NVDA`) applied to all stored history before limiting to the latest 100 matches
 - `/performance` — localhost-development-only provisional FIFO realized P&L, per-account breakdown/filter, short covers and open journal lots
 
 Routes:
