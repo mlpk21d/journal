@@ -83,7 +83,7 @@ Pages (accessible through the global top-right hamburger menu and right-side dra
 - `/trades` — read-only imported and manually entered transactions in six columns: Symbol, Side (green BUY/red SELL), Quantity (whole shares without trailing zeroes; fractional shares preserved), Avg Price (2 decimals), Fees (2 decimals), Filled Time (UTC); case-insensitive exact ticker filter (`/trades?symbol=NVDA`) applied to all stored history before limiting to the latest 100 matches
 - `/performance` — localhost-development-only provisional FIFO realized P&L, per-account breakdown/filter, short covers and open journal lots
 - `/review` — localhost-development-only completed flat-to-flat trade cycles and separate Eastern Time session reviews; ticker, account and exit-date filters
-- `/review/trade?id=...` — read-only completed-trade detail with participating executions, FIFO lot matches, and reconciled allocated fees
+- `/review/trade?id=...` — completed-trade FIFO audit plus independently saved strategy, setup, entry/exit reasoning, mistakes, lessons, and HTTPS screenshot reference
 - `/review/session?account=...&date=...` — read-only account/session detail with daily realized FIFO matches and contributing executions (optional `symbol=...`)
 
 Routes:
@@ -161,3 +161,11 @@ Trade IDs are stable within a given input history and based on brokerage account
 Click a ticker on the **Completed trades** table to open its audit, or click a session date in **Trading sessions** to inspect daily realized matches. Both are localhost-development-only, read-only pages with gross, net and allocated fees, individual FIFO matches and the participating source executions. A session may display an opening execution from an earlier date because that lot was closed during the selected session. The order-fee column on executions is not the portion allocated to a particular match; the totals always use the unchanged FIFO allocation. Reversal orders may participate in two trades, so their raw fee may appear in both detail pages; it is **not counted twice** in the ledger.
 
 Review detail IDs are derived from the reconstructed position cycle. They are not permanent identifiers for attaching notes or screenshots, and may change when older history is imported. Both detail pages enforce the same 20,000-execution history guard and local-development restriction as the overview, and never write to Webull tables. Run \`npm test\`, \`npm run typecheck\` and \`npm run build\` after pulling changes.
+
+### Persistent trade journaling (migration 006)
+
+Run `npm run db:migrate` to create `trade_journal_entries`, then visit a completed trade from `/review`. Use **Save journal entry** to keep a strategy, setup description, entry and exit reasoning, mistakes, lessons, and one HTTPS screenshot link. Screenshot bytes are not uploaded or stored by this release. Only metadata is saved; imported executions, fees, orders and FIFO accounting remain unchanged. Editing uses the same localhost-only development restriction and same-origin check as manual trades.
+
+Each entry has a persistent database UUID; `cycle_key` is a lookup key, **not** a durable identity. An SHA-256 fingerprint guards the exact completed-trade execution composition and values. If later import history changes the cycle under the same lookup key, existing notes are preserved and editing is blocked. If the trade lookup key itself changes, the journal record remains in the database but will need manual reconciliation; automatic migration to another trade is deliberately avoided. Durable annotations should not be interpreted as tax-lot attribution. The journal is for development-only use pending application authentication and authorization. Screenshot links are external and should not contain secrets.
+
+Run `npm test`, `npm run typecheck`, and `npm run build` before use.
