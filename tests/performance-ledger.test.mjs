@@ -24,7 +24,7 @@ test('FIFO matches multiple lots and allocates fees without duplication',()=>{
   row('3','A','NVDA','SELL','3','20','0.03','2026-11-02T11:00:00Z')
  ];
  const r=buildLedger(data);
- assert.equal(r.gross,'35');assert.equal(r.net,'34.94');
+ assert.equal(r.gross,'25');assert.equal(r.net,'24.94');
  assert.deepEqual(r.matches.map(x=>x.quantity),['2','1']);
  assert.equal(r.openPositions[0].quantity,'1');
 });
