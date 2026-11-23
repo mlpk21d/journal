@@ -94,7 +94,7 @@ Routes:
 
 ## Account cache and navigation
 
-Migration `003_account_cache.sql` adds account display names, user aliases, masked account references, refresh timestamps, and one row to coordinate Webull cache refreshes. Existing imported accounts are retained. On initial page load, saved account IDs appear immediately; the server-side refresh asynchronously updates any richer metadata returned by Webull. Aliases override Webull metadata. Account labels also appear on `/performance`. The right-side slide-out menu links to the four existing pages. No new public pages or unprotected credential-editing endpoints were added. The cache is protected by existing local-development-only server actions.
+Migration `003_account_cache.sql` adds account display names, user aliases, masked account references, refresh timestamps, and one row to coordinate Webull cache refreshes. Existing imported accounts are retained. On initial page load, saved account IDs appear immediately; the server-side refresh asynchronously updates any richer metadata returned by Webull. The account format is centrally generated from account type and immutable Webull ID; any previously saved custom aliases remain in PostgreSQL but no longer override the standardized display format. Account labels also appear on `/performance`. The right-side slide-out menu links to the four existing pages. No new public pages or unprotected credential-editing endpoints were added. The cache is protected by existing local-development-only server actions.
 
 ## Provisional realized performance
 
