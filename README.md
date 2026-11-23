@@ -76,3 +76,18 @@ Routes:
 Docs: https://developer.webull.com/apis/docs/reference/order-history/ and https://developer.webull.com/apis/docs/reference/order-detail/
 
 Remove Windows metadata files with `find . -type f -name '*:Zone.Identifier' -delete`.
+
+## Planned brokerage connection settings
+
+The current production Webull integration can run with API 2FA disabled; do not require `WEBULL_ACCESS_TOKEN` for that configuration. This is a temporary operational choice, **not** a reason to expose credentials in client code.
+
+Future `/settings/brokerages` UI requirements:
+- Require authenticated user sessions and authorization before displaying or modifying brokerage connections. Protect credential-changing routes against CSRF and abuse.
+- Allow adding, replacing, testing, and revoking Webull App Key / App Secret without editing `.env.local` or using a terminal.
+- Encrypt brokerage credentials at rest using authenticated encryption and a separately managed server-side encryption key; never put the encryption key in the same database, send secrets back to the browser, or log secrets.
+- Show masked identifiers and connection status only. Use server-side requests for all Webull operations.
+- Allow future API 2FA token activation and renewal with explicit status reporting, without requiring it now.
+- Provide an authenticated manual Sync Trades action and accurate import feedback.
+- Migrate legacy environment-based credentials safely and support credential rotation; do not delete existing credentials until replacements are verified.
+
+**Implementation order:** application authentication/security first, then encrypted brokerage credential storage, then settings UI and optional token activation.
