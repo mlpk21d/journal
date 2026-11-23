@@ -1,3 +1,4 @@
+'use server';
 import { headers } from 'next/headers';
 import { webull } from '@/lib/webull/client';
 import { importWebullOrders } from '@/lib/webull/import';
@@ -28,7 +29,6 @@ async function assertLocalBrowser(): Promise<void> {
 }
 
 export async function loadWebullAccounts(): Promise<AccountResult> {
-  'use server';
   try {
     await assertLocalBrowser();
     const result = await webull.accounts();
@@ -52,7 +52,6 @@ export async function loadWebullAccounts(): Promise<AccountResult> {
 }
 
 export async function syncWebullFromBrowser(accountId: string, start: string, end: string): Promise<SyncResult> {
-  'use server';
   try {
     await assertLocalBrowser();
     const dateOnly = /^\d{4}-\d{2}-\d{2}$/;
