@@ -49,9 +49,22 @@ curl -X POST http://localhost:3000/api/webull/sync \
   --data '{"account_id":"REPLACE_ACCOUNT_ID","start_time":"2026-11-01T00:00:00.000Z","end_time":"2026-11-24T00:00:00.000Z"}'
 ```
 
-Sync jobs paginate historical orders and query order detail. A database advisory lock prevents overlapping syncs of the same account. Each order is upserted by broker account/order ID and each completed-order snapshot is upserted by local order ID. Repeated imports do not duplicate snapshots or fees.
+Sync jobs paginate grouped historical orders, flatten the child orders, and query order detail. A database advisory lock prevents overlapping syncs of the same account. Each order is upserted by broker account/order ID and each completed-order snapshot is upserted by local order ID. Repeated imports do not duplicate snapshots or fees. A stale completed-order snapshot is removed if subsequent order detail no longer qualifies. Requests are throttled to avoid Webull's documented 2 requests per 2 seconds history limit.
 
 **Accuracy limitation:** Historical order records may lag. Fully filled orders with confirmed quantity, average fill price, and fill timestamp are represented by a *weighted-average order snapshot*, not exchange-level executions. Partial orders and records lacking trustworthy fields are retained as raw orders but deliberately excluded from executions. No fabricated timestamps or synthetic individual fills. Commissions and regulatory fees are saved at **order level** and never multiplied by number of fills. This initial dataset is NOT a validated tax ledger, and does not yet calculate realized P&L.
+
+## Verify the first real import
+
+1. Restart Next.js after pulling updates. Make sure `WEBULL_ENV=production` and `WEBULL_USE_ACCESS_TOKEN=false`.
+2. Use `GET /api/webull/accounts` to obtain an account ID (keep the ID private).
+3. Run a **small** range (1–3 trading days) through `POST /api/webull/sync` before attempting a month.
+4. Confirm `GET /api/webull/imports`, `GET /api/orders`, and `GET /api/trades` report the expected quantities and fees. The trade page is also available at `/trades`.
+5. Run the **same** sync again and verify record counts do not increase. Compare against Webull's own account statement before relying on any P&L calculation.
+6. Run `npm test` to execute parser and signature regression tests (Node.js 24).
+
+Webull may omit recently executed orders from historical data for a period, so repeat a small overlapping date range after those orders settle. If the API reports an error, consult the Next.js server log and `import_runs`; do not share API credentials or raw account data.
+
+**Security:** API routes require a private bearer token, but the HTML `/trades` page does **not yet have session login protection**. Keep the application restricted to localhost/trusted networks until authentication is implemented; do not expose it to the public Internet.
 
 ## API & site index
 
