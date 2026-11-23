@@ -26,7 +26,12 @@ export function signingHeaders(path: string, query: Record<string,string> = {}) 
     'x-timestamp': timestamp, 'x-signature-algorithm': 'HMAC-SHA1',
     'x-signature-version': '1.0', 'x-signature-nonce': nonce, 'x-version': 'v3'
   };
-  if (process.env.WEBULL_ACCESS_TOKEN) headers['x-access-token'] = process.env.WEBULL_ACCESS_TOKEN;
+  // 2FA is opt-in: stale tokens must not be sent to applications with 2FA disabled.
+  if (process.env.WEBULL_USE_ACCESS_TOKEN === 'true') {
+    const token = process.env.WEBULL_ACCESS_TOKEN?.trim();
+    if (!token) throw new Error('WEBULL_USE_ACCESS_TOKEN=true but WEBULL_ACCESS_TOKEN is missing');
+    headers['x-access-token'] = token;
+  }
   headers['x-signature'] = signature({path,query,appKey,appSecret,host,timestamp,nonce});
   return { host, headers };
 }
