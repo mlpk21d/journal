@@ -41,8 +41,8 @@ export default function ImportPage() {
     const refreshed=await refreshWebullAccounts();
     if(mounted&&refreshed.ok){
      setAccounts(refreshed.accounts);
-     setAccount(current=>current==='__all__'||refreshed.accounts.some(a=>a.id===current)
-      ?current:(refreshed.accounts.length>1?'__all__':refreshed.accounts[0]?.id??'__all__'));
+     setAccount(current=>current==='__all__'&&refreshed.accounts.length>1?'__all__':
+      refreshed.accounts.some(a=>a.id===current)?current:(refreshed.accounts.length>1?'__all__':refreshed.accounts[0]?.id??'__all__'));
     }
    }catch{console.warn('Silent account refresh failed; cached accounts remain available');}
    finally{if(mounted)setRefreshing(false);}
