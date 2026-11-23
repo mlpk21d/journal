@@ -130,3 +130,19 @@ test('manual opening lot does not cancel a short in a different account',()=>{
  assert.equal(r.unverifiedOpeningSales.length,1);
  assert.deepEqual(r.openPositions.map(p=>p.quantity),['7','-7']);
 });
+
+test('different brokerage accounts keep independent realized P&L including short covers',()=>{
+ const r=buildLedger([
+  row('1','A','AMZN','SELL','10','200','0','2026-11-01T10:00:00Z'),
+  row('2','B','AMZN','BUY','10','100','0','2026-11-01T10:01:00Z'),
+  row('3','A','AMZN','BUY','10','180','0','2026-11-02T10:00:00Z'),
+  row('4','B','AMZN','SELL','10','110','0','2026-11-02T10:01:00Z')
+ ]);
+ assert.equal(r.matches.length,2);
+ assert.equal(r.openPositions.length,0);
+ assert.deepEqual(r.matches.map(m=>[m.accountId,m.direction,m.gross]),[
+  ['A','SHORT','200'],['B','LONG','100']
+ ]);
+ assert.equal(r.gross,'300');
+ assert.equal(r.net,'300');
+});
