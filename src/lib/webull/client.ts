@@ -17,6 +17,6 @@ export const webull = {
   accounts: () => get(PATHS.accounts),
   orders: (accountId: string, start: string, end: string, paginationKey?: string) =>
     get(PATHS.orderHistory, { account_id: accountId, start_time: start, end_time: end, ...(paginationKey ? {pagination_key:paginationKey}: {}) }),
-  orderDetail: (accountId: string, clientOrderId: string) =>
-    get(PATHS.orderDetail, {account_id:accountId,client_order_id:clientOrderId}),
+  orderDetail: (accountId: string, clientOrderId?: string, orderId?: string) =>
+    get(PATHS.orderDetail, {account_id:accountId,...(clientOrderId?{client_order_id:clientOrderId}:{}),...(orderId?{order_id:orderId}:{})}),
 };
