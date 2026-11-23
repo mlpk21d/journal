@@ -1,4 +1,4 @@
-import {buildLedger,formatFixed,parseFixed,type LedgerInput,type ClosedMatch} from '../performance/ledger';
+import {buildLedger,formatFixed,parseFixed,type LedgerInput,type ClosedMatch} from '../performance/ledger.ts';
 
 export type ReviewedTrade={
  id:string;accountId:string;symbol:string;direction:'LONG'|'SHORT';
