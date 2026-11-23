@@ -28,3 +28,7 @@
 .manual-lot-form .primary-button{margin-top:0}
 
 .manual-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.manual-secondary{padding:12px 17px;border:1px solid #456075;border-radius:8px;background:#203346;color:#d4e5ee;cursor:pointer}.manual-actions .primary-button{margin:0}.manual-actions .text-button{white-space:nowrap}
+
+/* Trade history execution side colors */
+.trade-side-buy{color:#70d7a0;font-weight:700}
+.trade-side-sell{color:#f18383;font-weight:700}
