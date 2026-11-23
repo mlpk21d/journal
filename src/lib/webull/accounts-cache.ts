@@ -66,7 +66,7 @@ export async function refreshAccountCache():Promise<{updated:boolean;reason:stri
  }
 }
 export async function setAccountLabel(id:string,label:string):Promise<void>{
- if(!idPattern.test(id)||label.length>100||!/^[\p{L}\p{N} ._()/*-]*$/u.test(label))throw new Error('Invalid label');
+ if(!idPattern.test(id)||label.length>100||!/^[\p{L}\p{N} ._()*-]*$/u.test(label))throw new Error('Invalid label');
  const r=await db().query("UPDATE brokerage_accounts SET user_label=$1 WHERE broker='webull' AND external_account_id=$2",
  [label.trim()||null,id]);
  if(!r.rowCount)throw new Error('Unknown account');
