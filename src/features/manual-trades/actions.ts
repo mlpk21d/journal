@@ -2,6 +2,7 @@
 import {headers} from 'next/headers';
 import {revalidatePath} from 'next/cache';
 import {db} from '@/lib/db';
+import {validateManualTrade} from './validation';
 
 export type ManualTradeResult={ok:boolean;message:string;code?:string};
 function publicError(error:unknown):ManualTradeResult {
@@ -12,9 +13,8 @@ function publicError(error:unknown):ManualTradeResult {
  if(e?.code==='23514'||e?.code==='22003'||e?.code==='22P02')
   return {ok:false,code:'INVALID_VALUE',message:'One of the trade values exceeds database limits or violates a constraint. Check shares, price and fees.'};
  if(e?.code==='23505')return {ok:false,code:'DUPLICATE',message:'This record conflicts with an existing database entry.'};
- if(e?.message?.startsWith('Check account')||e?.message?.startsWith('Enter a')||
-    e?.message?.startsWith('Acknowledge')||e?.message?.startsWith('Select a')||
-    e?.message==='Manual trade not found.')
+ if(e?.message&&(/^(Brokerage account|Ticker|Date|Time|Side|Entry type|Shares|Price|Fees|Notes|Date\/time|Confirmation):/.test(e.message)||
+    e.message.startsWith('Select a')||e.message==='Manual trade not found.'))
   return {ok:false,code:'VALIDATION',message:e.message};
  return {ok:false,code:'SERVER_ERROR',message:'Manual trade could not be saved. Check the Next.js terminal for the PostgreSQL error code.'};
 }
@@ -28,39 +28,11 @@ async function assertLocal():Promise<void>{
    throw new Error('Cross-origin request refused');
  }
 }
-function validate(form:FormData){
- const account=String(form.get('account')??'');
- const symbol=String(form.get('symbol')??'').trim().toUpperCase();
- const date=String(form.get('date')??'');
- const time=String(form.get('time')??'12:00');
- const side=String(form.get('side')??'');
- const entryType=String(form.get('entryType')??'');
- const quantity=String(form.get('quantity')??'').trim();
- const price=String(form.get('price')??'').trim();
- const fees=String(form.get('fees')??'').trim();
- const notes=String(form.get('notes')??'').trim();
- if(!/^\d{1,19}$/.test(account)||!/^[A-Z0-9.^_-]{1,30}$/.test(symbol)||
-  !/^\d{4}-\d{2}-\d{2}$/.test(date)|| !/^([01]\d|2[0-3]):[0-5]\d$/.test(time)||
-  !['BUY','SELL'].includes(side)||!['OPENING','TRADE'].includes(entryType)||
-  (entryType==='OPENING'&&side!=='BUY')||
-  !/^\d+(?:\.\d{1,8})?$/.test(quantity)||!/^\d+(?:\.\d{1,8})?$/.test(price)||
-  !/^\d+(?:\.\d{1,8})?$/.test(fees)||notes.length>400)
-  throw new Error('Check account, symbol, date/time, side, quantity, price, fees and notes.');
- const timestamp=new Date(date+'T'+time+':00.000Z');
- if(!Number.isFinite(timestamp.getTime())||timestamp.toISOString().slice(0,16)!==date+'T'+time||
-   timestamp.getTime()>Date.now())throw new Error('Enter a valid UTC date and time that is not in the future.');
- if(Number(quantity)<=0||!Number.isFinite(Number(quantity))||
-    !Number.isFinite(Number(price))||!Number.isFinite(Number(fees))||
-    Number(quantity)>1e12||Number(price)>1e12||Number(fees)>1e12)
-    throw new Error('Enter a positive share quantity and valid nonnegative price and fees.');
- if(form.get('acknowledged')!=='yes')throw new Error('Acknowledge the unverified trade warning.');
- return {account,symbol,timestamp:timestamp.toISOString(),side,entryType,quantity,price,fees,notes};
-}
 function refresh(){for(const path of ['/manual','/performance','/trades'])revalidatePath(path);}
 export async function saveManualTrade(form:FormData):Promise<ManualTradeResult>{
  try{
   await assertLocal();
-  const payload=validate(form);
+  const payload=validateManualTrade(form);
   const id=String(form.get('id')??'');
   if(id&&!/^\d{1,19}$/.test(id))return {ok:false,message:'Invalid manual trade ID.'};
   const conn=await db().connect();
