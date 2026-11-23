@@ -2,9 +2,9 @@
 import { headers } from 'next/headers';
 import { webull, WebullRateLimitError } from '@/lib/webull/client';
 import { importWebullOrders } from '@/lib/webull/import';
-import { object, stringField } from '@/lib/webull/normalize';
+import { cachedAccounts, refreshAccountCache, setAccountLabel } from '@/lib/webull/accounts-cache';
 
-export type BrokerAccount = { id: string; type: string };
+export type BrokerAccount = { id: string; type: string; label: string; masked: string };
 export type AccountResult = { ok: true; accounts: BrokerAccount[] } | { ok: false; error: string };
 export type SyncResult =
   | { ok: true; results: Array<{ account: string; ok: boolean; scanned?: number; savedOrders?: number; savedExecutions?: number; skippedSnapshots?: number; pages?: number; error?: string }> }
@@ -29,26 +29,25 @@ async function assertLocalBrowser(): Promise<void> {
 }
 
 export async function loadWebullAccounts(): Promise<AccountResult> {
-  try {
-    await assertLocalBrowser();
-    const result = await webull.accounts();
-    // Webull's Trading API has shipped array and data-array account responses.
-    const rows: unknown = Array.isArray(result) ? result : object(result)?.data;
-    if (!Array.isArray(rows)) throw new Error('Unexpected Webull account-list response');
-    const accounts: BrokerAccount[] = rows.flatMap(entry => {
-      const a = object(entry);
-      if (!a) return [];
-      const id = stringField(a,'account_id');
-      return id && /^[a-zA-Z0-9_-]{6,80}$/.test(id)
-        ? [{ id, type: stringField(a,'account_type') ?? 'Brokerage' }]
-        : [];
-    });
-    if (!accounts.length) return {ok:false,error:'Webull returned no supported brokerage accounts.'};
-    return {ok:true, accounts};
-  } catch (error) {
-    console.error('[Webull UI] Account discovery failed:',error);
-    return {ok:false,error:'Account discovery failed. Check the Next.js terminal output.'};
-  }
+ try {
+  await assertLocalBrowser();
+  return {ok:true,accounts:await cachedAccounts()};
+ } catch(e) { console.error('[Webull UI] Cached account query failed:',e);return {ok:false,error:'Could not load saved accounts. Apply database migrations.'}; }
+}
+/** UI invokes this after rendering saved accounts; refresh is throttled in PostgreSQL. */
+export async function refreshWebullAccounts():Promise<AccountResult> {
+ try {
+  await assertLocalBrowser();
+  await refreshAccountCache();
+  return {ok:true,accounts:await cachedAccounts()};
+ }catch(e){console.error('[Webull UI] Account refresh failed:',e);return {ok:false,error:'Cached accounts are temporarily unavailable.'};}
+}
+export async function renameWebullAccount(id:string,name:string):Promise<AccountResult>{
+ try{
+  await assertLocalBrowser();
+  await setAccountLabel(id,name);
+  return {ok:true,accounts:await cachedAccounts()};
+ }catch(e){console.error('[Webull UI] Account label failed:',e);return {ok:false,error:'Could not save account label.'};}
 }
 
 export async function syncWebullFromBrowser(accountId: string, start: string, end: string): Promise<SyncResult> {
@@ -61,14 +60,9 @@ export async function syncWebullFromBrowser(accountId: string, start: string, en
     if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || startMs >= endMs || endMs-startMs>31*86400000 || endMs>Date.now()+86400000) {
       return {ok:false,error:'Choose a date range of at most 31 days ending no later than today.'};
     }
-    // Never trust a browser-supplied account ID; re-fetch from Webull on the server.
-    const data = await webull.accounts();
-    const rows = Array.isArray(data) ? data : object(data)?.data;
-    if (!Array.isArray(rows)) return {ok:false,error:'Webull account discovery returned an unexpected response.'};
-    const ids=[...new Set(rows.flatMap(x=>{
-      const item=object(x);const id=item ? stringField(item,'account_id') : null;
-      return id && /^[a-zA-Z0-9_-]{6,80}$/.test(id) ? [id]:[];
-    }))];
+    // Validate against the locally cached, previously discovered Webull accounts.
+    // Avoid a fresh brokerage API call on every import click.
+    const ids=(await cachedAccounts()).map(a=>a.id);
     const selected=accountId==='__all__' ? ids : ids.filter(id=>id===accountId);
     if(!selected.length) return {ok:false,error:'No matching accounts available for import.'};
     const results: Array<{account:string;ok:boolean;scanned?:number;savedOrders?:number;savedExecutions?:number;skippedSnapshots?:number;pages?:number;error?:string}>=[];
