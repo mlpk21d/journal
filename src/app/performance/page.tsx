@@ -53,17 +53,18 @@ export default async function Performance({searchParams}:{searchParams:Promise<P
    side:x.side,quantity:x.quantity,price:x.price,executedAt:x.executed_at.toISOString(),
    fees:x.fees,feeKnown:Number(x.fee_count)>0}));
  }catch(e){console.error('[Performance] ledger loading failed:',e);error='Unable to calculate performance. Check the Next.js terminal.';}
- const report=!error&&!truncated?buildLedger(data):null;
+ let report:ReturnType<typeof buildLedger>|null=null;
+ if(!error&&!truncated){try{report=buildLedger(data);}catch(e){console.error('[Performance] matching failed:',e);error='Unable to match imported orders. Check server terminal.';}}
  const totalClosed=report?.matches.length??0;
  const gross=report?.gross??'0';
- const incomplete=!!report?.unmatchedSales.length;
+ const uncertainOpening=!!report?.unverifiedOpeningSales.length;
  const missingFeeMatches=report?.matches.filter(x=>x.net===null).length??0;
  const missingFeeOrders=new Set(report?.matches.filter(x=>x.net===null).map(x=>x.sellId)??[]).size;
  const accountName=(id:string)=>{const a=accounts.find(a=>a.id===id);return a ? accountLabels[a.external_account_id]??'ID •••• '+a.external_account_id.slice(-4) : 'Unknown account';};
  const recent=[...(report?.matches??[])].reverse().slice(0,80);
  return <main className="shell"><header><Link href="/" className="brand">TRADE / JOURNAL</Link><span className="muted">Provisional performance · Local only</span></header>
   <section className="page-title"><p className="eyebrow">TRADE ACCOUNTING</p><h1>Realized performance</h1>
-   <p className="intro">FIFO matching of imported completed-order snapshots. Gross P&amp;L excludes fees; net P&amp;L is shown only when the matched orders include verified fee records.</p></section>
+   <p className="intro">Signed FIFO matching of imported completed-order snapshots. Sales can open short positions; subsequent buys first cover those shorts. Results remain provisional without verified opening holdings.</p></section>
   <nav className="pill-row"><Link href="/import">Import trades ↗</Link><Link href="/trades">Trade history ↗</Link></nav>
   <form action="/performance" method="get" className="performance-filter">
    <label htmlFor="performance-account">Account</label>
@@ -77,24 +78,23 @@ export default async function Performance({searchParams}:{searchParams:Promise<P
    <div className="performance-metrics">
     <div><small>Matched shares</small><strong>{report.closedShares}</strong></div>
     <div><small>Matched gross P&amp;L (partial)</small><strong>{usd(gross)}</strong></div>
-    <div><small>Complete net P&amp;L</small><strong>{!incomplete&&report.netKnown?usd(report.net):'Unverified'}</strong></div>
+    <div><small>Complete net P&amp;L</small><strong>{!uncertainOpening&&report.netKnown?usd(report.net):'Unverified'}</strong></div>
     <div><small>FIFO lot matches</small><strong>{totalClosed}</strong></div>
    </div>
-   <p className="notice">The gross figure is a <strong>partial subtotal for matched shares only</strong>, not your complete account profit or loss. It excludes any unmatched sales and all fees. These provisional FIFO results are not tax-adjusted and do not account for wash sales, splits, transfers, or specific-lot identification.</p>
-   {report.unmatchedSales.length>0&&<><div className="notice"><strong>Missing opening history:</strong> {report.unmatchedSales.length} sale(s) exceed available purchased shares. Their P&amp;L is excluded from the partial gross subtotal. Import earlier trades or reconcile opening holdings.</div>
-    <h2>Sales missing cost basis</h2>
-    <p className="helper">These sales have shares without a matching earlier purchase in the imported history. Review by account and symbol before trusting any total.</p>
-    <div className="table-scroll"><table><thead><tr><th>Sold (UTC)</th><th>Account</th><th>Symbol</th><th>Shares without basis</th></tr></thead><tbody>
-    {report.unmatchedSales.map((m,i)=><tr key={m.sellId+'-'+i}><td>{m.closedAt.replace('T',' ').slice(0,19)}</td><td>{accountName(m.accountId)}</td><td>{m.symbol}</td><td>{m.quantity}</td></tr>)}
+   <p className="notice">The gross figure is a <strong>partial subtotal for matched shares only</strong>, not your complete account profit or loss. It excludes fees and may assume an initial sale opened a short when older long holdings were not imported. These provisional FIFO results are not tax-adjusted and do not account for wash sales, splits, transfers, or specific-lot identification.</p>
+   {report.unverifiedOpeningSales.length>0&&<><div className="notice"><strong>Opening sells need verification:</strong> {report.unverifiedOpeningSales.length} sale(s) initially had no earlier buy in the imported history. They are provisionally treated as short openings. A later buy can cover them, but they might instead be sales of older shares not yet imported. Confirm them against Webull before trusting the P&amp;L.</div>
+    <h2>Unverified opening sells</h2>
+    <div className="table-scroll"><table><thead><tr><th>Sold (UTC)</th><th>Account</th><th>Symbol</th><th>Shares provisionally shorted</th></tr></thead><tbody>
+    {report.unverifiedOpeningSales.map((m,i)=><tr key={m.sellId+'-'+i}><td>{m.openedAt.replace('T',' ').slice(0,19)}</td><td>{accountName(m.accountId)}</td><td>{m.symbol}</td><td>{m.quantity}</td></tr>)}
     </tbody></table></div></>}
    {missingFeeMatches>0&&<p className="notice"><strong>Fees not verified:</strong> {missingFeeMatches} FIFO lot match(es), involving {missingFeeOrders} sale order(s), lack complete entry/exit fee records. Complete net P&amp;L is withheld rather than treating missing fees as $0. A missing fee record may mean Webull did not report a fee, not necessarily that one was charged.</p>}
    <h2>Recent FIFO closures</h2>
-   {!recent.length?<p className="notice">No matched stock sales yet. Import older buy and sell orders to calculate realized performance.</p>:<div className="table-scroll"><table><thead><tr><th>Closed (UTC)</th><th>Account</th><th>Symbol</th><th>Shares</th><th>Gross P&amp;L</th><th>Net P&amp;L</th></tr></thead><tbody>
-    {recent.map((m,i)=><tr key={m.sellId+'-'+m.buyId+'-'+i}><td>{m.closedAt.replace('T',' ').slice(0,19)}</td><td>{accountName(m.accountId)}</td><td>{m.symbol}</td><td>{m.quantity}</td><td>{usd(m.gross)}</td><td>{usd(m.net)}</td></tr>)}
+   {!recent.length?<p className="notice">No matched stock sales yet. Import older buy and sell orders to calculate realized performance.</p>:<div className="table-scroll"><table><thead><tr><th>Closed (UTC)</th><th>Account</th><th>Symbol</th><th>Direction</th><th>Shares</th><th>Gross P&amp;L</th><th>Net P&amp;L</th></tr></thead><tbody>
+    {recent.map((m,i)=><tr key={m.sellId+'-'+m.buyId+'-'+i}><td>{m.closedAt.replace('T',' ').slice(0,19)}</td><td>{accountName(m.accountId)}</td><td>{m.symbol}</td><td>{m.direction}</td><td>{m.quantity}</td><td>{usd(m.gross)}</td><td>{usd(m.net)}</td></tr>)}
    </tbody></table></div>}
-   <h2>Open imported positions</h2>
-   {report.openPositions.length===0?<p className="muted">No remaining imported buy lots.</p>:<div className="table-scroll"><table><thead><tr><th>Account</th><th>Symbol</th><th>Remaining shares</th><th>Original basis (before fees)</th></tr></thead><tbody>
-    {report.openPositions.map((p,i)=><tr key={i}><td>{accountName(p.accountId)}</td><td>{p.symbol}</td><td>{p.quantity}</td><td>{usd(p.basis)}</td></tr>)}
+   <h2>Unreconciled journal positions</h2>
+   {report.openPositions.length===0?<p className="muted">No remaining imported long or short lots.</p>:<div className="table-scroll"><table><thead><tr><th>Account</th><th>Symbol</th><th>Direction</th><th>Signed shares</th><th>Opening value (before fees)</th></tr></thead><tbody>
+    {report.openPositions.map((p,i)=><tr key={i}><td>{accountName(p.accountId)}</td><td>{p.symbol}</td><td>{p.side}</td><td>{p.quantity}</td><td>{usd(p.basis)}</td></tr>)}
    </tbody></table></div>}
   </>}
  </main>;
