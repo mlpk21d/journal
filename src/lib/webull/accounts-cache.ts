@@ -1,6 +1,7 @@
 import { db } from '@/lib/db';
 import { webull } from './client';
 import { object, stringField } from './normalize';
+import { formatBrokerageAccount } from './account-format';
 
 export type CachedAccount={id:string;label:string;type:string;masked:string};
 const idPattern=/^[a-zA-Z0-9_-]{6,80}$/;
@@ -17,8 +18,7 @@ export async function cachedAccounts():Promise<CachedAccount[]>{
  FROM brokerage_accounts WHERE broker='webull' ORDER BY id`);
  return rows.map(a=>({
   id:a.external_account_id,type:a.account_type??'Brokerage',
-  label:a.user_label || [a.display_name,a.masked_account].filter(Boolean).join(' · ') ||
-    [a.account_type??'Brokerage','ID •••• '+a.external_account_id.slice(-4)].join(' · '),
+  label:formatBrokerageAccount(a.account_type,a.external_account_id),
   masked:a.masked_account??'ID •••• '+a.external_account_id.slice(-4)
  }));
 }
