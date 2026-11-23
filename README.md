@@ -80,7 +80,7 @@ Pages (accessible through the global top-right hamburger menu and right-side dra
 - `/` — overview
 - `/import` — local-only import interface, automatic account discovery and multi-account sync
 - `/manual` — local-only generic manual stock BUY/SELL and historical opening entries, with create/edit/delete
-- `/trades` — read-only imported completed-order snapshots, with associated order fees
+- `/trades` — read-only imported and manually entered transactions, with associated account labels and order fees
 - `/performance` — localhost-development-only provisional FIFO realized P&L, per-account breakdown/filter, short covers and open journal lots
 
 Routes:
