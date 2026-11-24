@@ -19,7 +19,8 @@ const research:Item[]=[
  {href:'/insights',label:'Performance Insights',glyph:'✦'},
  {href:'/risk',label:'Risk & Trade Quality',glyph:'◎'},
  {href:'/performance',label:'Realized Performance',glyph:'▥'},
- {href:'/wash-sales',label:'Wash Sale Review',glyph:'◇'}
+ {href:'/wash-sales',label:'Wash Sale Review',glyph:'◇'},
+ {href:'/wash-sales/basis',label:'Tax Lot Preview',glyph:'▧'}
 ];
 const actions:Item[]=[
  {href:'/manual',label:'Manual Entries',glyph:'⊞'},

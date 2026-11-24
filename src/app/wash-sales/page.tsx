@@ -44,7 +44,7 @@ export default async function WashSales({searchParams}:{searchParams:Promise<Par
  return <main className="shell sj-wash-page">
   <div className="sj-page-head"><div><p className="sj-kicker">TAX RECONCILIATION / SCREENING</p><h1>Wash Sale Review</h1>
    <p>Potential same-symbol replacement purchases within 30 days before or after loss sales.</p></div>
-   <Link href="/performance">Realized Performance ↗</Link></div>
+   <div className="sj-head-actions"><Link href="/wash-sales/basis">Adjusted Tax Lots ↗</Link><Link href="/performance">Realized Performance ↗</Link></div></div>
   <p className="notice"><strong>Review-only preview — not a tax ledger.</strong> Estimates are not applied to realized P&amp;L, replacement basis, holding periods, or Form 8949. Cross-account, IRA/Roth IRA, short-sale, option, substantially identical security, and incomplete-history cases need professional reconciliation.</p>
   <form className="performance-filter" action="/wash-sales" method="get">
    <span className="helper">Loss account: {active?labels[active]??'Selected account':'All Accounts'} · Replacements screened across ALL saved accounts</span>
