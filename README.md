@@ -77,7 +77,7 @@ Webull may omit recently executed orders from historical data for a period, so r
 All API routes require `Authorization: Bearer <JOURNAL_API_TOKEN>`. UI pages must be restricted to trusted networks until session authentication exists.
 
 Pages (accessible through the global top-right hamburger menu and right-side drawer):
-- `/` — local-only trade-history Dashboard with compact win/loss summary, completed FIFO trades paginated 50 per page, click-to-edit journal modal (shared with Trade Review), trading calendar, and daily/symbol analytics; successful note saves close the modal without resetting failed drafts
+- `/` — local-only trade-history Dashboard with compact win/loss summary, completed FIFO trades paginated 50 per page, click-to-edit journal modal (shared with Trade Review), trading calendar, and full-width Top Symbols by Known Net panel; successful note saves close the modal without resetting failed drafts
 - `/stats` — Statistics page: compact performance cards, verified FIFO trade metrics, rolling win-rate chart, daily realized bar chart, and data-quality notes
 - `/calendar` — full-width Eastern Time realized trading calendar with month navigation, per-week known-net subtotals, monthly subtotal, and account selection
 - `/settings` — local-only workspace settings, starting with brokerage account listing and new manual brokerage account creation
@@ -324,3 +324,7 @@ The importer handles **Buy**, **Sell**, **Sell Short**, and **Buy to Cover** as 
 **Wire Sent** rows are excluded entirely. **Service Fee** rows (including the two `$15.00` wire fees in the supplied example) go into the new `account_fees` table, **not** the FIFO trade executions. `MoneyLink Transfer`, `Wire Funds Adj`, `Credit Interest`, and other unsupported cash actions are also excluded. CSV preview reports counts before importing; the full file is committed in one database transaction or rolled back on error. Personal CSV data is never checked into the repository.
 
 Use `/fees` to add separate charges, such as an $8 Webull fee, Schwab $15 fees, or a $50 account fee, with account, date, type and description. The table shows imported Schwab fees and manually entered fees by sidebar account. Imported fees cannot be accidentally deleted as manual fees. **These account fees are reported separately and not subtracted again from FIFO trade P&L; trade commissions are already accounted for in FIFO.** The account fee total is independent of net realized trading profit. Existing `/performance`, `/review` and shared review ledger queries now include the `schwab_csv` execution source while preserving full-history FIFO processing and existing limits.
+
+## Dashboard symbol panel layout
+
+The Dashboard no longer shows the Daily P&L component beneath the Trading Calendar. The remaining **Top symbols by known net** panel occupies the full available width (no two-column grid), with its **All tickers** link preserved. The separate `/daily` reporting page and its underlying calculations are unchanged.

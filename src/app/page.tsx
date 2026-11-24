@@ -2,7 +2,6 @@ import Link from 'next/link';
 import {reviewIsLocal,loadReviewLedger} from '@/lib/review/server';
 import {buildTradeReview,type ReviewedTrade} from '@/lib/review/trade-review';
 import {buildDashboardData,type DashboardGroup} from '@/lib/review/dashboard';
-import {DashboardDailyBars} from '@/components/dashboard-daily-bars';
 import {DashboardTrades} from '@/components/dashboard-trades';
 import {TradingCalendar} from '@/components/trading-calendar';
 import {NewTradeButton} from '@/components/new-trade-button';
@@ -97,11 +96,7 @@ export default async function Home(){
     <div className="sj-section-heading"><div><h2>Trading Calendar</h2><p>Realized exit activity by Eastern Time date</p></div><Link href="/calendar">Full calendar ↗</Link></div>
     <TradingCalendar days={data.daily.days} initialMonth={data.daily.days.at(-1)?.date.slice(0,7)??new Date().toISOString().slice(0,7)}/>
    </div>
-   <div className="dashboard-two-up sj-dashboard-panels">
-    <section className="dashboard-panel">
-     <div className="dashboard-panel-head"><div><p className="eyebrow">RECENT ACTIVITY</p><h2>Daily P&amp;L</h2></div><Link href="/daily">Details ↗</Link></div>
-     <DashboardDailyBars days={data.last30Days}/>
-    </section>
+   <div className="sj-dashboard-panels">
     <section className="dashboard-panel">
      <div className="dashboard-panel-head"><div><p className="eyebrow">SYMBOL PERFORMANCE</p><h2>Top symbols by known net</h2></div><Link href="/ticker-pnl">All tickers ↗</Link></div>
      <Groups rows={data.symbols}/>
