@@ -333,3 +333,5 @@ The Dashboard no longer shows the Daily P&L component beneath the Trading Calend
 ## Dashboard Long vs Short and weekday performance
 
 The Dashboard former Top Symbols panel is replaced by side-by-side Long vs Short and Day of Week panels. Metrics use completed flat-to-flat FIFO cycles. Long/Short shows trade count, verified known net, win rate and average win/loss. The weekday chart shows Monday to Friday only, net P&L, trades and win rate by **entry weekday in Eastern Time**, excluding weekend entries from the chart. Trades with unknown net contribute to trade count but not known P&L or win rate. Other analysis routes remain available. Favicon uses a diamond emblem matching the existing sidebar brand mark. No migration needed.
+
+Dashboard weekday panel styling: the dark weekday-chart body stretches to the bottom of its card, even when the adjacent Long vs Short card determines the row height. The chart data and calculations are unchanged.

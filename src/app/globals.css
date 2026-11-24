@@ -602,3 +602,7 @@ button,input,select,textarea{font:inherit}
 @media(max-width:600px){.sj-breakdown-direction{padding:12px}.sj-direction-net{font-size:19px}.sj-weekdays-body{padding:10px}.sj-weekday-row{grid-template-columns:30px minmax(55px,1fr) 56px 54px;gap:6px}.sj-weekday-detail{font-size:10px}.sj-breakdown-counter{flex-wrap:wrap}.sj-breakdown-line{font-size:12px}}
 
 .sj-brand-icon{display:block;width:26px;height:26px;object-fit:contain}
+
+/* Stretch the weekday panel's dark chart background through the card's full height. */
+.sj-breakdown-panel{display:flex;flex-direction:column}
+.sj-weekdays-body{flex:1}
