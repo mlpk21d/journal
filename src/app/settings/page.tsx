@@ -23,5 +23,13 @@ export default async function SettingsPage(){
    <p className="helper">Create a named account for manually recorded transactions from another broker. This will not connect to that broker's API.</p>
    <AccountSettingsForm/></>}
   </section>
+  <section className="sj-settings-panel sj-settings-tax-import">
+   <div className="sj-section-heading"><div>
+    <h2>Tax Imports</h2>
+    <p>Brokerage tax records and Form 1099-B reconciliation.</p>
+   </div></div>
+   <p className="helper">Planned feature. CSV tax-statement upload, brokerage field mapping, duplicate detection and wash-sale reconciliation will be added when tax documents are available.</p>
+   <p className="sj-settings-coming-soon">Not available yet — no upload or tax records are changed.</p>
+  </section>
  </main>;
 }

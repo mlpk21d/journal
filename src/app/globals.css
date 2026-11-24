@@ -473,3 +473,9 @@ button,input,select,textarea{font:inherit}
 .sj-wash-notes p{color:#aab5ca;line-height:1.8;font-size:12px}
 @media(max-width:1150px){.sj-wash-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:650px){.sj-wash-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Dashboard mini metric bars: calculated fill, including a small visible mark for zero. */
+.sj-mini-track{height:6px;overflow:hidden;position:relative}
+.sj-mini-track>span{display:block;min-width:3px;max-width:100%;height:100%;border-radius:3px;transition:width .18s ease}
+.sj-settings-tax-import{margin-top:20px}
+.sj-settings-coming-soon{display:inline-block;font-size:11px;color:#dfc887;border:1px solid #635840;background:#3b352a;padding:8px 12px;border-radius:7px}
