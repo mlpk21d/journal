@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import {NewTradeButton} from '@/components/new-trade-button';
 import type {ReviewedTrade} from '@/lib/review/trade-review';
 const money=(value:string|null)=>value===null?'—':new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(Number(value));
 const qty=(value:string)=>value.replace(/(\.\d*?[1-9])0+$|\.0+$/,(match,fraction:string|undefined)=>fraction??'');
@@ -13,7 +14,7 @@ export function DashboardTrades({trades}:{trades:ReviewedTrade[]}){
  const visible=[...trades].sort((a,b)=>b.exitedAt.localeCompare(a.exitedAt)||b.id.localeCompare(a.id)).slice(0,30);
  return <section className="sj-trades-panel">
   <div className="sj-section-heading sj-dashboard-table-heading"><div><h2>Completed Trade History</h2><p>Latest {visible.length} completed FIFO trade cycles</p></div><Link href="/review">View all trades ↗</Link></div>
-  {!visible.length?<div className="sj-empty-trades"><div className="sj-empty-icon">▥</div><p>No completed trades yet. Import or enter trades to populate your journal.</p><Link href="/manual">Add Trade</Link></div>:
+  {!visible.length?<div className="sj-empty-trades"><div className="sj-empty-icon">▥</div><p>No completed trades yet. Import or enter trades to populate your journal.</p><NewTradeButton>Add Trade</NewTradeButton></div>:
    <div className="table-scroll"><table className="sj-dashboard-table">
     <thead><tr><th>Date (ET)</th><th>Symbol</th><th>Status</th><th>Direction</th><th>Qty</th><th>Entry</th><th>Exit</th><th>Entry Total</th><th>Exit Total</th><th>Hold</th><th>Net Return</th><th>Return %</th></tr></thead>
     <tbody>{visible.map(t=>{

@@ -1,3 +1,4 @@
+import {activeAccountId} from '@/lib/review/account-scope';
 import Link from 'next/link';
 import {db} from '@/lib/db';
 import {reviewIsLocal,loadReviewLedger} from '@/lib/review/server';
@@ -41,7 +42,7 @@ function Ranked({title,rows,empty}:{title:string;rows:InsightGroup[];empty:strin
 export default async function PerformanceInsights({searchParams}:{searchParams:Promise<Filters>}){
  if(!await reviewIsLocal())return <main className="shell"><header><Link className="brand" href="/">TRADE / JOURNAL</Link></header><p className="notice">Performance Insights is restricted to localhost development.</p></main>;
  const p=await searchParams;
- const account=typeof p.account==='string'?p.account:'all';
+ const account=(await activeAccountId())??'all';
  const symbol=typeof p.symbol==='string'?p.symbol.trim().replace(/^\$/,'').toUpperCase():'';
  const direction=typeof p.direction==='string'?p.direction:'all';
  const from=typeof p.from==='string'?p.from:'';
@@ -83,8 +84,7 @@ export default async function PerformanceInsights({searchParams}:{searchParams:P
    <p className="intro">Compare completed-trade outcomes across strategies, direction, entry/exit hours, and weekdays. Small samples are excluded from rankings.</p></section>
   <nav className="pill-row"><Link href="/analytics">Strategy Analytics ↗</Link><Link href="/timing">Trade Timing ↗</Link><Link href="/daily">Daily Performance ↗</Link><Link href="/review">Trade Review ↗</Link></nav>
   <form action="/insights" method="get" className="performance-filter">
-   <label htmlFor="insight-account">Account</label><select id="insight-account" name="account" defaultValue={account}>
-    <option value="all">All accounts</option>{accounts.map(a=><option key={a.id} value={a.id}>{a.label}</option>)}</select>
+   <span className="helper">Account: {account==='all'?'All Accounts':accounts.find(a=>a.id===account)?.label??'Selected account'} (sidebar selection)</span>
    <label htmlFor="insight-symbol">Ticker</label><input id="insight-symbol" name="symbol" maxLength={30} defaultValue={symbol} placeholder="NVDA"/>
    <label htmlFor="insight-direction">Direction</label><select id="insight-direction" name="direction" defaultValue={direction}>
     <option value="all">All</option><option value="LONG">Long</option><option value="SHORT">Short</option></select>

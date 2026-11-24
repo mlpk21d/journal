@@ -1,6 +1,7 @@
 import {ReviewTradesTable} from '@/components/review-trades-table';
 import Link from 'next/link';
 import {cookies} from 'next/headers';
+import {activeAccountId} from '@/lib/review/account-scope';
 import {normalizeReviewColumns} from '@/lib/review/columns';
 import {headers} from 'next/headers';
 import {db} from '@/lib/db';
@@ -22,7 +23,7 @@ export default async function Review({searchParams}:{searchParams:Promise<Params
  if(rawColumns){try{selectedColumns=normalizeReviewColumns(JSON.parse(decodeURIComponent(rawColumns)));}catch{/* Invalid cookie falls back to all columns. */}}
  const p=await searchParams;
  const symbol=(typeof p.symbol==='string'?p.symbol.trim().replace(/^\$/,'').toUpperCase():'');
- const account=typeof p.account==='string'?p.account:'all';
+ const account=(await activeAccountId())??'all';
  const date=typeof p.date==='string'?p.date:'';
  const view=p.view==='sessions'?'sessions':'trades';
  const invalid=!!symbol&&!/^[A-Z0-9.^_-]{1,30}$/.test(symbol)||!!date&&!/^\d{4}-\d{2}-\d{2}$/.test(date)||account!=='all'&&!/^\d{1,19}$/.test(account);
@@ -72,9 +73,7 @@ export default async function Review({searchParams}:{searchParams:Promise<Params
   <form action="/review" method="get" className="performance-filter">
    <input type="hidden" name="view" value={view}/>
    <label htmlFor="review-symbol">Ticker</label><input id="review-symbol" name="symbol" placeholder="NVDA" defaultValue={symbol} maxLength={30}/>
-   <label htmlFor="review-account">Account</label><select id="review-account" name="account" defaultValue={account}>
-    <option value="all">All accounts</option>{accounts.map(a=><option key={a.id} value={a.id}>{name(a.id)}</option>)}
-   </select>
+   <span className="helper">Account: {account==='all'?'All Accounts':name(account)} (sidebar selection)</span>
    <label htmlFor="review-date">Exit date (ET)</label><input id="review-date" name="date" type="date" defaultValue={date}/>
    <button type="submit">Apply</button><Link href={'/review?view='+view}>Clear</Link>
   </form>

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import {headers} from 'next/headers';
 import {db} from '@/lib/db';
 import {displayAccount} from '@/lib/review/account-label';
+import {activeAccountId} from '@/lib/review/account-scope';
 import ManualTradeEditor,{type AccountOption,type ManualTradeRow} from '@/features/manual-trades/editor';
 export const dynamic='force-dynamic';
 export default async function ManualPage(){
@@ -10,6 +11,7 @@ export default async function ManualPage(){
  if(!local||process.env.NODE_ENV!=='development'){
   return <main className="shell"><p className="notice">Manual trades are only available on local development until authentication is installed.</p></main>;
  }
+ const selected=await activeAccountId();
  let accounts:AccountOption[]=[];
  let trades:ManualTradeRow[]=[];
  let error='';
@@ -24,14 +26,14 @@ export default async function ManualPage(){
    to_char(executed_at AT TIME ZONE 'UTC','YYYY-MM-DD') AS date,
    to_char(executed_at AT TIME ZONE 'UTC','HH24:MI') AS time,
    side,entry_type,quantity::text,price::text,fees::text,notes
-   FROM manual_trades ORDER BY executed_at DESC,id DESC LIMIT 500`);
+   FROM manual_trades WHERE ($1::bigint IS NULL OR brokerage_account_id=$1::bigint) ORDER BY executed_at DESC,id DESC LIMIT 500`,[selected]);
   trades=rows.map(r=>({id:r.id,accountId:r.account_id,symbol:r.symbol,date:r.date,
    time:r.time,side:r.side,entryType:r.entry_type,quantity:r.quantity,price:r.price,fees:r.fees,notes:r.notes}));
  }catch(e){console.error('[Manual trades] Page failed',e);error='Unable to load manual trades. Run npm run db:migrate and check the terminal.';}
  return <main className="shell"><header><Link href="/" className="brand">TRADE / JOURNAL</Link><span className="muted">Manual entries</span></header>
  <section className="page-title"><p className="eyebrow">TRADE ACCOUNTING</p><h1>Manual trades</h1>
- <p className="intro">Add, edit and delete manually entered stock buys and sells, or record older opening shares. Entries remain separate from Webull transactions.</p></section>
- {error?<p className="notice">{error}</p>:<ManualTradeEditor accounts={accounts} trades={trades}
+ <p className="intro">Add, edit and delete manually entered stock buys and sells, or record older opening shares. Entries remain separate from Webull transactions. Add and manage brokerage accounts in Settings.</p></section>
+ {error?<p className="notice">{error}</p>:<ManualTradeEditor accounts={accounts} trades={trades} selectedAccountId={selected}
   description="Record a manual BUY or SELL with account, date, time, quantity, price and fees. For shares received before your imported history, choose Opening shares."/>}
  <footer><Link href="/performance">View provisional performance ↗</Link><span>Manually supplied values remain unverified.</span></footer>
  </main>;

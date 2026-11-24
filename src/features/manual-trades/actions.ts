@@ -29,7 +29,7 @@ async function assertLocal():Promise<void>{
    throw new Error('Cross-origin request refused');
  }
 }
-function refresh(){for(const path of ['/','/manual','/performance','/trades','/review','/analytics','/daily','/risk','/timing','/insights'])revalidatePath(path);}
+function refresh(){for(const path of ['/','/manual','/settings','/stats','/calendar','/performance','/trades','/review','/analytics','/daily','/risk','/timing','/insights'])revalidatePath(path);}
 export async function saveManualTrade(form:FormData):Promise<ManualTradeResult>{
  try{
   await assertLocal();

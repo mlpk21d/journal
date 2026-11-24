@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import {db} from '@/lib/db';
+import {activeAccountId} from '@/lib/review/account-scope';
 export const dynamic='force-dynamic';
 type Params={symbol?:string;page?:string};
 const PAGE_SIZE=50;
@@ -7,6 +8,7 @@ const twoDecimals=(value:unknown)=>Number(value).toFixed(2);
 const displayQuantity=(value:unknown)=>String(value).replace(/(\.\d*?[1-9])0+$|\.0+$/,(match,fraction:string|undefined)=>fraction??'');
 export default async function Trades({searchParams}:{searchParams:Promise<Params>}){
  const params=await searchParams;
+ const account=await activeAccountId();
  const rawSymbol=typeof params.symbol==='string'?params.symbol.trim().toUpperCase():'';
  const symbol=rawSymbol.replace(/^\$/,'');
  const pageValue=typeof params.page==='string'?params.page:'1';
@@ -17,17 +19,17 @@ export default async function Trades({searchParams}:{searchParams:Promise<Params
   const sql=`FROM (
     SELECT e.id::text AS row_id,e.symbol,e.side,e.quantity::text,e.price::text,e.executed_at,e.source,e.brokerage_account_id::text AS account_id,
       COALESCE((SELECT SUM(f.amount) FROM brokerage_order_fees f WHERE f.brokerage_order_id=e.brokerage_order_id),0)::text AS order_fees
-    FROM executions e WHERE ($1::text IS NULL OR UPPER(e.symbol)=$1)
+    FROM executions e WHERE ($1::text IS NULL OR UPPER(e.symbol)=$1) AND ($2::bigint IS NULL OR e.brokerage_account_id=$2::bigint)
     UNION ALL
     SELECT 'manual:'||m.id::text AS row_id,m.symbol,m.side,m.quantity::text,m.price::text,
       m.executed_at,'manual_trade'::text AS source,m.brokerage_account_id::text AS account_id,m.fees::text AS order_fees
-    FROM manual_trades m WHERE ($1::text IS NULL OR UPPER(m.symbol)=$1)
+    FROM manual_trades m WHERE ($1::text IS NULL OR UPPER(m.symbol)=$1) AND ($2::bigint IS NULL OR m.brokerage_account_id=$2::bigint)
    ) history`;
   const pool=db();
-  const count=await pool.query<{count:string}>(`SELECT COUNT(*)::text AS count ${sql}`,[symbol||null]);
+  const count=await pool.query<{count:string}>(`SELECT COUNT(*)::text AS count ${sql}`,[symbol||null,account]);
   total=Number(count.rows[0].count);
-  const result=await pool.query(`SELECT history.* ${sql} ORDER BY executed_at DESC,row_id DESC LIMIT $2 OFFSET $3`,
-   [symbol||null,PAGE_SIZE,(page-1)*PAGE_SIZE]);
+  const result=await pool.query(`SELECT history.* ${sql} ORDER BY executed_at DESC,row_id DESC LIMIT $3 OFFSET $4`,
+   [symbol||null,account,PAGE_SIZE,(page-1)*PAGE_SIZE]);
   rows=result.rows;
  }catch(e){console.error('[Trades] History pagination failed',e);error=true;}
  const pages=Math.max(1,Math.ceil(total/PAGE_SIZE));

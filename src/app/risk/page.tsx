@@ -1,3 +1,4 @@
+import {activeAccountId} from '@/lib/review/account-scope';
 import Link from 'next/link';
 import {reviewIsLocal,loadReviewLedger} from '@/lib/review/server';
 import {buildTradeReview} from '@/lib/review/trade-review';
@@ -22,7 +23,7 @@ function DurationTable({rows}:{rows:DurationGroup[]}){
 export default async function RiskQualityPage({searchParams}:{searchParams:Promise<Filters>}){
  if(!await reviewIsLocal())return <main className="shell"><header><Link href="/" className="brand">TRADE / JOURNAL</Link></header><p className="notice">Risk and Trade Quality is restricted to local development.</p></main>;
  const p=await searchParams;
- const account=typeof p.account==='string'?p.account:'all';
+ const account=(await activeAccountId())??'all';
  const symbol=typeof p.symbol==='string'?p.symbol.trim().replace(/^\$/,'').toUpperCase():'';
  const direction=typeof p.direction==='string'?p.direction:'all';
  const from=typeof p.from==='string'?p.from:'',to=typeof p.to==='string'?p.to:'';
@@ -51,8 +52,7 @@ export default async function RiskQualityPage({searchParams}:{searchParams:Promi
    <p className="intro">Understand the size of your winners and losers, consecutive losses, realized P&amp;L drawdowns and which holding durations have worked historically.</p></section>
   <nav className="pill-row"><Link href="/insights">Performance Insights ↗</Link><Link href="/review">Trade Review ↗</Link><Link href="/daily">Daily Performance ↗</Link></nav>
   <form action="/risk" method="get" className="performance-filter">
-   <label htmlFor="risk-account">Account</label><select id="risk-account" name="account" defaultValue={account}>
-    <option value="all">All accounts</option>{accounts.map(a=><option key={a.id} value={a.id}>{a.label}</option>)}</select>
+   <span className="helper">Account: {account==='all'?'All Accounts':accounts.find(a=>a.id===account)?.label??'Selected account'} (sidebar selection)</span>
    <label htmlFor="risk-symbol">Ticker</label><input id="risk-symbol" name="symbol" defaultValue={symbol} placeholder="NVDA" maxLength={30}/>
    <label htmlFor="risk-direction">Direction</label><select id="risk-direction" name="direction" defaultValue={direction}>
     <option value="all">All</option><option value="LONG">Long</option><option value="SHORT">Short</option></select>

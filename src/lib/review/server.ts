@@ -4,12 +4,17 @@ import type {LedgerInput} from '@/lib/performance/ledger';
 import {normalizeWebullOrderFee} from '@/lib/performance/fee-policy';
 import {displayAccount} from '@/lib/review/account-label';
 import {headers} from 'next/headers';
+import {activeAccountId} from '@/lib/review/account-scope';
 
 export async function reviewIsLocal(){
  const host=(await headers()).get('host')??'';
  return process.env.NODE_ENV==='development'&&/^(localhost|127\.0\.0\.1|\[::1\])(?::\d+)?$/i.test(host);
 }
 export async function loadReviewLedger(accountId:string|null){
+ // The persistent sidebar account takes precedence over per-page URL parameters.
+ const active=await activeAccountId();
+ // When a workspace account is selected it overrides any old page-level account URL.
+ accountId=active??accountId;
  const accounts=(await db().query<{id:string;external_account_id:string;account_type:string|null;broker:string;user_label:string|null}>(
   'SELECT id::text,external_account_id,account_type,broker,user_label FROM brokerage_accounts ORDER BY id')).rows;
  if(accountId!==null&&!accounts.some(a=>a.id===accountId))throw new Error('Unknown account');

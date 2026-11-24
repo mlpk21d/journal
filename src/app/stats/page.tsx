@@ -45,7 +45,7 @@ export default async function Statistics(){
  const recent=daily.days.filter(d=>!cutoffString||d.date>=cutoffString);
  return <main className="shell sj-stats-page">
   <div className="sj-page-head">
-   <div><p className="sj-kicker">PERFORMANCE ANALYSIS</p><h1>Statistics</h1><p>Completed FIFO trade performance · all brokerage accounts</p></div>
+   <div><p className="sj-kicker">PERFORMANCE ANALYSIS</p><h1>Statistics</h1><p>Completed FIFO trade performance · selected sidebar account scope</p></div>
    <div className="sj-head-actions"><Link href="/analytics">Strategy breakdown ↗</Link><Link href="/risk">Risk report ↗</Link></div>
   </div>
   {error?<p role="alert" className="notice">{error}</p>:<>

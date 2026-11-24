@@ -1,6 +1,8 @@
 'use client';
 import Link from 'next/link';
 import {usePathname,useRouter} from 'next/navigation';
+import {NewTradeModal} from '@/components/new-trade-modal';
+import {ACCOUNT_COOKIE,type WorkspaceAccount} from '@/lib/review/account-scope-shared';
 import {useEffect,useState,type FormEvent} from 'react';
 type Item={href:string;label:string;glyph:string};
 const primary:Item[]=[
@@ -19,7 +21,7 @@ const research:Item[]=[
  {href:'/performance',label:'Realized Performance',glyph:'▥'}
 ];
 const actions:Item[]=[
- {href:'/manual',label:'New Trade',glyph:'⊞'},
+ {href:'/manual',label:'Manual Entries',glyph:'⊞'},
  {href:'/import',label:'Import Trades',glyph:'⇧'}
 ];
 function NavItem({item,pathname,onNavigate}:{item:Item;pathname:string;onNavigate:()=>void}){
@@ -28,12 +30,20 @@ function NavItem({item,pathname,onNavigate}:{item:Item;pathname:string;onNavigat
   <span className="sj-nav-icon" aria-hidden="true">{item.glyph}</span><span>{item.label}</span>
  </Link>;
 }
-export default function Navigation(){
+export default function Navigation({accounts,selected}:{accounts:WorkspaceAccount[];selected:string|null}){
  const pathname=usePathname();
  const router=useRouter();
  const [open,setOpen]=useState(false);
  const [query,setQuery]=useState('');
- useEffect(()=>setOpen(false),[pathname]);
+ const [accountOpen,setAccountOpen]=useState(false);
+ const [tradeOpen,setTradeOpen]=useState(false);
+ useEffect(()=>{setOpen(false);setAccountOpen(false);},[pathname]);
+ useEffect(()=>{const fn=()=>setTradeOpen(true);window.addEventListener('trade-journal:new-trade',fn);return()=>window.removeEventListener('trade-journal:new-trade',fn);},[]);
+ function selectAccount(id:string|null){
+  document.cookie=ACCOUNT_COOKIE+'='+(id??'all')+'; Path=/; Max-Age=31536000; SameSite=Lax';
+  setAccountOpen(false);
+  router.replace(pathname);router.refresh();
+ }
  useEffect(()=>{
   if(!open)return;
   function key(event:KeyboardEvent){if(event.key==='Escape')setOpen(false);}
@@ -52,7 +62,18 @@ export default function Navigation(){
    <Link href="/" className="sj-brand" onClick={()=>setOpen(false)}>
     <span className="sj-brand-mark" aria-hidden="true">◈</span><span>Trade Journal</span>
    </Link>
-   <div className="sj-account-picker"><span className="sj-account-dot"/> <span>All Accounts</span></div>
+   <div className="sj-account-select">
+    <button className="sj-account-picker" type="button" aria-expanded={accountOpen} aria-controls="sj-account-options" onClick={()=>setAccountOpen(v=>!v)}>
+     <span className="sj-account-dot"/><span>{accounts.find(a=>a.id===selected)?.label??'All Accounts'}</span><span aria-hidden="true">⌄</span>
+    </button>
+    {accountOpen&&<div id="sj-account-options" className="sj-account-options" role="group" aria-label="Active brokerage account">
+     <button type="button" className={!selected?'sj-account-selected':''} onClick={()=>selectAccount(null)}>All Accounts</button>
+     {accounts.map(a=><button key={a.id} type="button" className={selected===a.id?'sj-account-selected':''} onClick={()=>selectAccount(a.id)}>
+      <span>{a.label}</span><small>{a.broker==='manual'?'Manual':'Webull'}</small>
+     </button>)}
+     <Link href="/settings" onClick={()=>{setAccountOpen(false);setOpen(false);}}>Manage accounts ↗</Link>
+    </div>}
+   </div>
    <div className="sj-nav-scroll">
     <nav aria-label="Journal pages" className="sj-nav-section">
      {primary.map(item=><NavItem key={item.href} item={item} pathname={pathname} onNavigate={()=>setOpen(false)}/>)}
@@ -63,8 +84,13 @@ export default function Navigation(){
     </nav>
     <div className="sj-nav-section-heading">TRADE MANAGEMENT</div>
     <nav aria-label="Trade actions" className="sj-nav-section">
+     <button type="button" className="sj-nav-link sj-nav-action" onClick={()=>{setTradeOpen(true);setOpen(false);}}>
+      <span className="sj-nav-icon" aria-hidden="true">⊞</span><span>New Trade</span>
+     </button>
      {actions.map(item=><NavItem key={item.href} item={item} pathname={pathname} onNavigate={()=>setOpen(false)}/>)}
     </nav>
+    <div className="sj-nav-section-heading">WORKSPACE</div>
+    <nav className="sj-nav-section" aria-label="Settings"><NavItem item={{href:'/settings',label:'Settings',glyph:'⚙'}} pathname={pathname} onNavigate={()=>setOpen(false)}/></nav>
    </div>
    <div className="sj-sidebar-footer"><span className="sj-account-dot"/> Local workspace <small>Read-only brokerage connection</small></div>
   </aside>
@@ -85,7 +111,8 @@ export default function Navigation(){
     <input id="sj-search-symbol" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search ticker"/>
     <button type="submit" aria-label="Search trades">↵</button>
    </form>
-   <Link className="sj-topbar-quick" href="/manual" title="Enter a trade">＋ New Trade</Link>
+   <button className="sj-topbar-quick" type="button" onClick={()=>setTradeOpen(true)}>＋ New Trade</button>
   </div>
+  {tradeOpen&&<NewTradeModal accounts={accounts} selected={selected} onClose={()=>setTradeOpen(false)}/>}
  </>;
 }

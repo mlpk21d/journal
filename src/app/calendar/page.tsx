@@ -1,3 +1,4 @@
+import {activeAccountId} from '@/lib/review/account-scope';
 import Link from 'next/link';
 import {reviewIsLocal,loadReviewLedger} from '@/lib/review/server';
 import {buildTradeReview} from '@/lib/review/trade-review';
@@ -8,7 +9,7 @@ type Filters={account?:string};
 export default async function CalendarPage({searchParams}:{searchParams:Promise<Filters>}){
  if(!await reviewIsLocal())return <main className="shell"><p className="notice">Trading Calendar is restricted to the local workspace.</p></main>;
  const filters=await searchParams;
- const account=typeof filters.account==='string'?filters.account:'all';
+ const account=(await activeAccountId())??'all';
  const valid=account==='all'||/^\d{1,19}$/.test(account);
  let days:ReturnType<typeof summarizeDailySessions>['days']=[];
  let accounts:{id:string;label:string}[]=[];
@@ -30,10 +31,7 @@ export default async function CalendarPage({searchParams}:{searchParams:Promise<
  return <main className="shell sj-calendar-page">
   <div className="sj-page-head sj-calendar-page-head"><div><p className="sj-kicker">REALIZED EXIT ACTIVITY</p><h1>Calendar</h1></div>
    <form action="/calendar" method="get" className="sj-calendar-filter">
-    <label htmlFor="sj-calendar-account">Account</label>
-    <select name="account" id="sj-calendar-account" defaultValue={account}>
-     <option value="all">All accounts</option>{accounts.map(a=><option value={a.id} key={a.id}>{a.label}</option>)}
-    </select>
+    <span className="helper">Account scope: {account==='all'?'All Accounts':accounts.find(a=>a.id===account)?.label??'Selected account'}</span>
     <button type="submit">Apply</button>
    </form></div>
   {!valid?<p className="notice">Invalid account filter.</p>:error?<p className="notice" role="alert">{error}</p>:

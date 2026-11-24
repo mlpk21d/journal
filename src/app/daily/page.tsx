@@ -1,3 +1,4 @@
+import {activeAccountId} from '@/lib/review/account-scope';
 import Link from 'next/link';
 import {reviewIsLocal,loadReviewLedger} from '@/lib/review/server';
 import {buildTradeReview} from '@/lib/review/trade-review';
@@ -10,7 +11,7 @@ const usd=(n:string|null)=>n===null?'Unverified':new Intl.NumberFormat('en-US',{
 export default async function DailyPerformance({searchParams}:{searchParams:Promise<Filters>}){
  if(!await reviewIsLocal())return <main className="shell"><header><Link className="brand" href="/">TRADE / JOURNAL</Link></header><p className="notice">Daily Performance is restricted to localhost development.</p></main>;
  const p=await searchParams;
- const account=typeof p.account==='string'?p.account:'all';
+ const account=(await activeAccountId())??'all';
  const from=typeof p.from==='string'?p.from:'';
  const to=typeof p.to==='string'?p.to:'';
  const month=typeof p.month==='string'?p.month:'';
@@ -38,8 +39,7 @@ export default async function DailyPerformance({searchParams}:{searchParams:Prom
    <p className="intro">Realized P&amp;L by Eastern Time exit date, including partial exits of positions still open. Review daily consistency and consecutive winning or losing days.</p></section>
   <nav className="pill-row"><Link href="/review?view=sessions">Trading Sessions ↗</Link><Link href="/analytics">Strategy Analytics ↗</Link><Link href="/performance">Performance ↗</Link></nav>
   <form action="/daily" method="get" className="performance-filter">
-   <label htmlFor="daily-account">Account</label><select id="daily-account" name="account" defaultValue={account}>
-    <option value="all">All accounts</option>{accounts.map(a=><option key={a.id} value={a.id}>{a.label}</option>)}</select>
+   <span className="helper">Account: {account==='all'?'All Accounts':accounts.find(a=>a.id===account)?.label??'Selected account'} (sidebar selection)</span>
    <label htmlFor="daily-from">From (ET)</label><input id="daily-from" type="date" name="from" defaultValue={from}/>
    <label htmlFor="daily-to">To (ET)</label><input id="daily-to" type="date" name="to" defaultValue={to}/>
    <button type="submit">Apply</button><Link href="/daily">Clear</Link>

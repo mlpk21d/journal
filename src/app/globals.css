@@ -418,3 +418,45 @@ button,input,select,textarea{font:inherit}
  .trading-calendar-week .daily-calendar-day{padding:6px;min-height:72px}
  .trading-calendar-week .daily-calendar-day>strong{font-size:11px}
 }
+
+/* Workspace account dropdown; visible above the scrolling menu */
+.sj-account-select{position:relative;z-index:85}
+.sj-account-select>.sj-account-picker{width:calc(100% - 22px);cursor:pointer;background:#222530;color:#e7e9f5;text-align:left}
+.sj-account-select>.sj-account-picker>span:nth-child(2){flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sj-account-options{position:absolute;top:calc(100% - 12px);left:11px;width:max(230px,calc(100% - 22px));max-width:min(340px,92vw);max-height:340px;overflow-y:auto;padding:6px;background:#252938;border:1px solid #46506b;border-radius:10px;box-shadow:0 16px 36px #0008;z-index:95}
+.sj-account-options button,.sj-account-options>a{display:flex;align-items:center;justify-content:space-between;gap:9px;width:100%;padding:11px 12px;color:#d7deef;border:0;background:transparent;border-radius:6px;text-align:left;cursor:pointer;font-size:12px}
+.sj-account-options button:hover,.sj-account-options a:hover{background:#333b54}
+.sj-account-options .sj-account-selected{background:#304364;color:#9dc1ff;font-weight:700}
+.sj-account-options small{font-size:10px;color:#8897b3}
+.sj-account-options>a{border-top:1px solid #3a4055;color:#87b4fc;margin-top:5px}
+/* New trade modal reuses manual-trade form and scrolls within the dialog */
+.sj-modal-backdrop{position:fixed;inset:0;z-index:150;background:#070a12c9;display:flex;align-items:center;justify-content:center;padding:20px}
+.sj-new-trade-modal{width:min(850px,96vw);max-height:min(92dvh,950px);display:flex;flex-direction:column;background:#232733;border:1px solid #46506a;border-radius:14px;box-shadow:0 30px 80px #000b;overflow:hidden}
+.sj-modal-head{display:flex;align-items:center;justify-content:space-between;padding:17px 23px;border-bottom:1px solid #3a4052}
+.sj-modal-head h2{font-size:21px;margin:3px 0}.sj-modal-head .sj-kicker{margin:0}
+.sj-modal-head>button{width:34px;height:34px;border-radius:7px;background:#32394b;color:#eef1fb;border:1px solid #4b5368;font-size:23px;cursor:pointer}
+.sj-modal-content{overflow-y:auto;padding:18px 22px}
+.sj-modal-content .import-panel{margin:0;padding:17px;border-radius:10px;background:#282c3b}
+.sj-modal-content .manual-lot-form{gap:8px}
+.sj-modal-content .manual-lot-form label{font-size:11px}
+.sj-modal-content .manual-lot-form input,.sj-modal-content .manual-lot-form select,.sj-modal-content .manual-lot-form textarea{padding:8px 9px}
+.sj-modal-content .notice{font-size:11px;padding:11px 13px}
+.sj-add-trade,.sj-summary-actions button{border:1px solid #458cf2;border-radius:6px;padding:7px 10px;background:#458cf2;color:#fff;font-size:11px;cursor:pointer}
+.sj-topbar-quick{background:#292e3e;cursor:pointer}
+.sj-settings-page .sj-settings-panel{background:#242631;border:1px solid #34394c;border-radius:12px;padding:23px;max-width:970px}
+.sj-settings-accounts{display:grid;gap:7px;margin:18px 0 26px}
+.sj-settings-account{display:flex;align-items:center;gap:13px;border:1px solid #353c51;background:#272c3b;padding:13px 15px;border-radius:8px}
+.sj-settings-account strong{font-size:13px;flex:1}
+.sj-settings-account small{font-size:11px;color:#96a5bb}
+.sj-settings-panel h3{font-size:15px;margin:14px 0}
+.sj-settings-form{margin:16px 0 0}
+.sj-settings-form label{display:block;font-size:12px;color:#bcc9dc;margin:0 0 9px}
+.sj-settings-input-row{display:flex;gap:10px;flex-wrap:wrap}
+.sj-settings-input-row input{flex:1;min-width:min(240px,100%);border:1px solid #48506a;border-radius:7px;padding:10px 13px}
+.sj-settings-input-row button{border:0;border-radius:7px;background:#4a92eb;color:#fff;padding:10px 15px;cursor:pointer}
+.sj-settings-input-row button:disabled{opacity:.55;cursor:not-allowed}
+@media(max-width:740px){.sj-modal-backdrop{padding:7px}.sj-new-trade-modal{width:100%;max-height:96dvh}.sj-modal-content{padding:10px}.sj-settings-account{flex-wrap:wrap}}
+
+/* Secondary sidebar trade action uses the same styling as navigation links. */
+.sj-nav-action{background:transparent;border-top:0;border-bottom:0;border-left:0;width:100%;cursor:pointer;font-family:inherit;text-align:left}
+.sj-nav-action:hover{background:#262b3b;color:#e4ebfc}

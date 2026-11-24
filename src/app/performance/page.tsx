@@ -1,8 +1,9 @@
 import Link from 'next/link';
 import {headers} from 'next/headers';
+import {activeAccountId} from '@/lib/review/account-scope';
 import {db} from '@/lib/db';
 import {buildLedger,parseFixed,formatFixed,type LedgerInput} from '@/lib/performance/ledger';
-import {formatBrokerageAccount} from '@/lib/webull/account-format';
+import {displayAccount} from '@/lib/review/account-label';
 import {normalizeWebullOrderFee} from '@/lib/performance/fee-policy';
 export const dynamic='force-dynamic';
 type Params={account?:string};
@@ -16,16 +17,16 @@ export default async function Performance({searchParams}:{searchParams:Promise<P
  if(!local||process.env.NODE_ENV!=='development'){
   return <main className="shell"><header><Link href="/" className="brand">TRADE / JOURNAL</Link></header><p className="notice">Performance dashboard is restricted to the local development application until login protection is implemented.</p></main>;
  }
- const query=await searchParams;
- const selected=typeof query.account==='string'&&/^\d{1,19}$/.test(query.account)?query.account:'all';
- let accounts:{id:string;external_account_id:string;account_type:string|null}[]=[];
+ await searchParams;
+ const selected=(await activeAccountId())??'all';
+ let accounts:{id:string;external_account_id:string;account_type:string|null;broker:string;user_label:string|null}[]=[];
  let data:LedgerInput[]=[];
  let error='';
  let truncated=false;
  try{
   const pool=db();
-  const a=await pool.query<{id:string;external_account_id:string;account_type:string|null}>(
-   'SELECT id::text,external_account_id,account_type FROM brokerage_accounts ORDER BY id');
+  const a=await pool.query<{id:string;external_account_id:string;account_type:string|null;broker:string;user_label:string|null}>(
+   'SELECT id::text,external_account_id,account_type,broker,user_label FROM brokerage_accounts ORDER BY id');
   accounts=a.rows;
   const valid=selected==='all'||accounts.some(a=>a.id===selected);
   if(!valid)throw new Error('Unknown account selection');
@@ -63,7 +64,7 @@ export default async function Performance({searchParams}:{searchParams:Promise<P
  if(!error&&!truncated){try{report=buildLedger(data);}catch(e){console.error('[Performance] matching failed:',e);error='Unable to match imported orders. Check server terminal.';}}
  const totalClosed=report?.matches.length??0;
  const gross=report?.gross??'0';
- const accountName=(id:string)=>{const a=accounts.find(a=>a.id===id);return a?formatBrokerageAccount(a.account_type,a.external_account_id):'Unknown account';};
+ const accountName=(id:string)=>{const a=accounts.find(a=>a.id===id);return a?displayAccount(a):'Unknown account';};
  const summaries=accounts.filter(a=>selected==='all'||a.id===selected).map(a=>{
   const matched=report?.matches.filter(m=>m.accountId===a.id)??[];
   const gross=matched.reduce((n,m)=>n+parseFixed(m.gross),0n);
@@ -81,14 +82,7 @@ export default async function Performance({searchParams}:{searchParams:Promise<P
   <section className="page-title"><p className="eyebrow">TRADE ACCOUNTING</p><h1>Realized performance</h1>
    <p className="intro">Signed FIFO matching of Webull completed-order snapshots and manually entered stock trades or historical opening shares. Sales can open short positions; subsequent buys first cover those shorts. Results remain provisional until verified against brokerage records.</p></section>
   <nav className="pill-row"><Link href="/import">Import trades ↗</Link><Link href="/manual">Manual trades ↗</Link><Link href="/trades">Trade history ↗</Link></nav>
-  <form action="/performance" method="get" className="performance-filter">
-   <label htmlFor="performance-account">Account</label>
-   <select id="performance-account" name="account" defaultValue={selected}>
-    <option value="all">All accounts (separate matching)</option>
-    {accounts.map(a=><option value={a.id} key={a.id}>{accountName(a.id)}</option>)}
-   </select>
-   <button type="submit">Apply</button>
-  </form>
+  <p className="helper">Account scope: {selected==='all'?'All Accounts':accountName(selected)} · Change the selected account from the sidebar.</p>
   {error||truncated?<p className="notice">{error||'Over 20,000 imported records. The report stopped rather than silently dropping older cost basis. Contact developer to implement paged ledger processing.'}</p>:report&&<>
    <div className="performance-metrics">
     <div><small>Matched shares</small><strong>{report.closedShares}</strong></div>
@@ -100,7 +94,7 @@ export default async function Performance({searchParams}:{searchParams:Promise<P
    <h2>Realized P&amp;L by brokerage account</h2>
    <p className="helper">Each row is calculated strictly from transactions assigned to that internal brokerage account ID. The journal's figures are provisional trade-based totals, not Webull's account equity, deposits, or unrealized P&amp;L. Use the account filter to inspect one account.</p>
    <div className="table-scroll"><table><thead><tr><th>Account</th><th>Records</th><th>FIFO matches</th><th>Closed shares</th><th>Gross realized P&amp;L</th><th>Net realized P&amp;L</th><th>Open symbols</th></tr></thead><tbody>
-    {summaries.map(a=><tr key={a.id}><td><Link href={'/performance?account='+a.id}>{a.label}</Link></td><td>{a.sourceCount}</td><td>{a.matched}</td><td>{a.shares}</td><td>{usd(a.gross)}</td><td>{usd(a.net)}</td><td>{a.positionCount}</td></tr>)}
+    {summaries.map(a=><tr key={a.id}><td>{a.label}</td><td>{a.sourceCount}</td><td>{a.matched}</td><td>{a.shares}</td><td>{usd(a.gross)}</td><td>{usd(a.net)}</td><td>{a.positionCount}</td></tr>)}
    </tbody></table></div>
    <p className="helper">If an account total differs from Webull, compare the transactions imported for that specific account, recorded order fees, short covers and any manual entries. Manual records are included in the record count. Opening short sales do not create realized P&amp;L until covered.</p>
    <p className="helper">Fee policy: an imported Webull order without a fee record is treated as $0 for this journal report. Reported nonzero Webull fees and fees entered on manual trades are deducted from realized net P&amp;L. This assumption does not verify the broker's actual fee total.</p>

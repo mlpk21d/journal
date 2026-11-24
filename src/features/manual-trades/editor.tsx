@@ -1,18 +1,16 @@
 'use client';
 import {useRef,useState,useTransition,type FormEvent} from 'react';
 import {useRouter} from 'next/navigation';
-import {createManualAccount,deleteManualTrade,saveManualTrade} from './actions';
+import {deleteManualTrade,saveManualTrade} from './actions';
 
 export type AccountOption={id:string;label:string};
 export type ManualTradeRow={id:string;accountId:string;symbol:string;date:string;time:string;side:'BUY'|'SELL';entryType:'OPENING'|'TRADE';quantity:string;price:string;fees:string;notes:string};
 export type ManualTradeEditorProps={
  accounts:AccountOption[];trades:ManualTradeRow[];
- title?:string;description?:string;showHistory?:boolean;
+ title?:string;description?:string;showHistory?:boolean;selectedAccountId?:string|null;onSaved?:()=>void;
 };
-export default function ManualTradeEditor({accounts,trades,title='Manual trade entry',description,showHistory=true}:ManualTradeEditorProps){
+export default function ManualTradeEditor({accounts,trades,title='Manual trade entry',description,showHistory=true,selectedAccountId=null,onSaved}:ManualTradeEditorProps){
  const [editing,setEditing]=useState<ManualTradeRow|null>(null);
- const [newAccountName,setNewAccountName]=useState('');
- const [accountMessage,setAccountMessage]=useState('');
  const [formKey,setFormKey]=useState(0);
  const [pending,start]=useTransition();
  const [message,setMessage]=useState('');
@@ -32,7 +30,7 @@ export default function ManualTradeEditor({accounts,trades,title='Manual trade e
    try{
     const result=await saveManualTrade(form);
     setMessage(result.message);setError(!result.ok);
-    if(result.ok){reset();router.refresh();}
+    if(result.ok){reset();router.refresh();onSaved?.();}
     else formRef.current?.scrollIntoView({behavior:'smooth',block:'start'});
    }catch(err){
     console.error('[Manual trades] Submit failed',err);
@@ -50,36 +48,14 @@ export default function ManualTradeEditor({accounts,trades,title='Manual trade e
   });
  }
  const defaultTime=editing?.time??'12:00';
- function addAccount(){
-  if(pending)return;
-  setAccountMessage('');
-  start(async()=>{
-   const form=new FormData();form.set('name',newAccountName);
-   try{
-    const result=await createManualAccount(form);
-    setAccountMessage(result.message);
-    if(result.ok){setNewAccountName('');router.refresh();}
-   }catch{setAccountMessage('Unable to create account. Check server logs.');}
-  });
- }
-
  return <>
-  <section className="import-panel manual-account-create">
-   <h2>Add a brokerage account</h2>
-   <p className="helper">Create a separate account for trades from Schwab, Fidelity, another broker, or your own records. This does not connect to or import from that broker automatically.</p>
-   <div className="manual-account-create-fields">
-    <label className="field-label" htmlFor="manual-account-name">Account name</label>
-    <input id="manual-account-name" value={newAccountName} maxLength={100} placeholder="e.g. Charles Schwab – Individual" onChange={e=>setNewAccountName(e.target.value)}/>
-    <button type="button" className="manual-secondary" disabled={pending||newAccountName.trim().length<2} onClick={addAccount}>Create account</button>
-   </div>
-   {accountMessage&&<p className="helper" role="status">{accountMessage}</p>}
-  </section>
   <section className="import-panel">
    <h2>{editing?'Edit manual trade':title}</h2>
    {description&&<p className="helper">{description}</p>}
+   {!accounts.length&&<p className="notice">No brokerage account exists. <a href="/settings">Create one in Settings</a> before entering trades.</p>}
    <form key={editing?.id??'new-'+formKey} ref={formRef} onSubmit={submit} className="manual-lot-form">
     <label className="field-label" htmlFor="manual-account">Brokerage account</label>
-    <select id="manual-account" name="account" required disabled={pending||!accounts.length} defaultValue={editing?.accountId??''}>
+    <select id="manual-account" name="account" required disabled={pending||!accounts.length} defaultValue={editing?.accountId??selectedAccountId??''}>
      <option value="" disabled>Select account</option>
      {accounts.map(a=><option key={a.id} value={a.id}>{a.label}</option>)}
     </select>

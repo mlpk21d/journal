@@ -1,3 +1,4 @@
+import {activeAccountId} from '@/lib/review/account-scope';
 import Link from 'next/link';
 import {COMMON_STRATEGIES} from '@/lib/review/strategies';
 import {db} from '@/lib/db';
@@ -26,7 +27,7 @@ export default async function Analytics({searchParams}:{searchParams:Promise<Fil
  if(!await reviewIsLocal())return <main className="shell"><header><Link className="brand" href="/">TRADE / JOURNAL</Link></header><p className="notice">Strategy analytics is restricted to localhost development.</p></main>;
  const p=await searchParams;
  const symbol=typeof p.symbol==='string'?p.symbol.trim().replace(/^\$/,'').toUpperCase():'';
- const account=typeof p.account==='string'?p.account:'all';
+ const account=(await activeAccountId())??'all';
  const direction=typeof p.direction==='string'?p.direction:'all';
  const from=typeof p.from==='string'?p.from:'';
  const to=typeof p.to==='string'?p.to:'';
@@ -64,9 +65,7 @@ export default async function Analytics({searchParams}:{searchParams:Promise<Fil
   <nav className="pill-row"><Link href="/review">Trade Review ↗</Link><Link href="/performance">Performance ↗</Link></nav>
   <form action="/analytics" method="get" className="performance-filter">
    <label htmlFor="analytics-symbol">Ticker</label><input id="analytics-symbol" name="symbol" defaultValue={symbol} placeholder="NVDA" maxLength={30}/>
-   <label htmlFor="analytics-account">Account</label><select id="analytics-account" name="account" defaultValue={account}>
-    <option value="all">All accounts</option>{accounts.map(a=><option key={a.id} value={a.id}>{a.name}</option>)}
-   </select>
+   <span className="helper">Account: {account==='all'?'All Accounts':accounts.find(a=>a.id===account)?.name??'Selected account'} (sidebar selection)</span>
    <label htmlFor="analytics-direction">Direction</label><select id="analytics-direction" name="direction" defaultValue={direction}>
     <option value="all">All</option><option value="LONG">Long</option><option value="SHORT">Short</option></select>
    <label htmlFor="analytics-from">Exit from (ET)</label><input id="analytics-from" type="date" name="from" defaultValue={from}/>

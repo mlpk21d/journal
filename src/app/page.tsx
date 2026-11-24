@@ -5,6 +5,8 @@ import {buildDashboardData,type DashboardGroup} from '@/lib/review/dashboard';
 import {DashboardDailyBars} from '@/components/dashboard-daily-bars';
 import {DashboardTrades} from '@/components/dashboard-trades';
 import {TradingCalendar} from '@/components/trading-calendar';
+import {NewTradeButton} from '@/components/new-trade-button';
+import {activeAccountId} from '@/lib/review/account-scope';
 export const dynamic='force-dynamic';
 const money=(n:string|null)=>n===null?'—':new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(Number(n));
 const percent=(n:number|null)=>n===null?'—':n.toFixed(1)+'%';
@@ -17,7 +19,7 @@ function DashboardSummary({data}:{data:ReturnType<typeof buildDashboardData>}){
  return <section className="sj-dashboard-summary">
   <div className="sj-dashboard-summary-left"><p className="sj-kicker">TRADE JOURNAL / OVERVIEW</p>
    <h1>Dashboard</h1><p>Track activity and performance across your saved brokerage trades.</p>
-   <div className="sj-summary-actions"><Link href="/manual">＋ Add Trade</Link><Link href="/import">⇧ Import Trades</Link></div>
+   <div className="sj-summary-actions"><NewTradeButton>＋ Add Trade</NewTradeButton><Link href="/import">⇧ Import Trades</Link></div>
   </div>
   <div className="sj-dashboard-summary-right">
    <div className="sj-summary-mini-grid">
@@ -51,7 +53,7 @@ export default async function Home(){
  let data:ReturnType<typeof buildDashboardData>|null=null,trades:ReviewedTrade[]=[];
  let error='';
  try{
-  const source=await loadReviewLedger(null);
+  const source=await loadReviewLedger(await activeAccountId());
   const review=buildTradeReview(source.entries);
   trades=review.trades;
   data=buildDashboardData(review.trades,review.sessions,source.accounts.length,review.openPositions.length);

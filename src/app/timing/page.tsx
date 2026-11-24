@@ -1,3 +1,4 @@
+import {activeAccountId} from '@/lib/review/account-scope';
 import Link from 'next/link';
 import {reviewIsLocal,loadReviewLedger} from '@/lib/review/server';
 import {buildTradeReview} from '@/lib/review/trade-review';
@@ -27,7 +28,7 @@ function Breakdown({rows,weekday=false}:{rows:TimingGroup[];weekday?:boolean}){
 export default async function TimingAnalytics({searchParams}:{searchParams:Promise<Filters>}){
  if(!await reviewIsLocal())return <main className="shell"><header><Link href="/" className="brand">TRADE / JOURNAL</Link></header><p className="notice">Trade timing analytics is restricted to localhost development.</p></main>;
  const p=await searchParams;
- const account=typeof p.account==='string'?p.account:'all';
+ const account=(await activeAccountId())??'all';
  const symbol=typeof p.symbol==='string'?p.symbol.trim().replace(/^\$/,'').toUpperCase():'';
  const direction=typeof p.direction==='string'?p.direction:'all';
  const from=typeof p.from==='string'?p.from:'',to=typeof p.to==='string'?p.to:'';
@@ -57,8 +58,7 @@ export default async function TimingAnalytics({searchParams}:{searchParams:Promi
    <p className="intro">Discover which Eastern Time entry hours, exit hours and weekdays are associated with stronger completed-trade results.</p></section>
   <nav className="pill-row"><Link href="/analytics">Strategy Analytics ↗</Link><Link href="/daily">Daily Performance ↗</Link><Link href="/review">Trade Review ↗</Link></nav>
   <form action="/timing" method="get" className="performance-filter">
-   <label htmlFor="timing-account">Account</label><select id="timing-account" name="account" defaultValue={account}>
-    <option value="all">All accounts</option>{accounts.map(a=><option key={a.id} value={a.id}>{a.label}</option>)}</select>
+   <span className="helper">Account: {account==='all'?'All Accounts':accounts.find(a=>a.id===account)?.label??'Selected account'} (sidebar selection)</span>
    <label htmlFor="timing-symbol">Ticker</label><input id="timing-symbol" name="symbol" defaultValue={symbol} placeholder="NVDA" maxLength={30}/>
    <label htmlFor="timing-direction">Direction</label><select id="timing-direction" name="direction" defaultValue={direction}>
     <option value="all">All</option><option value="LONG">Long</option><option value="SHORT">Short</option></select>

@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState, useTransition } from 'react';
 import Link from 'next/link';
+import {ACCOUNT_COOKIE} from '@/lib/review/account-scope-shared';
 import { loadWebullAccounts, refreshWebullAccounts, syncWebullFromBrowser, type BrokerAccount, type SyncResult } from './actions';
 
 function localDate(offset: number): string {
@@ -25,7 +26,9 @@ export default function ImportPage() {
     if(!mounted)return;
     if(saved.ok){
      setAccounts(saved.accounts);
-     setAccount(saved.accounts.length>1?'__all__':saved.accounts[0]?.id??'__all__');
+     const active=document.cookie.split('; ').find(v=>v.startsWith(ACCOUNT_COOKIE+'='))?.slice(ACCOUNT_COOKIE.length+1);
+     setAccount(active&&saved.accounts.some(a=>a.id===active)?active:
+      (saved.accounts.length>1?'__all__':saved.accounts[0]?.id??'__all__'));
      setMessage('');
     }else setMessage(saved.error);
    }catch{if(mounted)setMessage('Could not load saved brokerage accounts. Check the terminal.');}
