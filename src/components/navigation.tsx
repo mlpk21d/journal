@@ -10,6 +10,7 @@ const links=[
  {href:'/review',name:'Trade Review'},
  {href:'/analytics',name:'Strategy Analytics'},
  {href:'/daily',name:'Daily Performance'},
+ {href:'/timing',name:'Trade Timing'},
  {href:'/performance',name:'Realized Performance'}
 ];
 export default function Navigation(){

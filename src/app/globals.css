@@ -114,3 +114,10 @@
 .daily-flat{background:#233442}
 .daily-no-activity{opacity:.5}
 @media(max-width:720px){.daily-calendar-day,.daily-calendar-empty{min-height:68px}.daily-calendar-day{padding:6px;gap:3px}.daily-calendar-day small{display:none}.daily-calendar-head,.daily-calendar-grid{gap:3px}}
+
+/* Trade Timing Analytics: chronological exposure bars */
+.timing-table{min-width:820px}
+.timing-bar-cell{display:flex;align-items:center;gap:14px;min-width:130px}
+.timing-bar-track{display:block;width:120px;max-width:65%;height:9px;border-radius:5px;background:#233949;overflow:hidden}
+.timing-bar-track>span{display:block;height:100%;border-radius:5px;background:#85cdb9}
+.timing-table tr:has(.timing-bar-cell span:last-child) td{vertical-align:middle}

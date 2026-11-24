@@ -87,6 +87,7 @@ Pages (accessible through the global top-right hamburger menu and right-side dra
 - `/review/session?account=...&date=...` — read-only account/session detail with daily realized FIFO matches and contributing executions (optional `symbol=...`)
 - `/analytics` — localhost-only completed-trade strategy analytics: win rate, net P&L, average net/trade, profit factor, direction and mistake documentation; ticker/account/direction/ET exit-date/strategy filters
 - `/daily` — localhost-only daily realized FIFO P&L dashboard: known-net cumulative chart, trading calendar, per-day results, best/worst days and winning/losing streaks; account/date filters
+- `/timing` — localhost-only completed trade entry/exit hour and weekday analytics, win rate, net P&L, average net P&L, and profit factor; account/ticker/direction/exit-date filters
 
 Routes:
 - `GET /api/health`
@@ -191,3 +192,7 @@ Journal annotations only count as belonging to a strategy if the saved fingerpri
 ### Daily Performance dashboard
 
 Open \`/daily\` from the navigation menu or homepage. The page computes an Eastern Time daily realized-P&L report from the same account-isolated FIFO matches as \`/review?view=sessions\`, including partial exits from positions that have not fully closed. Results from different accounts on the same date are aggregated only after FIFO calculation. The cumulative chart is a **known-net subtotal**, not actual account equity or a complete P&L history if any days have unknown fees. Any date with an unknown account session net is displayed as **Unverified**, is excluded entirely from the subtotal, and interrupts winning/losing streaks. Zero-net days also interrupt streaks; days without realized exits do not count as trading days. Summary includes active days, verified and unverified days, best/worst dates and longest streaks. Date filters are applied **after** constructing positions from full historical executions. The calendar month selector controls only the displayed month, while From/To filter the entire dashboard. No additional database migration or third-party charting dependency is required.
+
+### Trade Timing Analytics
+
+Visit \`/timing\` from the homepage or hamburger menu to analyze completed flat-to-flat positions by **entry hour**, **final exit hour**, **entry weekday**, and **final exit weekday** in America/New_York. Hourly buckets are chronological, including premarket and after-hours executions; weekdays are ordered Monday through Sunday. Trade-level net amounts and statistics reuse the same fixed-point calculation and unknown-fee exclusion as Strategy Analytics. Each completed position cycle is counted once in each grouping. Multiple entries and partial exits are **not** counted separately, nor are realized partial exits of still-open trades; visit \`/daily\` for those. Filters on ticker, account, direction and final-exit Eastern Time dates apply *after* reconstruction from full available FIFO history. DST is handled by IANA time zone conversion. Analytics are historical and provisional, not a predictive signal or tax ledger. No migration or extra charting package is required.
