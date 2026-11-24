@@ -21,7 +21,7 @@ test('the account filter is applied before FIFO matching and to both Trade Histo
  assert.match(trades,/e\.brokerage_account_id=\$2::bigint/);
  assert.match(trades,/m\.brokerage_account_id=\$2::bigint/);
  assert.match(trades,/COUNT\(\*\)::text AS count/);
- assert.match(trades,/\[symbol\|\|null,account\]/);
+ assert.match(trades,/\[symbol\|\|null,account,date\|\|null\]/);
 });
 test('all top-level reports read the sidebar scope, not independent URL account selections',()=>{
  for(const path of ['src/app/page.tsx','src/app/stats/page.tsx','src/app/calendar/page.tsx',

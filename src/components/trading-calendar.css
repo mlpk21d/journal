@@ -1,0 +1,4 @@
+.trading-calendar-week .daily-calendar-day{position:relative}
+.trading-calendar-week .daily-calendar-day .calendar-day-link{position:absolute;inset:0;border-radius:inherit;z-index:1}
+.trading-calendar-week .daily-calendar-day .calendar-day-link:focus-visible{outline:3px solid #88b7ff;outline-offset:2px}
+.trading-calendar-week .daily-calendar-day .calendar-day-hint{font-size:11px;color:#88b7ff}

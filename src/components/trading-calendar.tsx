@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import './trading-calendar.css';
 import {useState} from 'react';
 import {calendarCells,type DailyPoint} from '@/lib/review/daily-performance';
 import {calendarMonthLabel,shiftCalendarMonth,validCalendarMonth} from '@/lib/review/calendar-navigation';
@@ -50,9 +51,10 @@ export function TradingCalendar({days,initialMonth,account='all',expanded=false}
     return <div key={month+'-'+i} className="trading-calendar-week">
      {week.map((day,index)=>day===null?<div key={'blank-'+index} className="daily-calendar-day sj-calendar-outside"/>:
       <div key={day.date} className={'daily-calendar-day '+(!day.closures?'daily-no-activity':day.net===null?'daily-unknown':Number(day.net)>0?'daily-positive':Number(day.net)<0?'daily-negative':'daily-flat')}>
+       {day.closures>0&&<Link className="calendar-day-link" href={'/trades?date='+day.date} aria-label={'View all trades for '+day.date+(account==='all'?' across all accounts':' in selected account')}/>}
        <span className="sj-calendar-date">{Number(day.date.slice(-2))}</span>
        {day.closures>0&&<><strong>{money(day.net)}</strong><small>{day.symbols.join(', ')||day.closures+' closes'}</small>
-        {account!=='all'&&<Link href={'/review/session?account='+encodeURIComponent(account)+'&date='+day.date} aria-label={'Review '+day.date+' session'}>View ↗</Link>}</>}
+        <span className="calendar-day-hint" aria-hidden="true">View trades ↗</span></>}
       </div>)}
      {expanded&&<div className="sj-calendar-week-total"><small>WEEK</small>
        <strong className={weeklyTotal<0?'trade-side-sell':'trade-side-buy'}>{weekDays.length?money(String(weeklyTotal)):'—'}</strong>
