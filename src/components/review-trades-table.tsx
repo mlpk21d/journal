@@ -67,7 +67,7 @@ export function TradeReviewModal({id,onClose}:{id:string;onClose:()=>void}){
      <ReviewTotals gross={audit.gross} fees={audit.fees} net={audit.net}/>
      {result.journal&&result.journal.fingerprint!==result.fingerprint
       ?<p role="alert" className="notice">This trade changed since its journal entry was saved. Existing notes ({result.journal.id}) are preserved; editing is blocked pending reconciliation.</p>
-      :<TradeJournalEditor key={id} cycleKey={id} fingerprint={result.fingerprint} journal={result.journal}/>}
+      :<TradeJournalEditor key={id} cycleKey={id} fingerprint={result.fingerprint} journal={result.journal} onSaved={onClose}/>}
      <h2>FIFO realized matches</h2><ReviewMatchTable matches={audit.matches}/>
      <h2>Participating executions</h2><ReviewExecutionTable executions={audit.executions}/>
      <p className="helper">Order fees are shown per execution; allocated realized fees use the existing FIFO engine. Imported transactions are not editable here.</p>

@@ -1,15 +1,36 @@
 'use client';
-import {useActionState} from 'react';
+import {useState,useTransition,type FormEvent} from 'react';
 import {COMMON_STRATEGIES} from '@/lib/review/strategies';
 import {TradeScreenshots} from '@/components/trade-screenshots';
 import {saveTradeJournal,type JournalSaveState} from '@/features/trade-journal/actions';
 import type {StoredJournal} from '@/lib/review/journal-store';
 const initial:JournalSaveState={ok:false,message:''};
-export function TradeJournalEditor({cycleKey,fingerprint,journal}:{cycleKey:string;fingerprint:string;journal:StoredJournal|null}){
- const [state,action,pending]=useActionState(saveTradeJournal,initial);
+export function TradeJournalEditor({cycleKey,fingerprint,journal,onSaved}:{cycleKey:string;fingerprint:string;journal:StoredJournal|null;onSaved?:()=>void}){
+ const [state,setState]=useState<JournalSaveState>(initial);
+ const [pending,startTransition]=useTransition();
+ function submit(event:FormEvent<HTMLFormElement>){
+  event.preventDefault();
+  if(pending)return;
+  // Prevent the browser / React action form from clearing inputs when a
+  // response arrives. On failure the user's draft remains editable.
+  const form=new FormData(event.currentTarget);
+  setState(initial);
+  startTransition(async()=>{
+   try{
+    const result=await saveTradeJournal(initial,form);
+    if(result.ok){
+     if(onSaved){onSaved();return;}
+     setState(result);
+    }else setState(result);
+   }catch(error){
+    console.error('[Trade journal] Save request failed:',error);
+    setState({ok:false,message:'Unable to save your notes. They are still in the form; please retry.'});
+   }
+  });
+ }
  return <section className="journal-editor"><h2>Trade journal</h2>
   <p className="helper">Your strategy, reasoning and lessons are saved separately from Webull data. Screenshot references use HTTPS URLs.</p>
-  <form action={action}>
+  <form onSubmit={submit}>
    <input type="hidden" name="cycleKey" value={cycleKey}/>
    <input type="hidden" name="fingerprint" value={fingerprint}/>
    <div className="journal-grid">
