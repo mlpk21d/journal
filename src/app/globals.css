@@ -544,3 +544,11 @@ button,input,select,textarea{font:inherit}
 .sj-dashboard-trade-pages>span{color:#a7b6d0;font-size:12px;font-variant-numeric:tabular-nums;min-width:100px;text-align:center}
 .sj-dashboard-symbol-button{appearance:none;background:none;border:0;padding:0;cursor:pointer;font:inherit;font-weight:700;color:#89b7fa;text-decoration:underline;text-underline-offset:3px}
 .sj-dashboard-symbol-button:hover,.sj-dashboard-symbol-button:focus-visible{color:#cce1ff}
+
+/* Webull daily import: streaming, committed-order progress */
+.sj-import-progress-track{position:relative;width:100%;height:12px;margin:20px 0 10px;background:#111b27;border:1px solid #3b5365;border-radius:999px;overflow:hidden}
+.sj-import-progress-track>span{height:100%;display:block;background:linear-gradient(90deg,#397e6a,#8ce7ad);border-radius:999px;transition:width .14s ease;min-width:0}
+.sj-import-progress-track>span.sj-import-progress-indeterminate{position:absolute;left:0;width:32%;animation:sj-import-slide 1.5s ease-in-out infinite}
+.sj-import-progress-percent{display:block;font-size:20px;font-variant-numeric:tabular-nums;color:#a9e8c9;margin:9px 0}
+@keyframes sj-import-slide{0%{transform:translateX(-105%)}100%{transform:translateX(320%)}}
+@media(prefers-reduced-motion:reduce){.sj-import-progress-track>span.sj-import-progress-indeterminate{animation:none;transform:none;width:6%}}
