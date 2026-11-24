@@ -77,7 +77,9 @@ Webull may omit recently executed orders from historical data for a period, so r
 All API routes require `Authorization: Bearer <JOURNAL_API_TOKEN>`. UI pages must be restricted to trusted networks until session authentication exists.
 
 Pages (accessible through the global top-right hamburger menu and right-side drawer):
-- `/` — local-development-only live trading dashboard with KPI cards, month-switchable trading calendar, side-by-side daily P&L and top-symbol charts (stacked on smaller screens), and recent trading sessions
+- `/` — local-only trade-history Dashboard with screenshot-inspired compact win/loss summary, completed FIFO trade table, month-switchable trading calendar, and daily/symbol analytics
+- `/stats` — Statistics page: compact performance cards, verified FIFO trade metrics, rolling win-rate chart, daily realized bar chart, and data-quality notes
+- `/calendar` — full-width Eastern Time realized trading calendar with month navigation, per-week known-net subtotals, monthly subtotal, and account selection
 - `/import` — local-only import interface, automatic account discovery, multi-account sync, and one-click import of today's transactions
 - `/manual` — local-only generic manual stock BUY/SELL and historical opening entries, plus create and select separate manually managed brokerage accounts
 - `/trades` — read-only imported and manually entered transactions in six columns: Symbol, Side (green BUY/red SELL), Quantity (whole shares without trailing zeroes; fractional shares preserved), Avg Price (2 decimals), Fees (2 decimals), Filled Time (UTC); case-insensitive exact ticker filter (`/trades?symbol=NVDA`) applied to all stored history before database pagination (50 records per page)
@@ -228,3 +230,15 @@ All application page shells use 85% of desktop viewport width (with responsive m
 ### Shared trading calendar controls
 
 The homepage (`/`) no longer renders the cumulative known-net line chart or the realized P&L/drawdown-segment chart; those remain available on `/daily` and `/risk` respectively. Instead, the Dashboard shows the same Eastern Time trading calendar as `/daily`. Both pages use a shared client component with **Previous Month**, **Next Month**, and native month picker controls. Month changes are immediate, require no server request and do not re-run FIFO calculations or modify the current `/daily` account/From/To report filters. Calendars show winning days green, losing days red, unknown net amber, breakeven days neutral and days without exits dimmed. The default calendar month is the latest available realized exit month (or current UTC month when there are no exits). The daily page retains its separate cumulative known-net chart. No migration or new package is needed.
+
+
+## Desktop journal workspace redesign (November 2026)
+
+The UI now uses a dark, desktop-first layout **based on the three screenshots supplied by the project owner**, with original Trade Journal branding. The desktop shell has a persistent left navigation sidebar, narrow quick-link rail, global ticker search, trade-entry shortcut, and compact top toolbar. All application pages inherit the shared layout and denser table, panel, form, and card styling. The sidebar links to real local pages; it does not include paid, unavailable, or placeholder routes from the design reference. The static “All Accounts” indicator describes the default workspace scope; account filtering remains on the actual report pages.
+
+The `/` Dashboard now starts with a compact status/P&L strip and a 30-completed-trade read-only FIFO table. The trade table links symbols to the existing detailed trade review. Below it, the existing trading calendar (previous/next month) and side-by-side daily P&L / symbol panels remain accessible. Dollar amounts come from the existing FIFO model, not the screenshot. Neither cash, active balance, market exposure, wash-sale totals, nor unverified brokerage metrics are fabricated.
+
+The new `/stats` screen reuses existing exact fixed-point summary and risk calculations, shows 16 compact metrics and provides an interactive 10/20/50/100-trade rolling win-rate chart based on verified completed-trade net results. The `/calendar` screen uses the same data as Daily Performance, with a large eight-column calendar that includes weekly known-net subtotals. Month selection and Today operate in Eastern Time; the view may be filtered by a brokerage account. Unknown P&L is not treated as zero. The screenshots guided the appearance and information hierarchy, but third-party brand identity and unsupported commercial tools were not copied.
+
+This first design pass intentionally preserves Webull imports, manual brokerage accounts, FIFO logic, trade review, annotations, and the original analytics routes. UI access continues to be restricted to local development where those pages require it. No migrations or new dependencies are introduced.
+
