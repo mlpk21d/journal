@@ -63,7 +63,9 @@ test('replacement acquired in another Roth IRA has no tax-basis carry',()=>{
  assert.equal(r.openLots[0].estimatedBasis,'90');
 });
 test('one partially filled replacement order cannot be reused for two losses',()=>{
- const rows=[row('b1','BUY','10','10','2026-01-01'),
+ // The original purchase must be outside the 30-day lookback; otherwise
+ // its unsold shares can independently qualify as a prior replacement.
+ const rows=[row('b1','BUY','10','10','2025-11-01'),
   row('s1','SELL','5','8','2026-01-02'),
   row('s2','SELL','5','8','2026-01-03'),
   row('b2','BUY','6','9','2026-01-04')];
