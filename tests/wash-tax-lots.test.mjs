@@ -140,7 +140,7 @@ test('December sales can defer losses into January replacement shares',()=>{
   row('b2','BUY','10','9','2026-01-05')];
  const r=buildTaxLotPreview(rows,accounts,'2026-02-15');
  assert.equal(r.adjustments.length,1);
- assert.equal(r.adjustments[0].lossDate,'2025-12-29');
+ assert.equal(r.adjustments[0].saleDate,'2025-12-29');
  assert.equal(r.adjustments[0].replacementDate,'2026-01-05');
  assert.equal(r.dispositions[0].estimatedTaxNet,'0');
  assert.equal(r.openDeferredBasis,'20');
