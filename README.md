@@ -77,7 +77,7 @@ Webull may omit recently executed orders from historical data for a period, so r
 All API routes require `Authorization: Bearer <JOURNAL_API_TOKEN>`. UI pages must be restricted to trusted networks until session authentication exists.
 
 Pages (accessible through the global top-right hamburger menu and right-side drawer):
-- `/` — local-only trade-history Dashboard with screenshot-inspired compact win/loss summary, completed FIFO trade table, month-switchable trading calendar, and daily/symbol analytics
+- `/` — local-only trade-history Dashboard with compact win/loss summary, completed FIFO trades paginated 50 per page, click-to-edit journal modal (shared with Trade Review), trading calendar, and daily/symbol analytics
 - `/stats` — Statistics page: compact performance cards, verified FIFO trade metrics, rolling win-rate chart, daily realized bar chart, and data-quality notes
 - `/calendar` — full-width Eastern Time realized trading calendar with month navigation, per-week known-net subtotals, monthly subtotal, and account selection
 - `/settings` — local-only workspace settings, starting with brokerage account listing and new manual brokerage account creation
@@ -297,3 +297,7 @@ The global toolbar now has **Import Todays Trades** between the symbol search an
 A click opens a blocking screen overlay with a spinner during the Webull synchronization. The server uses the existing read-only `importWebullOrders` pipeline and its account-specific advisory lock, applying the full current **America/New_York** calendar day as UTC start/end (correct across 23-hour and 25-hour DST transition days). After completion it opens a result dialog displaying **new execution snapshots imported**, **previously stored snapshots updated**, total completed snapshots processed, and scanned orders. The importer's `newExecutions` statistic distinguishes genuinely new execution rows from upserted existing rows; existing import summaries keep their original saved/updated semantics. An error displays a failure dialog rather than a misleading zero count. On success, the page data refreshes. Re-running today's import updates prior records without creating duplicate snapshots. This control does **not** place any broker orders.
 
 As with the rest of the Webull browser importer, the button is **localhost development only**; authentication and authorization must be added before internet deployment. Source and visual entry point are indexed here. No database migration is needed.
+
+## Dashboard completed trade history — pagination and modal
+
+The Dashboard's Completed Trade History now shows the **50 most recent completed FIFO trade cycles per page**, with First / Previous / Next / Last controls and a visible page number and total trade count. All completed trades remain available, not just the latest 30. Ticker symbols open the **existing Trade Review modal** in place; the same saved journal form, fingerprint validation, strategy/setup/reasoning notes, screenshots, FIFO matches and execution details are available. Closing the modal restores focus to the clicked ticker. Imported Webull fills and manual executions are not editable from this journal editor; only independently stored journal annotations can be saved. No migration is needed.

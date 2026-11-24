@@ -535,3 +535,12 @@ button,input,select,textarea{font:inherit}
 @media(max-width:1200px){.sj-topbar-import{padding:0 9px;font-size:10px}.sj-topbar-import>span:first-child{display:none}}
 @media(max-width:800px){.sj-topbar-import>span:last-child{display:none}.sj-topbar-import>span:first-child{display:inline}}
 @media(prefers-reduced-motion:reduce){.sj-today-spinner{animation:none;border-top-color:#6fd4a3}}
+
+/* Dashboard trade table: 50-row pagination and in-place journal modal */
+.sj-dashboard-trade-pages{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:9px;align-items:center;margin:12px 0 16px}
+.sj-dashboard-trade-pages>button{background:#273448;color:#c6d9f2;border:1px solid #465673;border-radius:7px;padding:8px 12px;font:600 12px Arial,Helvetica,sans-serif;cursor:pointer}
+.sj-dashboard-trade-pages>button:not(:disabled):hover{background:#354a65;color:#fff}
+.sj-dashboard-trade-pages>button:disabled{opacity:.36;cursor:not-allowed}
+.sj-dashboard-trade-pages>span{color:#a7b6d0;font-size:12px;font-variant-numeric:tabular-nums;min-width:100px;text-align:center}
+.sj-dashboard-symbol-button{appearance:none;background:none;border:0;padding:0;cursor:pointer;font:inherit;font-weight:700;color:#89b7fa;text-decoration:underline;text-underline-offset:3px}
+.sj-dashboard-symbol-button:hover,.sj-dashboard-symbol-button:focus-visible{color:#cce1ff}

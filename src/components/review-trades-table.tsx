@@ -16,7 +16,7 @@ function duration(ms:number){
  const hours=Math.floor(minutes/60);
  return hours<24?hours+'h '+minutes%60+'m':Math.floor(hours/24)+'d '+hours%24+'h';
 }
-function TradeReviewModal({id,onClose}:{id:string;onClose:()=>void}){
+export function TradeReviewModal({id,onClose}:{id:string;onClose:()=>void}){
  const [result,setResult]=useState<TradeModalData|null>(null);
  const [error,setError]=useState('');
  const [loading,setLoading]=useState(true);
@@ -61,7 +61,7 @@ function TradeReviewModal({id,onClose}:{id:string;onClose:()=>void}){
     <button className="review-modal-close" ref={closeRef} type="button" onClick={onClose} aria-label="Close trade review">×</button>
    </div>
    <div className="review-modal-body">
-    <p id="review-modal-description" className="helper">Trade details, FIFO matches and journal notes without leaving the Review table.</p>
+    <p id="review-modal-description" className="helper">Trade details, FIFO matches and journal notes without leaving this page.</p>
     {loading?<p role="status" className="notice">Loading trade details…</p>:error?<p role="alert" className="notice">{error}</p>:result&&audit&&<>
      <p className="helper">Account: {result.accountLabel} · Quantity: {quantity(audit.trade.quantity)} · Entry: {timestamp(audit.trade.enteredAt)} UTC · Exit: {timestamp(audit.trade.exitedAt)} UTC · Avg entry: {money(audit.trade.entryPrice)} · Avg exit: {money(audit.trade.exitPrice)}</p>
      <ReviewTotals gross={audit.gross} fees={audit.fees} net={audit.net}/>
