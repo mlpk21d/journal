@@ -77,7 +77,7 @@ Webull may omit recently executed orders from historical data for a period, so r
 All API routes require `Authorization: Bearer <JOURNAL_API_TOKEN>`. UI pages must be restricted to trusted networks until session authentication exists.
 
 Pages (accessible through the global top-right hamburger menu and right-side drawer):
-- `/` — local-development-only live trading dashboard with KPI cards, month-switchable trading calendar, daily P&L bars, long/short and ticker comparison, and recent trading sessions
+- `/` — local-development-only live trading dashboard with KPI cards, month-switchable trading calendar, daily P&L bars, top-symbol performance, and recent trading sessions
 - `/import` — local-only import interface, automatic account discovery, multi-account sync, and one-click import of today's transactions
 - `/manual` — local-only generic manual stock BUY/SELL and historical opening entries, plus create and select separate manually managed brokerage accounts
 - `/trades` — read-only imported and manually entered transactions in six columns: Symbol, Side (green BUY/red SELL), Quantity (whole shares without trailing zeroes; fractional shares preserved), Avg Price (2 decimals), Fees (2 decimals), Filled Time (UTC); case-insensitive exact ticker filter (`/trades?symbol=NVDA`) applied to all stored history before database pagination (50 records per page)

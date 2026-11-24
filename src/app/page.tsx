@@ -70,12 +70,10 @@ export default async function Home(){
     <section className="dashboard-panel"><div className="dashboard-panel-head"><div><p className="eyebrow">RECENT ACTIVITY</p><h2>Daily P&amp;L</h2></div><Link href="/daily">View all ↗</Link></div>
      <DashboardDailyBars days={data.last30Days}/></section>
    </div>
-   <div className="dashboard-two-up">
-    <section className="dashboard-panel"><div className="dashboard-panel-head"><div><p className="eyebrow">TRADE RESULTS</p><h2>Long vs. Short</h2></div><Link href="/analytics">Strategy Analytics ↗</Link></div>
-     <Groups rows={data.direction} empty="No completed trades to compare."/></section>
-    <section className="dashboard-panel"><div className="dashboard-panel-head"><div><p className="eyebrow">SYMBOL BREAKDOWN</p><h2>Top symbols by known net</h2></div><Link href="/insights">Insights ↗</Link></div>
-     <Groups rows={data.symbols} empty="No completed symbols yet."/></section>
-   </div>
+   <section className="dashboard-panel dashboard-symbols">
+    <div className="dashboard-panel-head"><div><p className="eyebrow">SYMBOL BREAKDOWN</p><h2>Top symbols by known net</h2></div><Link href="/insights">Insights ↗</Link></div>
+    <Groups rows={data.symbols} empty="No completed symbols yet."/>
+   </section>
    <section className="dashboard-panel dashboard-recent"><div className="dashboard-panel-head"><div><p className="eyebrow">LATEST EXIT DAYS</p><h2>Recent trading sessions</h2></div><Link href="/review?view=sessions">All sessions ↗</Link></div>
     <div className="table-scroll"><table><thead><tr><th>Date (ET)</th><th>Symbols</th><th>FIFO closures</th><th>Accounts</th><th>Net realized P&amp;L</th></tr></thead><tbody>
      {data.recentDays.map(d=><tr key={d.date}><td>{d.date}</td><td>{d.symbols.join(', ')}</td><td>{d.closures}</td><td>{d.accounts}</td>
@@ -83,7 +81,7 @@ export default async function Home(){
     </tbody></table></div>
    </section>
    <div className="dashboard-bottom-links"><Link href="/risk">Risk &amp; Trade Quality ↗</Link><Link href="/timing">Trade Timing ↗</Link><Link href="/performance">Realized Performance ↗</Link></div>
-   <p className="notice">Provisional FIFO accounting from imported Webull order snapshots and manual trades. The trading calendar displays verified and unverified daily realized results, including partial exits of open positions. The daily known-net subtotal is not account equity. A day with any unknown net result is excluded from that subtotal, while completed-trade metrics exclude trades with unknown net P&amp;L. Symbol/direction breakdowns are completed trades only and may differ from daily realized totals. Tax adjustments, wash sales, missing historical lots and corporate actions may affect reconciliation.</p>
+   <p className="notice">Provisional FIFO accounting from imported Webull order snapshots and manual trades. The trading calendar displays verified and unverified daily realized results, including partial exits of open positions. The daily known-net subtotal is not account equity. A day with any unknown net result is excluded from that subtotal, while completed-trade metrics exclude trades with unknown net P&amp;L. Symbol breakdowns use completed trades only and may differ from daily realized totals. Tax adjustments, wash sales, missing historical lots and corporate actions may affect reconciliation.</p>
   </>}
  </main>;
 }
