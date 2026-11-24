@@ -479,3 +479,26 @@ button,input,select,textarea{font:inherit}
 .sj-mini-track>span{display:block;min-width:3px;max-width:100%;height:100%;border-radius:3px;transition:width .18s ease}
 .sj-settings-tax-import{margin-top:20px}
 .sj-settings-coming-soon{display:inline-block;font-size:11px;color:#dfc887;border:1px solid #635840;background:#3b352a;padding:8px 12px;border-radius:7px}
+
+/* P&L by Ticker — high-density symbol comparison */
+.sj-ticker-page .sj-page-head{margin-bottom:19px}
+.sj-ticker-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:19px 0 29px}
+.sj-ticker-kpis>div{background:#242631;border:1px solid #373c4d;border-radius:11px;padding:18px;display:flex;flex-direction:column;gap:12px}
+.sj-ticker-kpis small,.sj-ticker-detail-metrics small{font-size:11px;color:#a0adc5}
+.sj-ticker-kpis strong,.sj-ticker-detail-metrics strong{font-size:20px;color:#eaf1fb;overflow-wrap:anywhere}
+.sj-ticker-table{min-width:1260px}
+.sj-ticker-table th{white-space:nowrap}
+.sj-ticker-table th a{color:#a9bbda;font-weight:700}
+.sj-ticker-table th a:hover{color:#88b8ff}
+.sj-ticker-table td{white-space:nowrap;font-variant-numeric:tabular-nums}
+.sj-ticker-table td small{font-size:10px;color:#8fa0b9}
+.sj-ticker-symbol{font-weight:800;color:#87b6ff}
+.sj-ticker-warning{display:inline-block;border:1px solid #8b7048;background:#413626;color:#f1c483;border-radius:6px;padding:4px 7px;font-size:11px}
+.sj-ticker-pagination{display:flex;gap:14px;justify-content:flex-end;align-items:center;padding:20px 0;color:#a1aec6}
+.sj-ticker-pagination a{padding:8px 11px;border:1px solid #43506b;border-radius:7px}
+.sj-ticker-detail{border:1px solid #3e455a;border-radius:12px;padding:20px;margin:25px 0;background:#242632}
+.sj-ticker-detail h3{font-size:15px;margin:24px 0 11px}
+.sj-ticker-detail-metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.sj-ticker-detail-metrics>div{display:flex;flex-direction:column;gap:9px;background:#292e3d;border:1px solid #41485d;padding:14px;border-radius:9px}
+@media(max-width:1100px){.sj-ticker-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.sj-ticker-detail-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:650px){.sj-ticker-detail-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.sj-ticker-detail{padding:12px}}

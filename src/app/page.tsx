@@ -103,7 +103,7 @@ export default async function Home(){
      <DashboardDailyBars days={data.last30Days}/>
     </section>
     <section className="dashboard-panel">
-     <div className="dashboard-panel-head"><div><p className="eyebrow">SYMBOL PERFORMANCE</p><h2>Top symbols by known net</h2></div><Link href="/insights">Insights ↗</Link></div>
+     <div className="dashboard-panel-head"><div><p className="eyebrow">SYMBOL PERFORMANCE</p><h2>Top symbols by known net</h2></div><Link href="/ticker-pnl">All tickers ↗</Link></div>
      <Groups rows={data.symbols}/>
     </section>
    </div>

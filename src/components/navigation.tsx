@@ -11,6 +11,7 @@ const primary:Item[]=[
  {href:'/calendar',label:'Calendar',glyph:'▣'},
  {href:'/review',label:'Trade Review',glyph:'☷'},
  {href:'/trades',label:'Trade History',glyph:'⇄'},
+ {href:'/ticker-pnl',label:'P&L by Ticker',glyph:'▥'},
  {href:'/analytics',label:'Strategy Analytics',glyph:'⌁'},
  {href:'/daily',label:'Daily Performance',glyph:'▤'}
 ];
