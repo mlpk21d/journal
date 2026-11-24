@@ -12,6 +12,7 @@ const links=[
  {href:'/daily',name:'Daily Performance'},
  {href:'/timing',name:'Trade Timing'},
  {href:'/insights',name:'Performance Insights'},
+ {href:'/risk',name:'Risk & Trade Quality'},
  {href:'/performance',name:'Realized Performance'}
 ];
 export default function Navigation(){

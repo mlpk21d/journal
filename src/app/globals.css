@@ -132,3 +132,9 @@
 .insights-table{min-width:1120px}
 .insights-table td:last-child{white-space:normal;min-width:160px}
 @media(max-width:850px){.insights-cards{grid-template-columns:1fr}}
+
+/* Verified-segment risk and holding-time analysis */
+.risk-chart{border:1px solid #304757;background:#111f2b;border-radius:12px;padding:16px}
+.risk-chart svg{width:100%;height:auto;max-height:370px;display:block}
+.risk-duration-table{min-width:880px}
+.risk-duration-table td:first-child{font-weight:600}

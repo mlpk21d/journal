@@ -89,6 +89,7 @@ Pages (accessible through the global top-right hamburger menu and right-side dra
 - `/daily` — localhost-only daily realized FIFO P&L dashboard: known-net cumulative chart, trading calendar, per-day results, best/worst days and winning/losing streaks; account/date filters
 - `/timing` — localhost-only completed trade entry/exit hour and weekday analytics, win rate, net P&L, average net P&L, and profit factor; account/ticker/direction/exit-date filters
 - `/insights` — localhost-only consolidated historical performance insights with qualified strongest/weakest patterns, strategy, direction, entry/exit time and weekday comparisons, data-coverage safeguards, and configurable minimum sample
+- `/risk` — localhost-only Risk & Trade Quality: winner/loser averages, payoff ratio, loss streaks, verified-segment realized drawdown, largest winner concentration, and profitability by holding duration; account/ticker/direction/exit-date filters
 
 Routes:
 - `GET /api/health`
@@ -205,3 +206,9 @@ Open \`/insights\` from the hamburger menu or homepage to compare historical res
 The dashboard distinguishes **qualified** and **insufficient** comparison groups. Default qualification requires **20 completed trades with verified net P&L** and **at least 80% verified net coverage**; you can set the minimum between 2 and 500 to explore sample sensitivity. Strongest and weakest group rankings sort by **average net P&L per verified trade** rather than gross dollars. Unknown P&L never becomes zero and unverified trades do not count toward the minimum. The rankings require at least two qualified groups and do not repeat a top-listed group in the bottom list.
 
 Groups overlap across dimensions: a single trade contributes to its strategy, direction, entry time, exit time, and weekday buckets. These results are **descriptive**, vulnerable to selection bias and small-sample noise, and must not be interpreted as an independently validated trading edge, statistical significance, or future prediction. No new migrations, broker writes, or execution/FIFO mutations are involved.
+
+### Risk and Trade Quality Analytics
+
+Open `/risk` from the homepage or navigation menu. Results use completed flat-to-flat FIFO trades and share the same verified-net exclusion policy as Strategy Analytics. The page reports average winner (positive net trades), average loser (negative net trades), payoff ratio (average winner divided by the absolute average loser), largest individual winner/loser, largest winner's percentage of all positive trade P&L, longest/current consecutive losing trades, and average net trade. A position that is only partially exited does not count as completed; see `/daily` for partially realized activity.
+
+Drawdown is **maximum realized P&L peak-to-trough loss inside contiguous verified completed-trade segments**, not account-equity or mark-to-market drawdown. Unknown-net trades break the curve and reset peak/streak calculations; they are never silently treated as zero. Flat trades also reset loss streaks. Filters reconstruct FIFO from full available account history **before** selecting trade exits; changing a filter changes the starting observation point for drawdown. Holding-duration buckets are under 5m, 5–15m, 15–60m, 1–4h, 4–24h, and 24h+, with lower-inclusive/upper-exclusive boundaries. No database migration, external chart dependency, or broker writes are required.
