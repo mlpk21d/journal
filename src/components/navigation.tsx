@@ -18,7 +18,8 @@ const research:Item[]=[
  {href:'/timing',label:'Trade Timing',glyph:'◷'},
  {href:'/insights',label:'Performance Insights',glyph:'✦'},
  {href:'/risk',label:'Risk & Trade Quality',glyph:'◎'},
- {href:'/performance',label:'Realized Performance',glyph:'▥'}
+ {href:'/performance',label:'Realized Performance',glyph:'▥'},
+ {href:'/wash-sales',label:'Wash Sale Review',glyph:'◇'}
 ];
 const actions:Item[]=[
  {href:'/manual',label:'Manual Entries',glyph:'⊞'},

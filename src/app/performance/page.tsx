@@ -81,7 +81,7 @@ export default async function Performance({searchParams}:{searchParams:Promise<P
  return <main className="shell"><header><Link href="/" className="brand">TRADE / JOURNAL</Link><span className="muted">Provisional performance · Local only</span></header>
   <section className="page-title"><p className="eyebrow">TRADE ACCOUNTING</p><h1>Realized performance</h1>
    <p className="intro">Signed FIFO matching of Webull completed-order snapshots and manually entered stock trades or historical opening shares. Sales can open short positions; subsequent buys first cover those shorts. Results remain provisional until verified against brokerage records.</p></section>
-  <nav className="pill-row"><Link href="/import">Import trades ↗</Link><Link href="/manual">Manual trades ↗</Link><Link href="/trades">Trade history ↗</Link></nav>
+  <nav className="pill-row"><Link href="/import">Import trades ↗</Link><Link href="/manual">Manual trades ↗</Link><Link href="/trades">Trade history ↗</Link><Link href="/wash-sales">Wash Sale Review ↗</Link></nav>
   <p className="helper">Account scope: {selected==='all'?'All Accounts':accountName(selected)} · Change the selected account from the sidebar.</p>
   {error||truncated?<p className="notice">{error||'Over 20,000 imported records. The report stopped rather than silently dropping older cost basis. Contact developer to implement paged ledger processing.'}</p>:report&&<>
    <div className="performance-metrics">

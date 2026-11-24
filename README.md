@@ -1,6 +1,6 @@
 # Trade Journal
 
-Next.js / TypeScript / PostgreSQL / Webull Trading API. Read-only stock-order journal with historical-order synchronization, order-level fees, and wash-sale schema groundwork.
+Next.js / TypeScript / PostgreSQL / Webull Trading API. Read-only stock-order journal with historical-order synchronization, order-level fees, and a read-only potential wash-sale screening report.
 
 ## Install
 
@@ -92,6 +92,7 @@ Pages (accessible through the global top-right hamburger menu and right-side dra
 - `/daily` — localhost-only daily realized FIFO P&L dashboard: known-net cumulative chart, interactive month-switchable trading calendar, per-day results, best/worst days and winning/losing streaks; account/date filters
 - `/timing` — localhost-only completed trade entry/exit hour and weekday analytics, win rate, net P&L, average net P&L, and profit factor; account/ticker/direction/exit-date filters
 - `/insights` — localhost-only consolidated historical performance insights with qualified strongest/weakest patterns, strategy, direction, entry/exit time and weekday comparisons, data-coverage safeguards, and configurable minimum sample
+- `/wash-sales` — local-only potential wash sale screening across all saved brokerage accounts using long FIFO loss matches and +/-30 Eastern calendar days; reviewed-loss account filtering, replacement share estimates, IRA/cross-account flags; does not modify P&L or tax lots
 - `/risk` — localhost-only Risk & Trade Quality: winner/loser averages, payoff ratio, loss streaks, verified-segment realized drawdown, largest winner concentration, and profitability by holding duration; account/ticker/direction/exit-date filters
 
 Routes:
@@ -253,3 +254,13 @@ The Dashboard **+ Add Trade**, top-toolbar **+ New Trade**, and completed-trade 
 **Brokerage account creation** has moved out of `/manual` into the new `/settings` Workspace section. The Settings page lists all saved accounts and includes a form to add an independent named manual brokerage account without API credentials. Additional workspace settings can be added here later. Manual Trades remains the full-page editor and trade-history manager. Webull's import page continues to let the operator select which Webull account(s) to synchronize because import target selection is a distinct write/import action, rather than a trading report filter.
 
 **Safety and integrity:** Global account selection is a local UI preference, not user authorization; until authentication is implemented the application must remain localhost-only. FIFO matching is scoped to the full available execution history **for the selected account** before date/symbol filters. This change does not alter fees, cost basis, journal entries, or execution records. No new schema migration is required.
+
+## Initial wash sale screening (read-only)
+
+Open `/wash-sales` from the Research sidebar or Realized Performance page. This is **phase 1**: a read-only screening view, not an IRS tax calculation or a Form 8949 export.
+
+- The existing FIFO engine identifies loss-making **LONG** lot closures (fees included where the net loss is known). The screen considers **same-symbol BUY shares** acquired from 30 calendar days before to 30 days after each loss sale, inclusive; Eastern Time calendar dates determine the window. For purchases **before** the loss sale, only shares still held after that sale can qualify as replacements. For purchases **after** the loss sale, shares opening a new long position can qualify. Shares used to cover shorts are excluded. Potential replacement quantity is capped to matched losing shares and each acquisition is reserved only once in this screening pass.
+- **Replacement search includes every stored brokerage account** regardless of the sidebar account. The sidebar selects which **loss sales** appear. Cross-account and possibly retirement-account purchases are marked. The display offers ticker and loss-year filtering. If fewer than 30 days have elapsed since a loss, a warning notes the window remains open.
+- Reported estimated flagged amounts are *indicators*, not confirmed wash-sale disallowances. The preview does not write to `tax_lots` or `wash_sale_adjustments`, change realized P&L, increase replacement basis, adjust holding periods, or permanently disallow IRA replacement losses. It does not handle short-sale wash rules, options/contracts, corporate actions, unrecorded brokers, incomplete or missing lots, or cross-symbol substantially identical securities. It also does not perform repeated-chain tax-lot allocation. Webull snapshots are averaged orders, not actual exchange-level fills. These limitations prevent relying on this output as tax filing evidence.
+- The database has preexisting `tax_lots` and `wash_sale_adjustments` schema groundwork. Do **not** populate them with speculative candidate data; a separate reconciled tax-lot basis engine is the next milestone. Before tax-ready reporting, verify consolidated broker 1099-B records, acquisition and transfer history, account retirement status, short sales, capital gain holding periods, replacement lots, and year-end windows.
+- Sources: [IRS Publication 550](https://www.irs.gov/publications/p550) and [Form 8949 instructions](https://www.irs.gov/instructions/i8949). No new migration is required.

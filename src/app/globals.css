@@ -460,3 +460,16 @@ button,input,select,textarea{font:inherit}
 /* Secondary sidebar trade action uses the same styling as navigation links. */
 .sj-nav-action{background:transparent;border-top:0;border-bottom:0;border-left:0;width:100%;cursor:pointer;font-family:inherit;text-align:left}
 .sj-nav-action:hover{background:#262b3b;color:#e4ebfc}
+
+/* Wash sale screening: visually distinct from final tax figures */
+.sj-wash-page .notice{line-height:1.7}
+.sj-wash-metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:13px;margin:20px 0 30px}
+.sj-wash-metrics>div{background:#262935;border:1px solid #3b4153;padding:17px;border-radius:10px;display:flex;flex-direction:column;gap:12px}
+.sj-wash-metrics small{font-size:11px;color:#9caac1}
+.sj-wash-metrics strong{font-size:22px;color:#f0f2fa}
+.sj-wash-table{min-width:1120px}
+.sj-wash-table td:last-child{max-width:230px;white-space:normal}
+.sj-wash-notes{padding:21px;margin:24px 0;background:#262935;border:1px solid #3b4153;border-radius:12px}
+.sj-wash-notes p{color:#aab5ca;line-height:1.8;font-size:12px}
+@media(max-width:1150px){.sj-wash-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:650px){.sj-wash-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
