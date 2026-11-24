@@ -3,6 +3,8 @@ import {reviewIsLocal,loadReviewLedger} from '@/lib/review/server';
 import {buildTradeReview} from '@/lib/review/trade-review';
 import {buildDashboardData,type DashboardGroup} from '@/lib/review/dashboard';
 import {DailyPnLChart} from '@/components/daily-pnl-chart';
+import {RealizedRiskChart} from '@/components/realized-risk-chart';
+import {buildRiskReport} from '@/lib/review/risk-quality';
 import {DashboardDailyBars} from '@/components/dashboard-daily-bars';
 export const dynamic='force-dynamic';
 const money=(v:string|null)=>v===null?'—':new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(Number(v));
@@ -38,11 +40,13 @@ export default async function Home(){
   <section className="page-title"><p className="eyebrow">PRIVATE DASHBOARD</p><h1>Trading Dashboard</h1>
   <p className="intro">Trading metrics are available only on the local development server until login and authorization are implemented.</p></section></main>;
  let data:ReturnType<typeof buildDashboardData>|null=null;
+ let riskPoints:ReturnType<typeof buildRiskReport>['points']=[];
  let error='';
  try{
   const source=await loadReviewLedger(null);
   const review=buildTradeReview(source.entries);
   data=buildDashboardData(review.trades,review.sessions,source.accounts.length,review.openPositions.length);
+  riskPoints=buildRiskReport(review.trades).points;
  }catch(e){
   console.error('[Dashboard] Failed to load analytics:',e);
   error=e instanceof Error&&e.message==='LIMIT_EXCEEDED'
@@ -62,6 +66,9 @@ export default async function Home(){
     <p className="helper">{data.accounts} saved brokerage account(s) · {data.openPositions} open FIFO position(s)</p>
    </section>:<>
    <Metrics data={data}/>
+   <section className="dashboard-panel dashboard-risk-overview">
+    <div className="dashboard-panel-head"><div><p className="eyebrow">RISK PROFILE</p><h2>Realized P&amp;L and drawdown segments</h2></div><Link href="/risk">Risk analytics ↗</Link></div>
+    <RealizedRiskChart points={riskPoints}/></section>
    <div className="dashboard-two-up">
     <section className="dashboard-panel dashboard-panel-wide"><div className="dashboard-panel-head"><div><p className="eyebrow">REALIZED PERFORMANCE</p><h2>Cumulative known net P&amp;L</h2></div><Link href="/daily">Daily Analytics ↗</Link></div>
      <DailyPnLChart days={data.daily.days}/></section>

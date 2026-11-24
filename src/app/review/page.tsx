@@ -1,11 +1,13 @@
 import {ReviewTradesTable} from '@/components/review-trades-table';
 import Link from 'next/link';
+import {cookies} from 'next/headers';
+import {normalizeReviewColumns} from '@/lib/review/columns';
 import {headers} from 'next/headers';
 import {db} from '@/lib/db';
 import {normalizeWebullOrderFee} from '@/lib/performance/fee-policy';
 import type {LedgerInput} from '@/lib/performance/ledger';
 import {buildTradeReview} from '@/lib/review/trade-review';
-import {formatBrokerageAccount} from '@/lib/webull/account-format';
+import {displayAccount} from '@/lib/review/account-label';
 export const dynamic='force-dynamic';
 type Params={symbol?:string;account?:string;date?:string;view?:string};
 const usd=(s:string|null)=>s===null?'Unverified':new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(Number(s));
@@ -15,19 +17,22 @@ export default async function Review({searchParams}:{searchParams:Promise<Params
  const host=(await headers()).get('host')??'';
  if(process.env.NODE_ENV!=='development'||!/^(localhost|127\.0\.0\.1|\[::1\])(?::\d+)?$/i.test(host))
   return <main className="shell"><header><Link className="brand" href="/">TRADE / JOURNAL</Link></header><p className="notice">Trade Review is restricted to local development until authenticated sessions are implemented.</p></main>;
+ const rawColumns=(await cookies()).get('trade-journal-review-columns-v2')?.value;
+ let selectedColumns=normalizeReviewColumns(null);
+ if(rawColumns){try{selectedColumns=normalizeReviewColumns(JSON.parse(decodeURIComponent(rawColumns)));}catch{/* Invalid cookie falls back to all columns. */}}
  const p=await searchParams;
  const symbol=(typeof p.symbol==='string'?p.symbol.trim().replace(/^\$/,'').toUpperCase():'');
  const account=typeof p.account==='string'?p.account:'all';
  const date=typeof p.date==='string'?p.date:'';
  const view=p.view==='sessions'?'sessions':'trades';
  const invalid=!!symbol&&!/^[A-Z0-9.^_-]{1,30}$/.test(symbol)||!!date&&!/^\d{4}-\d{2}-\d{2}$/.test(date)||account!=='all'&&!/^\d{1,19}$/.test(account);
- let accounts:{id:string;external_account_id:string;account_type:string|null}[]=[];
+ let accounts:{id:string;external_account_id:string;account_type:string|null;broker:string;user_label:string|null}[]=[];
  let data:LedgerInput[]=[];
  let error='',truncated=false;
  if(!invalid)try{
   const pool=db();
-  const a=await pool.query<{id:string;external_account_id:string;account_type:string|null}>(
-   'SELECT id::text,external_account_id,account_type FROM brokerage_accounts ORDER BY id');
+  const a=await pool.query<{id:string;external_account_id:string;account_type:string|null;broker:string;user_label:string|null}>(
+   'SELECT id::text,external_account_id,account_type,broker,user_label FROM brokerage_accounts ORDER BY id');
   accounts=a.rows;
   if(account!=='all'&&!accounts.some(a=>a.id===account))throw new Error('Unknown account');
   // Compute from full account history first. Date and ticker filters only affect display.
@@ -56,7 +61,7 @@ export default async function Review({searchParams}:{searchParams:Promise<Params
  if(!invalid&&!error&&!truncated)try{review=buildTradeReview(symbol?data.filter(row=>row.symbol.toUpperCase()===symbol):data);}catch(e){
   console.error('[Review] grouping failed:',e);error='Unable to group trades. Check the Next.js terminal.';
  }
- const name=(id:string)=>{const a=accounts.find(a=>a.id===id);return a?formatBrokerageAccount(a.account_type,a.external_account_id):'Unknown account';};
+ const name=(id:string)=>{const a=accounts.find(a=>a.id===id);return a?displayAccount(a):'Unknown account';};
  const trades=(review?.trades??[]).filter(t=>(!symbol||t.symbol.toUpperCase()===symbol)&&(!date||etDate(t.exitedAt)===date));
  const sessions=(review?.sessions??[]).filter(s=>(!date||s.date===date)&&(!symbol||s.symbols.includes(symbol)));
  return <main className="shell review-shell"><header><Link href="/" className="brand">TRADE / JOURNAL</Link><span className="muted">Local-only · Provisional FIFO review</span></header>
@@ -76,7 +81,7 @@ export default async function Review({searchParams}:{searchParams:Promise<Params
   {invalid?<p className="notice">Invalid ticker, account or date filter.</p>:error||truncated?<p className="notice">{error||'More than 20,000 rows. Review stopped rather than silently losing historical opening lots.'}</p>:view==='trades'?<>
    <p className="helper">{trades.length} completed trade(s). A trade closes only when the full position returns to flat or reverses. Entry/exit prices are quantity-weighted across matched FIFO shares; prices are displayed to two decimals. Time is UTC; date filtering uses Eastern Time.</p>
    {!trades.length?<p className="notice">No completed trades match these filters. Partially exited open positions may still appear in the Sessions view.</p>:
-   <ReviewTradesTable trades={trades} accountNames={Object.fromEntries(accounts.map(a=>[a.id,name(a.id)]))}/>}
+   <ReviewTradesTable initialVisible={selectedColumns} trades={trades} accountNames={Object.fromEntries(accounts.map(a=>[a.id,name(a.id)]))}/>}
   </>:<>
    <p className="helper">{sessions.length} account session(s). Session P&amp;L is attributed to each realized exit on its Eastern Time calendar date. This includes partial exits of positions that remain open. Sessions from different accounts are not combined.</p>
    {!sessions.length?<p className="notice">No realized exit activity matches these filters.</p>:

@@ -1,7 +1,7 @@
 'use client';
 import {useRef,useState,useTransition,type FormEvent} from 'react';
 import {useRouter} from 'next/navigation';
-import {deleteManualTrade,saveManualTrade} from './actions';
+import {createManualAccount,deleteManualTrade,saveManualTrade} from './actions';
 
 export type AccountOption={id:string;label:string};
 export type ManualTradeRow={id:string;accountId:string;symbol:string;date:string;time:string;side:'BUY'|'SELL';entryType:'OPENING'|'TRADE';quantity:string;price:string;fees:string;notes:string};
@@ -11,6 +11,8 @@ export type ManualTradeEditorProps={
 };
 export default function ManualTradeEditor({accounts,trades,title='Manual trade entry',description,showHistory=true}:ManualTradeEditorProps){
  const [editing,setEditing]=useState<ManualTradeRow|null>(null);
+ const [newAccountName,setNewAccountName]=useState('');
+ const [accountMessage,setAccountMessage]=useState('');
  const [formKey,setFormKey]=useState(0);
  const [pending,start]=useTransition();
  const [message,setMessage]=useState('');
@@ -48,7 +50,30 @@ export default function ManualTradeEditor({accounts,trades,title='Manual trade e
   });
  }
  const defaultTime=editing?.time??'12:00';
+ function addAccount(){
+  if(pending)return;
+  setAccountMessage('');
+  start(async()=>{
+   const form=new FormData();form.set('name',newAccountName);
+   try{
+    const result=await createManualAccount(form);
+    setAccountMessage(result.message);
+    if(result.ok){setNewAccountName('');router.refresh();}
+   }catch{setAccountMessage('Unable to create account. Check server logs.');}
+  });
+ }
+
  return <>
+  <section className="import-panel manual-account-create">
+   <h2>Add a brokerage account</h2>
+   <p className="helper">Create a separate account for trades from Schwab, Fidelity, another broker, or your own records. This does not connect to or import from that broker automatically.</p>
+   <div className="manual-account-create-fields">
+    <label className="field-label" htmlFor="manual-account-name">Account name</label>
+    <input id="manual-account-name" value={newAccountName} maxLength={100} placeholder="e.g. Charles Schwab – Individual" onChange={e=>setNewAccountName(e.target.value)}/>
+    <button type="button" className="manual-secondary" disabled={pending||newAccountName.trim().length<2} onClick={addAccount}>Create account</button>
+   </div>
+   {accountMessage&&<p className="helper" role="status">{accountMessage}</p>}
+  </section>
   <section className="import-panel">
    <h2>{editing?'Edit manual trade':title}</h2>
    {description&&<p className="helper">{description}</p>}

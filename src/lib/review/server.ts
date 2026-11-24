@@ -2,7 +2,7 @@ import 'server-only';
 import {db} from '@/lib/db';
 import type {LedgerInput} from '@/lib/performance/ledger';
 import {normalizeWebullOrderFee} from '@/lib/performance/fee-policy';
-import {formatBrokerageAccount} from '@/lib/webull/account-format';
+import {displayAccount} from '@/lib/review/account-label';
 import {headers} from 'next/headers';
 
 export async function reviewIsLocal(){
@@ -10,8 +10,8 @@ export async function reviewIsLocal(){
  return process.env.NODE_ENV==='development'&&/^(localhost|127\.0\.0\.1|\[::1\])(?::\d+)?$/i.test(host);
 }
 export async function loadReviewLedger(accountId:string|null){
- const accounts=(await db().query<{id:string;external_account_id:string;account_type:string|null}>(
-  'SELECT id::text,external_account_id,account_type FROM brokerage_accounts ORDER BY id')).rows;
+ const accounts=(await db().query<{id:string;external_account_id:string;account_type:string|null;broker:string;user_label:string|null}>(
+  'SELECT id::text,external_account_id,account_type,broker,user_label FROM brokerage_accounts ORDER BY id')).rows;
  if(accountId!==null&&!accounts.some(a=>a.id===accountId))throw new Error('Unknown account');
  const result=await db().query<{
   id:string;account_id:string;symbol:string;side:'BUY'|'SELL';quantity:string;
@@ -37,7 +37,7 @@ export async function loadReviewLedger(accountId:string|null){
  }));
  const accountLabel=(id:string)=>{
   const a=accounts.find(x=>x.id===id);
-  return a?formatBrokerageAccount(a.account_type,a.external_account_id):'Unknown account';
+  return a?displayAccount(a):'Unknown account';
  };
  return {entries,accounts,accountLabel};
 }

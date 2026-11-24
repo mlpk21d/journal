@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import {headers} from 'next/headers';
 import {db} from '@/lib/db';
-import {cachedAccounts} from '@/lib/webull/accounts-cache';
+import {displayAccount} from '@/lib/review/account-label';
 import ManualTradeEditor,{type AccountOption,type ManualTradeRow} from '@/features/manual-trades/editor';
 export const dynamic='force-dynamic';
 export default async function ManualPage(){
@@ -14,11 +14,9 @@ export default async function ManualPage(){
  let trades:ManualTradeRow[]=[];
  let error='';
  try{
-  const saved=await cachedAccounts();
-  const {rows:accountRows}=await db().query<{id:string;external_account_id:string}>(
-   "SELECT id::text,external_account_id FROM brokerage_accounts WHERE broker='webull'");
-  const byExternal=new Map(accountRows.map(x=>[x.external_account_id,x.id]));
-  accounts=saved.flatMap(x=>{const id=byExternal.get(x.id);return id?[{id,label:x.label}]:[];});
+  const {rows:accountRows}=await db().query<{id:string;broker:string;external_account_id:string;account_type:string|null;user_label:string|null}>(
+   "SELECT id::text,broker,external_account_id,account_type,user_label FROM brokerage_accounts WHERE broker IN ('webull','manual') ORDER BY broker,id");
+  accounts=accountRows.map(a=>({id:a.id,label:displayAccount(a)}));
   const {rows}=await db().query<{
    id:string;account_id:string;symbol:string;date:string;time:string;
    side:'BUY'|'SELL';entry_type:'OPENING'|'TRADE';quantity:string;price:string;fees:string;notes:string

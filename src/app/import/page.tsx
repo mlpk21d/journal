@@ -48,12 +48,13 @@ export default function ImportPage() {
   return()=>{mounted=false;};
  },[]);
 
- function sync() {
+ function sync(todayOnly=false) {
   if(pending || loading || !accounts.length) return;
   setMessage('');setResult(null);
   startTransition(async()=>{
    try {
-    const response=await syncWebullFromBrowser(account,from,through);
+    const date=todayOnly?localDate(0):from;
+    const response=await syncWebullFromBrowser(account,date,todayOnly?date:through);
     setResult(response);
     if(!response.ok)setMessage(response.error);
    }catch {
@@ -81,9 +82,10 @@ export default function ImportPage() {
     <div><label htmlFor="through" className="field-label">Through date</label><input id="through" type="date" value={through} max={localDate(0)} disabled={pending} onChange={e=>setThrough(e.target.value)}/></div>
    </div>
    <p className="helper">For the initial test, select 1–3 trading days. Maximum 31 calendar days per request. Re-importing the same days updates existing orders rather than creating duplicates.</p>
-   <button className="primary-button" type="button" disabled={loading||pending||!accounts.length||!from||!through} onClick={sync}>
+   <button className="primary-button" type="button" disabled={loading||pending||!accounts.length||!from||!through} onClick={()=>sync(false)}>
     {pending?'Import running…':'Import Webull trades'}
    </button>
+   <button className="manual-secondary" type="button" disabled={loading||pending||!accounts.length} onClick={()=>sync(true)} style={{marginLeft:12}}>{pending?'Import running…':"Import Today's Trades"}</button>
    {pending&&<p role="status" className="helper">Importing accounts sequentially. Keep this page open; the Next.js terminal will show errors.</p>}
    {message&&<p role="alert" className="notice">{message}</p>}
    {result?.ok&&<div className="import-result" role="status"><h3>Import results</h3>

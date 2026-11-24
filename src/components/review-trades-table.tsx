@@ -6,7 +6,7 @@ import {loadTradeReviewModal,type TradeModalData} from '@/features/trade-journal
 import {ReviewTotals,ReviewMatchTable,ReviewExecutionTable} from '@/components/review-audit';
 import {TradeJournalEditor} from '@/components/trade-journal-editor';
 
-const STORAGE_KEY='trade-journal.review.visible-columns.v1';
+const COOKIE_KEY='trade-journal-review-columns-v2';
 const money=(value:string|null)=>value===null?'Unverified':new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(Number(value));
 const quantity=(value:string)=>value.replace(/(\.\d*?[1-9])0+$|\.0+$/,(match,fraction:string|undefined)=>fraction??'');
 const timestamp=(value:string)=>value.replace('T',' ').slice(0,19);
@@ -76,23 +76,17 @@ function TradeReviewModal({id,onClose}:{id:string;onClose:()=>void}){
   </section>
  </div>;
 }
-export function ReviewTradesTable({trades,accountNames}:{trades:ReviewedTrade[];accountNames:Record<string,string>}){
- const [visible,setVisible]=useState<ReviewColumnKey[]>(()=>normalizeReviewColumns(null));
- const [loaded,setLoaded]=useState(false);
+export function ReviewTradesTable({trades,accountNames,initialVisible}:{trades:ReviewedTrade[];accountNames:Record<string,string>;initialVisible:ReviewColumnKey[]}){
+ const [visible,setVisible]=useState<ReviewColumnKey[]>(()=>normalizeReviewColumns(initialVisible));
  const [configOpen,setConfigOpen]=useState(false);
  const [selected,setSelected]=useState<string|null>(null);
  const lastTrigger=useRef<HTMLButtonElement|null>(null);
- useEffect(()=>{
-  try{
-   const raw=localStorage.getItem(STORAGE_KEY);
-   if(raw!==null)setVisible(normalizeReviewColumns(JSON.parse(raw)));
-  }catch{/* Browser storage is optional; default to all columns. */}
-  setLoaded(true);
- },[]);
- useEffect(()=>{
-  if(!loaded)return;
-  try{localStorage.setItem(STORAGE_KEY,JSON.stringify(visible));}catch{/* Private browsing may block storage. */}
- },[loaded,visible]);
+ function changeColumns(columns:ReviewColumnKey[]){
+  const normalized=normalizeReviewColumns(columns);
+  setVisible(normalized);
+  try{document.cookie=COOKIE_KEY+'='+encodeURIComponent(JSON.stringify(normalized))+'; Path=/; Max-Age=31536000; SameSite=Lax';}
+  catch{/* Cookies may be blocked by browser settings. */}
+ }
  const shown=new Set(visible);
  const closeModal=()=>{
   setSelected(null);
@@ -126,12 +120,12 @@ export function ReviewTradesTable({trades,accountNames}:{trades:ReviewedTrade[];
    <div className="review-column-options-grid">
     {REVIEW_COLUMNS.map(column=><label key={column.key}>
      <input type="checkbox" checked={shown.has(column.key)} disabled={column.required} onChange={e=>{
-      setVisible(previous=>normalizeReviewColumns(e.target.checked?[...previous,column.key]:previous.filter(x=>x!==column.key)));
+      changeColumns(e.target.checked?[...visible,column.key]:visible.filter(x=>x!==column.key));
      }}/>
      {column.label}{column.required&&<span className="muted"> (always visible)</span>}
     </label>)}
    </div>
-   <button type="button" className="review-reset-button" onClick={()=>setVisible(normalizeReviewColumns(null))}>Show all columns</button>
+   <button type="button" className="review-reset-button" onClick={()=>changeColumns(normalizeReviewColumns(null))}>Show all columns</button>
   </fieldset>}
   <div className="table-scroll review-trade-scroll">
    <table className="review-trade-table"><thead><tr>{REVIEW_COLUMNS.filter(c=>shown.has(c.key)).map(column=><th scope="col" key={column.key}>{column.label}</th>)}</tr></thead>

@@ -185,3 +185,35 @@
 @media(max-width:1100px){.dashboard-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.dashboard-two-up{grid-template-columns:1fr}}
 @media(max-width:690px){.dashboard-kpis{grid-template-columns:1fr 1fr}.dashboard-intro{align-items:flex-start;flex-direction:column}.dashboard-panel{padding:16px}.dashboard-kpi{padding:15px}.dashboard-kpi strong{font-size:20px}}
 @media(max-width:440px){.dashboard-kpis{grid-template-columns:1fr}}
+
+/* Consistent browser-width layout */
+.shell,.shell.review-shell{width:85%;max-width:none;margin-inline:auto;padding-left:0;padding-right:0}
+@media(max-width:680px){.shell,.shell.review-shell{width:calc(100% - 28px);padding-left:0;padding-right:0}}
+/* Compact Trade Review dialog */
+.review-modal{width:min(1100px,96vw);max-height:94dvh}
+.review-modal-header{padding:10px 18px}
+.review-modal-header h2{font-size:19px;margin-top:3px}
+.review-modal-header .eyebrow{font-size:10px}
+.review-modal-body{padding:10px 18px 18px}
+.review-modal-body .helper{font-size:11px;margin:5px 0 8px}
+.review-modal-body h2{font-size:17px;margin:13px 0 7px}
+.review-modal-body .performance-metrics{gap:8px;margin:9px 0}
+.review-modal-body .performance-metrics>div{padding:9px 12px}
+.review-modal-body .performance-metrics strong{font-size:18px}
+.review-modal-body .table-scroll th,.review-modal-body .table-scroll td{padding:7px 9px;font-size:12px}
+.review-modal-close{width:34px;height:34px;font-size:22px}
+.review-modal-body .journal-editor{padding:12px;margin:12px 0}
+.review-modal-body .journal-editor h2{font-size:17px;margin:0 0 6px}
+.review-modal-body .journal-editor form{gap:8px}
+.review-modal-body .journal-editor label{font-size:12px}
+.review-modal-body .journal-editor input,.review-modal-body .journal-editor textarea{font-size:12px;padding:7px 10px}
+.review-modal-body .journal-editor textarea{min-height:56px}
+.review-modal-body .journal-editor button{padding:8px 12px}
+.review-modal-body .notice{padding:11px;font-size:12px}
+.manual-account-create-fields{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.manual-account-create-fields input{min-width:240px;flex:1}
+.trade-pagination{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin:15px 0;color:#aebfca;font-size:13px}
+.trade-pagination nav{display:flex;gap:10px;align-items:center}
+.trade-pagination a{border:1px solid #395466;border-radius:7px;padding:8px 12px}
+.dashboard-risk-overview{margin-bottom:16px}
+.dashboard-risk-overview .risk-chart{padding:0;border:0;background:transparent}

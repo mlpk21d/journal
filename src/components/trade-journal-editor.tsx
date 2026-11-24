@@ -1,5 +1,6 @@
 'use client';
 import {useActionState} from 'react';
+import {COMMON_STRATEGIES} from '@/lib/review/strategies';
 import {TradeScreenshots} from '@/components/trade-screenshots';
 import {saveTradeJournal,type JournalSaveState} from '@/features/trade-journal/actions';
 import type {StoredJournal} from '@/lib/review/journal-store';
@@ -12,7 +13,7 @@ export function TradeJournalEditor({cycleKey,fingerprint,journal}:{cycleKey:stri
    <input type="hidden" name="cycleKey" value={cycleKey}/>
    <input type="hidden" name="fingerprint" value={fingerprint}/>
    <div className="journal-grid">
-    <label>Strategy<input name="strategy" maxLength={120} defaultValue={journal?.strategy??''} placeholder="Opening range breakout"/></label>
+    <label>Strategy<input name="strategy" list="journal-common-strategies" maxLength={120} defaultValue={journal?.strategy??''} placeholder="Choose or type a strategy"/><datalist id="journal-common-strategies">{COMMON_STRATEGIES.map(s=><option key={s} value={s}/>)}</datalist></label>
     <label>Screenshot URL<input name="screenshotUrl" type="url" maxLength={1500} defaultValue={journal?.screenshotUrl??''} placeholder="https://..."/></label>
    </div>
    <label>Setup<textarea name="setup" rows={3} maxLength={2000} defaultValue={journal?.setup??''}/></label>

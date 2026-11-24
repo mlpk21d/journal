@@ -2,6 +2,7 @@
 import {headers} from 'next/headers';
 import {revalidatePath} from 'next/cache';
 import {db} from '@/lib/db';
+import {randomUUID} from 'node:crypto';
 import {validateManualTrade} from './validation';
 
 export type ManualTradeResult={ok:boolean;message:string;code?:string};
@@ -28,7 +29,7 @@ async function assertLocal():Promise<void>{
    throw new Error('Cross-origin request refused');
  }
 }
-function refresh(){for(const path of ['/manual','/performance','/trades'])revalidatePath(path);}
+function refresh(){for(const path of ['/','/manual','/performance','/trades','/review','/analytics','/daily','/risk','/timing','/insights'])revalidatePath(path);}
 export async function saveManualTrade(form:FormData):Promise<ManualTradeResult>{
  try{
   await assertLocal();
@@ -38,7 +39,7 @@ export async function saveManualTrade(form:FormData):Promise<ManualTradeResult>{
   const conn=await db().connect();
   try{
    await conn.query('BEGIN');
-   const account=await conn.query(`SELECT id FROM brokerage_accounts WHERE id=$1 AND broker='webull'`,[payload.account]);
+   const account=await conn.query(`SELECT id FROM brokerage_accounts WHERE id=$1 AND broker IN ('webull','manual')`,[payload.account]);
    if(!account.rowCount)throw new Error('Select a valid brokerage account.');
    if(id){
     const update=await conn.query(`UPDATE manual_trades SET
@@ -73,6 +74,22 @@ export async function deleteManualTrade(id:string):Promise<ManualTradeResult>{
  }catch(error){
   const e=error as {code?:string;message?:string};
   console.error('[Manual trades] Delete failed:',{code:e?.code,message:e?.message});
+  return publicError(error);
+ }
+}
+
+export async function createManualAccount(form:FormData):Promise<ManualTradeResult>{
+ try{
+  await assertLocal();
+  const name=String(form.get('name')??'').trim();
+  if(name.length<2||name.length>100||/[\x00-\x1f]/.test(name))
+   return {ok:false,message:'Account name must be 2–100 printable characters.'};
+  await db().query(
+   "INSERT INTO brokerage_accounts(broker,external_account_id,account_type,user_label,display_name) VALUES('manual',$1,'Manual',$2,$2)",
+   ['manual:'+randomUUID(),name]);
+  refresh();return {ok:true,message:'Manual brokerage account created. Select it in the trade form.'};
+ }catch(error){
+  console.error('[Manual account] Creation failed',error);
   return publicError(error);
  }
 }

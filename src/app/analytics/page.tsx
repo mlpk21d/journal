@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import {COMMON_STRATEGIES} from '@/lib/review/strategies';
 import {db} from '@/lib/db';
 import {reviewIsLocal,loadReviewLedger} from '@/lib/review/server';
 import {buildTradeReview} from '@/lib/review/trade-review';
@@ -45,7 +46,7 @@ export default async function Analytics({searchParams}:{searchParams:Promise<Fil
    'SELECT cycle_key,fingerprint,strategy,mistakes FROM trade_journal_entries')).rows;
   const notes:AnalyticsNote[]=rows.map(r=>({cycleKey:r.cycle_key,fingerprint:r.fingerprint,strategy:r.strategy,mistakes:r.mistakes}));
   const whole=buildAnalytics(trades,source.entries,notes);
-  strategies=[...new Set(whole.trades.map(t=>t.strategy))].sort();
+  strategies=[...new Set([...COMMON_STRATEGIES,...whole.trades.map(t=>t.strategy)])].sort();
   report=summarizeAnalytics(whole.trades.filter(t=>
    (!symbol||t.trade.symbol.toUpperCase()===symbol)&&
    (direction==='all'||t.trade.direction===direction)&&
