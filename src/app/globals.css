@@ -121,3 +121,14 @@
 .timing-bar-track{display:block;width:120px;max-width:65%;height:9px;border-radius:5px;background:#233949;overflow:hidden}
 .timing-bar-track>span{display:block;height:100%;border-radius:5px;background:#85cdb9}
 .timing-table tr:has(.timing-bar-cell span:last-child) td{vertical-align:middle}
+
+/* Historical performance insights */
+.insights-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:18px 0 32px}
+.insights-cards article{background:#132330;border:1px solid #355062;border-radius:12px;padding:22px;min-width:0}
+.insights-cards small{font-size:12px;color:#93b4bf}
+.insights-cards h3{font-size:19px;margin:13px 0}
+.insights-cards strong{font-size:22px}
+.insights-cards p{color:#b2c6d1;font-size:13px;line-height:1.7}
+.insights-table{min-width:1120px}
+.insights-table td:last-child{white-space:normal;min-width:160px}
+@media(max-width:850px){.insights-cards{grid-template-columns:1fr}}

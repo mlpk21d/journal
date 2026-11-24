@@ -88,6 +88,7 @@ Pages (accessible through the global top-right hamburger menu and right-side dra
 - `/analytics` — localhost-only completed-trade strategy analytics: win rate, net P&L, average net/trade, profit factor, direction and mistake documentation; ticker/account/direction/ET exit-date/strategy filters
 - `/daily` — localhost-only daily realized FIFO P&L dashboard: known-net cumulative chart, trading calendar, per-day results, best/worst days and winning/losing streaks; account/date filters
 - `/timing` — localhost-only completed trade entry/exit hour and weekday analytics, win rate, net P&L, average net P&L, and profit factor; account/ticker/direction/exit-date filters
+- `/insights` — localhost-only consolidated historical performance insights with qualified strongest/weakest patterns, strategy, direction, entry/exit time and weekday comparisons, data-coverage safeguards, and configurable minimum sample
 
 Routes:
 - `GET /api/health`
@@ -196,3 +197,11 @@ Open \`/daily\` from the navigation menu or homepage. The page computes an Easte
 ### Trade Timing Analytics
 
 Visit \`/timing\` from the homepage or hamburger menu to analyze completed flat-to-flat positions by **entry hour**, **final exit hour**, **entry weekday**, and **final exit weekday** in America/New_York. Hourly buckets are chronological, including premarket and after-hours executions; weekdays are ordered Monday through Sunday. Trade-level net amounts and statistics reuse the same fixed-point calculation and unknown-fee exclusion as Strategy Analytics. Each completed position cycle is counted once in each grouping. Multiple entries and partial exits are **not** counted separately, nor are realized partial exits of still-open trades; visit \`/daily\` for those. Filters on ticker, account, direction and final-exit Eastern Time dates apply *after* reconstruction from full available FIFO history. DST is handled by IANA time zone conversion. Analytics are historical and provisional, not a predictive signal or tax ledger. No migration or extra charting package is required.
+
+### Trading Performance Insights
+
+Open \`/insights\` from the hamburger menu or homepage to compare historical results across **strategy**, **trade direction**, **entry hour**, **exit hour**, **entry weekday**, and **exit weekday**. Categories reuse the completed flat-to-flat FIFO trade engine and the same fixed-point net P&L metrics as Strategy Analytics. Strategies are included only for journal annotations with matching current-trade fingerprints. You can filter account, ticker, direction and final Eastern Time exit dates after reconstructing full available FIFO history.
+
+The dashboard distinguishes **qualified** and **insufficient** comparison groups. Default qualification requires **20 completed trades with verified net P&L** and **at least 80% verified net coverage**; you can set the minimum between 2 and 500 to explore sample sensitivity. Strongest and weakest group rankings sort by **average net P&L per verified trade** rather than gross dollars. Unknown P&L never becomes zero and unverified trades do not count toward the minimum. The rankings require at least two qualified groups and do not repeat a top-listed group in the bottom list.
+
+Groups overlap across dimensions: a single trade contributes to its strategy, direction, entry time, exit time, and weekday buckets. These results are **descriptive**, vulnerable to selection bias and small-sample noise, and must not be interpreted as an independently validated trading edge, statistical significance, or future prediction. No new migrations, broker writes, or execution/FIFO mutations are involved.
