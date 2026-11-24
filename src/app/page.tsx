@@ -69,11 +69,11 @@ export default async function Home(){
    <div className="dashboard-two-up">
     <section className="dashboard-panel"><div className="dashboard-panel-head"><div><p className="eyebrow">RECENT ACTIVITY</p><h2>Daily P&amp;L</h2></div><Link href="/daily">View all ↗</Link></div>
      <DashboardDailyBars days={data.last30Days}/></section>
+    <section className="dashboard-panel dashboard-symbols">
+     <div className="dashboard-panel-head"><div><p className="eyebrow">SYMBOL BREAKDOWN</p><h2>Top symbols by known net</h2></div><Link href="/insights">Insights ↗</Link></div>
+     <Groups rows={data.symbols} empty="No completed symbols yet."/>
+    </section>
    </div>
-   <section className="dashboard-panel dashboard-symbols">
-    <div className="dashboard-panel-head"><div><p className="eyebrow">SYMBOL BREAKDOWN</p><h2>Top symbols by known net</h2></div><Link href="/insights">Insights ↗</Link></div>
-    <Groups rows={data.symbols} empty="No completed symbols yet."/>
-   </section>
    <section className="dashboard-panel dashboard-recent"><div className="dashboard-panel-head"><div><p className="eyebrow">LATEST EXIT DAYS</p><h2>Recent trading sessions</h2></div><Link href="/review?view=sessions">All sessions ↗</Link></div>
     <div className="table-scroll"><table><thead><tr><th>Date (ET)</th><th>Symbols</th><th>FIFO closures</th><th>Accounts</th><th>Net realized P&amp;L</th></tr></thead><tbody>
      {data.recentDays.map(d=><tr key={d.date}><td>{d.date}</td><td>{d.symbols.join(', ')}</td><td>{d.closures}</td><td>{d.accounts}</td>
