@@ -15,12 +15,12 @@ export default async function SettingsPage(){
    <p>Saved brokerage accounts used by manual trades, imported records and analytics.</p></div></div>
    {error?<p className="notice">{error}</p>:<><div className="sj-settings-accounts">
     {accounts.map(a=><div className="sj-settings-account" key={a.id}>
-     <span className="sj-account-dot"/><strong>{a.label}</strong><small>{a.broker==='manual'?'Manual account':'Webull-connected account'}</small>
+     <span className="sj-account-dot"/><strong>{a.label}</strong><small>{a.broker==='schwab'?'Schwab CSV account':a.broker==='manual'?'Manual account':'Webull-connected account'}</small>
     </div>)}
     {!accounts.length&&<p className="helper">No accounts saved yet.</p>}
    </div>
    <h3>Add a Brokerage Account</h3>
-   <p className="helper">Create a named account for manually recorded transactions from another broker. This will not connect to that broker's API.</p>
+   <p className="helper">Create a named Schwab account for CSV imports or another manual brokerage account. This does not connect to Schwab's API.</p>
    <AccountSettingsForm/></>}
   </section>
   <section className="sj-settings-panel sj-settings-tax-import">

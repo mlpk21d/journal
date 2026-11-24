@@ -552,3 +552,16 @@ button,input,select,textarea{font:inherit}
 .sj-import-progress-percent{display:block;font-size:20px;font-variant-numeric:tabular-nums;color:#a9e8c9;margin:9px 0}
 @keyframes sj-import-slide{0%{transform:translateX(-105%)}100%{transform:translateX(320%)}}
 @media(prefers-reduced-motion:reduce){.sj-import-progress-track>span.sj-import-progress-indeterminate{animation:none;transform:none;width:6%}}
+
+/* Schwab CSV account selection and fee management */
+.sj-schwab-import{max-width:920px}
+.sj-schwab-import h2{margin-top:0}
+.sj-schwab-preview{border-top:1px solid #435067;margin-top:24px;padding-top:20px}
+.sj-schwab-preview h3{font-size:18px;margin-bottom:12px}
+.sj-schwab-preview .table-scroll{max-height:400px;overflow:auto;margin:14px 0}
+.sj-schwab-preview .manual-check{display:flex;gap:10px;align-items:flex-start;margin:15px 0;color:#cbd5e3;font-size:13px}
+.sj-schwab-import .notice{padding:14px 17px}
+.sj-fee-history{margin:28px 0 55px}
+.sj-fee-history .sj-section-heading{gap:18px;align-items:center}
+.sj-fee-history .sj-section-heading>strong{color:#e2edf9;font-size:20px;font-variant-numeric:tabular-nums}
+.sj-settings-form select{width:100%;max-width:400px;display:block;margin:8px 0 17px;background:#1a2230;color:#e7eef9;border:1px solid #465369;padding:10px;border-radius:7px}

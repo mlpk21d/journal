@@ -39,7 +39,7 @@ export async function saveManualTrade(form:FormData):Promise<ManualTradeResult>{
   const conn=await db().connect();
   try{
    await conn.query('BEGIN');
-   const account=await conn.query(`SELECT id FROM brokerage_accounts WHERE id=$1 AND broker IN ('webull','manual')`,[payload.account]);
+   const account=await conn.query(`SELECT id FROM brokerage_accounts WHERE id=$1 AND broker IN ('webull','manual','schwab')`,[payload.account]);
    if(!account.rowCount)throw new Error('Select a valid brokerage account.');
    if(id){
     const update=await conn.query(`UPDATE manual_trades SET
@@ -84,9 +84,11 @@ export async function createManualAccount(form:FormData):Promise<ManualTradeResu
   const name=String(form.get('name')??'').trim();
   if(name.length<2||name.length>100||/[\x00-\x1f]/.test(name))
    return {ok:false,message:'Account name must be 2–100 printable characters.'};
+  const broker=String(form.get('broker')??'manual');
+  if(broker!=='manual'&&broker!=='schwab')return {ok:false,message:'Select Manual or Charles Schwab as the account type.'};
   await db().query(
-   "INSERT INTO brokerage_accounts(broker,external_account_id,account_type,user_label,display_name) VALUES('manual',$1,'Manual',$2,$2)",
-   ['manual:'+randomUUID(),name]);
+   "INSERT INTO brokerage_accounts(broker,external_account_id,account_type,user_label,display_name) VALUES($1,$2,$3,$4,$4)",
+   [broker,broker+':'+randomUUID(),broker==='schwab'?'Schwab':'Manual',name]);
   refresh();return {ok:true,message:'Manual brokerage account created. Select it in the trade form.'};
  }catch(error){
   console.error('[Manual account] Creation failed',error);

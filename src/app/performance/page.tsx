@@ -44,7 +44,7 @@ export default async function Performance({searchParams}:{searchParams:Promise<P
       SELECT SUM(amount) AS total_fees,COUNT(*) AS fee_count
       FROM brokerage_order_fees WHERE brokerage_order_id=e.brokerage_order_id
     ) f ON TRUE
-    WHERE e.source='webull_order_snapshot' AND e.instrument_type='EQUITY'
+    WHERE e.source IN ('webull_order_snapshot','schwab_csv') AND e.instrument_type='EQUITY'
       AND ($1::bigint IS NULL OR e.brokerage_account_id=$1::bigint)
     UNION ALL
     SELECT 'manual:'||m.id::text AS id,m.brokerage_account_id::text AS account_id,

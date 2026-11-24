@@ -26,7 +26,9 @@ const research:Item[]=[
 ];
 const actions:Item[]=[
  {href:'/manual',label:'Manual Entries',glyph:'⊞'},
- {href:'/import',label:'Import Trades',glyph:'⇧'}
+ {href:'/import',label:'Import Trades',glyph:'⇧'},
+ {href:'/import/schwab',label:'Import Schwab CSV',glyph:'↥'},
+ {href:'/fees',label:'Fees',glyph:'＄'}
 ];
 function NavItem({item,pathname,onNavigate}:{item:Item;pathname:string;onNavigate:()=>void}){
  const active=item.href==='/'?pathname==='/':pathname===item.href||pathname.startsWith(item.href+'/');
@@ -73,7 +75,7 @@ export default function Navigation({accounts,selected}:{accounts:WorkspaceAccoun
     {accountOpen&&<div id="sj-account-options" className="sj-account-options" role="group" aria-label="Active brokerage account">
      <button type="button" className={!selected?'sj-account-selected':''} onClick={()=>selectAccount(null)}>All Accounts</button>
      {accounts.map(a=><button key={a.id} type="button" className={selected===a.id?'sj-account-selected':''} onClick={()=>selectAccount(a.id)}>
-      <span>{a.label}</span><small>{a.broker==='manual'?'Manual':'Webull'}</small>
+      <span>{a.label}</span><small>{a.broker==='schwab'?'Schwab':a.broker==='manual'?'Manual':'Webull'}</small>
      </button>)}
      <Link href="/settings" onClick={()=>{setAccountOpen(false);setOpen(false);}}>Manage accounts ↗</Link>
     </div>}

@@ -26,7 +26,7 @@ export async function loadReviewLedger(accountId:string|null,options:{ignoreWork
   'SELECT e.id::text AS id,e.brokerage_account_id::text AS account_id,',
   'e.symbol,e.side,e.quantity::text,e.price::text,e.executed_at,',
   'COALESCE((SELECT SUM(f.amount) FROM brokerage_order_fees f WHERE f.brokerage_order_id=e.brokerage_order_id),0)::text AS fees',
-  "FROM executions e WHERE e.source='webull_order_snapshot' AND e.instrument_type='EQUITY'",
+  "FROM executions e WHERE e.source IN ('webull_order_snapshot','schwab_csv') AND e.instrument_type='EQUITY'",
   'AND ($1::bigint IS NULL OR e.brokerage_account_id=$1::bigint)',
   'UNION ALL',
   "SELECT 'manual:'||m.id::text AS id,m.brokerage_account_id::text AS account_id,",

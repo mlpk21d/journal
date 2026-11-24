@@ -70,6 +70,7 @@ export default function ImportPage() {
   <section className="page-title"><p className="eyebrow">WEBULL INTEGRATION</p><h1>Import trades</h1>
    <p className="intro">Accounts are discovered directly from Webull. Import one brokerage account or all available accounts into PostgreSQL, without entering account IDs or using curl.</p>
   </section>
+  <p className="helper">Using Charles Schwab? <Link href="/import/schwab">Import a Schwab Transactions CSV ↗</Link> · <Link href="/fees">Manage separate brokerage fees ↗</Link></p>
   <section className="import-panel">
    <div className="import-heading"><h2>Import settings</h2><span className="local-indicator">Local development</span></div>
    <label className="field-label" htmlFor="account">Brokerage account</label>

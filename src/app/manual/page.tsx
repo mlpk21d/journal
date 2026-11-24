@@ -17,7 +17,7 @@ export default async function ManualPage(){
  let error='';
  try{
   const {rows:accountRows}=await db().query<{id:string;broker:string;external_account_id:string;account_type:string|null;user_label:string|null}>(
-   "SELECT id::text,broker,external_account_id,account_type,user_label FROM brokerage_accounts WHERE broker IN ('webull','manual') ORDER BY broker,id");
+   "SELECT id::text,broker,external_account_id,account_type,user_label FROM brokerage_accounts WHERE broker IN ('webull','manual','schwab') ORDER BY broker,id");
   accounts=accountRows.map(a=>({id:a.id,label:displayAccount(a)}));
   const {rows}=await db().query<{
    id:string;account_id:string;symbol:string;date:string;time:string;
