@@ -77,7 +77,7 @@ Webull may omit recently executed orders from historical data for a period, so r
 All API routes require `Authorization: Bearer <JOURNAL_API_TOKEN>`. UI pages must be restricted to trusted networks until session authentication exists.
 
 Pages (accessible through the global top-right hamburger menu and right-side drawer):
-- `/` — local-development-only live trading dashboard with KPI cards, risk drawdown segments, cumulative verified realized P&L, daily P&L bars, long/short and ticker comparison, and recent trading sessions
+- `/` — local-development-only live trading dashboard with KPI cards, month-switchable trading calendar, daily P&L bars, long/short and ticker comparison, and recent trading sessions
 - `/import` — local-only import interface, automatic account discovery, multi-account sync, and one-click import of today's transactions
 - `/manual` — local-only generic manual stock BUY/SELL and historical opening entries, plus create and select separate manually managed brokerage accounts
 - `/trades` — read-only imported and manually entered transactions in six columns: Symbol, Side (green BUY/red SELL), Quantity (whole shares without trailing zeroes; fractional shares preserved), Avg Price (2 decimals), Fees (2 decimals), Filled Time (UTC); case-insensitive exact ticker filter (`/trades?symbol=NVDA`) applied to all stored history before database pagination (50 records per page)
@@ -86,7 +86,7 @@ Pages (accessible through the global top-right hamburger menu and right-side dra
 - `/review/trade?id=...` — completed-trade FIFO audit plus independently saved strategy, setup, entry/exit reasoning, mistakes, lessons, HTTPS screenshot links and private screenshot uploads
 - `/review/session?account=...&date=...` — read-only account/session detail with daily realized FIFO matches and contributing executions (optional `symbol=...`)
 - `/analytics` — localhost-only completed-trade strategy analytics: win rate, net P&L, average net/trade, profit factor, direction and mistake documentation; ticker/account/direction/ET exit-date/strategy filters
-- `/daily` — localhost-only daily realized FIFO P&L dashboard: known-net cumulative chart, trading calendar, per-day results, best/worst days and winning/losing streaks; account/date filters
+- `/daily` — localhost-only daily realized FIFO P&L dashboard: known-net cumulative chart, interactive month-switchable trading calendar, per-day results, best/worst days and winning/losing streaks; account/date filters
 - `/timing` — localhost-only completed trade entry/exit hour and weekday analytics, win rate, net P&L, average net P&L, and profit factor; account/ticker/direction/exit-date filters
 - `/insights` — localhost-only consolidated historical performance insights with qualified strongest/weakest patterns, strategy, direction, entry/exit time and weekday comparisons, data-coverage safeguards, and configurable minimum sample
 - `/risk` — localhost-only Risk & Trade Quality: winner/loser averages, payoff ratio, loss streaks, verified-segment realized drawdown, largest winner concentration, and profitability by holding duration; account/ticker/direction/exit-date filters
@@ -224,3 +224,7 @@ The homepage uses the same 20,000-execution safeguard as other reports and shows
 ### Interface updates
 
 All application page shells use 85% of desktop viewport width (with responsive mobile margins). The trade history table now uses 50-row SQL pagination with stable ordering, total counts, and ticker-preserving page controls. The import page offers an immediate **Import Today's Trades** action for the chosen Webull account(s). Manual Trade entry can create named standalone brokerage accounts, without adding them to the Webull account cache; the manual accounts are reused across FIFO and trade analytics. Strategy inputs offer suggested names, and the analytics dropdown includes common strategy options. The dashboard shares the Risk page's realized segment chart. The trade modal uses denser spacing and smaller inputs. Review table column settings persist in a one-year same-site cookie read by the server and updated immediately on selection; browser privacy policies can block cookies. No new migration is needed with the existing generic `brokerage_accounts` schema.
+
+### Shared trading calendar controls
+
+The homepage (`/`) no longer renders the cumulative known-net line chart or the realized P&L/drawdown-segment chart; those remain available on `/daily` and `/risk` respectively. Instead, the Dashboard shows the same Eastern Time trading calendar as `/daily`. Both pages use a shared client component with **Previous Month**, **Next Month**, and native month picker controls. Month changes are immediate, require no server request and do not re-run FIFO calculations or modify the current `/daily` account/From/To report filters. Calendars show winning days green, losing days red, unknown net amber, breakeven days neutral and days without exits dimmed. The default calendar month is the latest available realized exit month (or current UTC month when there are no exits). The daily page retains its separate cumulative known-net chart. No migration or new package is needed.

@@ -1,23 +1,12 @@
 import Link from 'next/link';
 import {reviewIsLocal,loadReviewLedger} from '@/lib/review/server';
 import {buildTradeReview} from '@/lib/review/trade-review';
-import {summarizeDailySessions,calendarCells,type DailyPoint} from '@/lib/review/daily-performance';
+import {summarizeDailySessions} from '@/lib/review/daily-performance';
+import {TradingCalendar} from '@/components/trading-calendar';
 import {DailyPnLChart} from '@/components/daily-pnl-chart';
 export const dynamic='force-dynamic';
 type Filters={account?:string;month?:string;from?:string;to?:string};
 const usd=(n:string|null)=>n===null?'Unverified':new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(Number(n));
-function DayCalendar({month,days,account}:{month:string;days:DailyPoint[];account:string}){
- const cells=calendarCells(month,days);
- return <div className="daily-calendar">
-  <div className="daily-calendar-head">{['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(s=><strong key={s}>{s}</strong>)}</div>
-  <div className="daily-calendar-grid">{cells.map((day,i)=>day===null?<div key={'blank-'+i} className="daily-calendar-empty"/>:
-   <div key={day.date} className={'daily-calendar-day '+(!day.closures?'daily-no-activity':day.net===null?'daily-unknown':Number(day.net)>0?'daily-positive':Number(day.net)<0?'daily-negative':'daily-flat')}>
-    <span>{Number(day.date.slice(-2))}</span>
-    {day.closures>0&&<><strong>{usd(day.net)}</strong><small>{day.closures} FIFO match{day.closures===1?'':'es'}</small>
-     {account!=='all'&&<Link href={'/review/session?account='+encodeURIComponent(account)+'&date='+day.date} aria-label={'Review '+day.date+' session'}>Session ↗</Link>}</>}
-   </div>)}</div>
- </div>;
-}
 export default async function DailyPerformance({searchParams}:{searchParams:Promise<Filters>}){
  if(!await reviewIsLocal())return <main className="shell"><header><Link className="brand" href="/">TRADE / JOURNAL</Link></header><p className="notice">Daily Performance is restricted to localhost development.</p></main>;
  const p=await searchParams;
@@ -53,7 +42,6 @@ export default async function DailyPerformance({searchParams}:{searchParams:Prom
     <option value="all">All accounts</option>{accounts.map(a=><option key={a.id} value={a.id}>{a.label}</option>)}</select>
    <label htmlFor="daily-from">From (ET)</label><input id="daily-from" type="date" name="from" defaultValue={from}/>
    <label htmlFor="daily-to">To (ET)</label><input id="daily-to" type="date" name="to" defaultValue={to}/>
-   <label htmlFor="daily-month">Calendar month</label><input id="daily-month" type="month" name="month" defaultValue={calendarMonth}/>
    <button type="submit">Apply</button><Link href="/daily">Clear</Link>
   </form>
   {!valid?<p className="notice">Invalid account, month or date range.</p>:error?<p className="notice">{error}</p>:report&&<>
@@ -66,7 +54,7 @@ export default async function DailyPerformance({searchParams}:{searchParams:Prom
      ['Longest loss streak',String(report.longestLosingStreak)+' days']]).map(([label,value])=><div key={label}><small>{label}</small><strong>{value}</strong></div>)}
    </div>
    <h2>Cumulative realized net P&amp;L</h2><DailyPnLChart days={report.days}/>
-   <h2>Trading calendar · {calendarMonth}</h2><DayCalendar month={calendarMonth} days={report.days} account={account}/>
+   <TradingCalendar key={calendarMonth+'|'+account+'|'+from+'|'+to} initialMonth={calendarMonth} days={report.days} account={account}/>
    <h2>Daily results</h2>
    {!report.days.length?<p className="notice">No realized exits in this date range.</p>:<div className="table-scroll"><table><thead><tr>
     <th>Date (ET)</th><th>Accounts</th><th>Symbols</th><th>FIFO matches</th><th>Closed shares</th>
@@ -75,7 +63,7 @@ export default async function DailyPerformance({searchParams}:{searchParams:Prom
      <td>{d.date}</td><td>{d.accounts}</td><td>{d.symbols.join(', ')}</td><td>{d.closures}</td><td>{d.shares}</td><td>{usd(d.gross)}</td><td>{usd(d.fees)}</td>
      <td className={d.net===null?'':Number(d.net)<0?'trade-side-sell':'trade-side-buy'}>{usd(d.net)}</td><td>{usd(d.knownNetSubtotal)}</td>
     </tr>)}</tbody></table></div>}
-   <p className="notice">This is a provisional FIFO realized P&amp;L report, not an account equity curve or a tax ledger. Exit activity is grouped by America/New_York calendar date and includes partial closes of open positions. A day with any unknown fees has unverified net P&amp;L, is omitted from the known-net subtotal, and interrupts streaks. Breakeven days also interrupt streaks. Missing historical lots, wash sales and corporate actions may affect reconciliation. The month selector changes the calendar only; From/To constrain all reported results.</p>
+   <p className="notice">This is a provisional FIFO realized P&amp;L report, not an account equity curve or a tax ledger. Exit activity is grouped by America/New_York calendar date and includes partial closes of open positions. A day with any unknown fees has unverified net P&amp;L, is omitted from the known-net subtotal, and interrupts streaks. Breakeven days also interrupt streaks. Missing historical lots, wash sales and corporate actions may affect reconciliation. Calendar arrows and month picker navigate months without changing report filters; From/To constrain all reported results.</p>
   </>}
  </main>;
 }

@@ -217,3 +217,17 @@
 .trade-pagination a{border:1px solid #395466;border-radius:7px;padding:8px 12px}
 .dashboard-risk-overview{margin-bottom:16px}
 .dashboard-risk-overview .risk-chart{padding:0;border:0;background:transparent}
+
+/* Shared trading calendar month controls */
+.trading-calendar-toolbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;margin-bottom:16px}
+.trading-calendar-toolbar h2{margin:0 0 4px;font-size:24px}
+.trading-calendar-toolbar .helper{margin:0}
+.trading-calendar-nav{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.trading-calendar-nav button{height:40px;min-width:40px;border:1px solid #395364;border-radius:9px;background:#1a2b39;color:#e5f0f5;cursor:pointer;font-size:27px;line-height:1}
+.trading-calendar-nav button:hover{background:#294251}
+.trading-calendar-month-label{font-weight:700;font-size:16px;white-space:nowrap}
+.trading-calendar-nav input[type=month]{max-width:155px;color:#e5eef5;background:#152432;border:1px solid #395364;border-radius:8px;padding:8px}
+.trading-calendar .daily-calendar{margin:0 0 16px}
+.dashboard-calendar-panel{margin-bottom:16px}
+.dashboard-calendar-panel>.dashboard-panel-head{margin-bottom:12px}
+@media(max-width:700px){.trading-calendar-toolbar{align-items:flex-start}.trading-calendar-nav{gap:6px}.trading-calendar-month-label{font-size:14px}}
