@@ -502,3 +502,36 @@ button,input,select,textarea{font:inherit}
 .sj-ticker-detail-metrics>div{display:flex;flex-direction:column;gap:9px;background:#292e3d;border:1px solid #41485d;padding:14px;border-radius:9px}
 @media(max-width:1100px){.sj-ticker-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.sj-ticker-detail-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:650px){.sj-ticker-detail-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.sj-ticker-detail{padding:12px}}
+
+/* Header: selected-account one-click Webull import */
+.sj-topbar-import{display:inline-flex;align-items:center;justify-content:center;gap:7px;flex:none;
+ height:36px;padding:0 13px;border:1px solid #466c5f;border-radius:8px;background:#234638;
+ color:#ade6c3;font:700 11px Arial,Helvetica,sans-serif;white-space:nowrap;cursor:pointer}
+.sj-topbar-import:hover:not(:disabled){background:#31634d;border-color:#71bc97;color:#fff}
+.sj-topbar-import:disabled{opacity:.44;cursor:not-allowed}
+.sj-topbar-import>span:first-child{font-size:16px}
+.sj-today-overlay{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;
+ padding:18px;background:rgba(5,8,16,.87);backdrop-filter:blur(5px)}
+.sj-today-dialog{width:min(440px,100%);max-height:94dvh;overflow-y:auto;text-align:center;
+ border:1px solid #4b5873;border-radius:16px;padding:35px 29px;background:#232838;
+ box-shadow:0 30px 100px rgba(0,0,0,.7);color:#e7eefb}
+.sj-today-dialog h2{font-size:21px;margin:10px 0 14px}
+.sj-today-dialog p{font-size:13px;color:#b7c5dd;line-height:1.65}
+.sj-today-dialog .sj-today-muted{font-size:11px;color:#96a6c1;line-height:1.7}
+.sj-today-spinner{display:block;margin:4px auto 22px;width:54px;height:54px;
+ border:4px solid #46516a;border-top-color:#6fd4a3;border-radius:50%;animation:sj-today-rotate .9s linear infinite}
+@keyframes sj-today-rotate{to{transform:rotate(360deg)}}
+.sj-today-status{width:47px;height:47px;display:flex;align-items:center;justify-content:center;
+ font-size:26px;font-weight:700;margin:auto;border-radius:50%}
+.sj-today-success{color:#b0f3ce;background:#285b42}
+.sj-today-error{color:#ffd4d4;background:#773a45}
+.sj-today-number{display:block;font-size:53px;line-height:1.1;margin-top:15px;color:#93e9b7;font-variant-numeric:tabular-nums}
+.sj-today-number-caption{display:block;color:#c6d9ea;font-size:13px;margin:5px 0 18px}
+.sj-today-stats{display:flex;flex-direction:column;gap:8px;padding:15px 12px;margin:17px 0;
+ background:#2d3445;border:1px solid #43506a;border-radius:9px;font-size:12px;color:#c5d1e8}
+.sj-today-close{min-width:120px;margin-top:16px;background:#4574bf;color:white;border:0;
+ border-radius:8px;padding:11px 20px;font-weight:700;cursor:pointer}
+.sj-today-close:hover{background:#5689d6}
+@media(max-width:1200px){.sj-topbar-import{padding:0 9px;font-size:10px}.sj-topbar-import>span:first-child{display:none}}
+@media(max-width:800px){.sj-topbar-import>span:last-child{display:none}.sj-topbar-import>span:first-child{display:inline}}
+@media(prefers-reduced-motion:reduce){.sj-today-spinner{animation:none;border-top-color:#6fd4a3}}

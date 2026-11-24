@@ -1,7 +1,7 @@
 import { db } from '@/lib/db';
 import { webull } from './client';
 import { normalizeOrder, normalizeSnapshot, detailOrder, orderFees, orderPages, type Obj } from './normalize';
-export type ImportSummary={runId:string;pages:number;scanned:number;savedOrders:number;savedExecutions:number;skippedSnapshots:number;status:'completed'};
+export type ImportSummary={runId:string;pages:number;scanned:number;savedOrders:number;savedExecutions:number;newExecutions:number;skippedSnapshots:number;status:'completed'};
 export async function importWebullOrders(accountId:string,start:string,end:string):Promise<ImportSummary> {
  const pool=db();
  // Prevent simultaneous syncs for the same account, including across server processes.
@@ -19,7 +19,7 @@ export async function importWebullOrders(accountId:string,start:string,end:strin
   runId=run.rows[0].id;
   let cursor:string|undefined;
   const cursors=new Set<string>();
-  let pages=0,scanned=0,savedOrders=0,savedExecutions=0,skippedSnapshots=0;
+  let pages=0,scanned=0,savedOrders=0,savedExecutions=0,newExecutions=0,skippedSnapshots=0;
   do {
    if(pages>=100) throw new Error('Pagination limit exceeded (100 pages): narrow date range');
    const result=orderPages(await webull.orders(accountId,start,end,cursor));
@@ -49,6 +49,9 @@ export async function importWebullOrders(accountId:string,start:string,end:strin
      for(const fee of fees) await conn.query(`INSERT INTO brokerage_order_fees(brokerage_order_id,fee_type,amount) VALUES($1,$2,$3)`,[orderId,fee.type,fee.amount]);
      const snapshot=normalizeSnapshot(detail);
      if(snapshot){
+      // Distinguish newly created execution snapshots from existing snapshots
+      // being refreshed; the account advisory lock serializes this importer.
+      const existed=(await conn.query('SELECT 1 FROM executions WHERE brokerage_order_id=$1 AND source=$2 LIMIT 1',[orderId,'webull_order_snapshot'])).rowCount!==0;
       // This record is an order-level weighted average, NOT an exchange-level fill.
       // A dedicated source marker keeps it out of future true execution imports.
       await conn.query(`INSERT INTO executions(brokerage_account_id,brokerage_order_id,source,broker_execution_id,symbol,side,quantity,price,executed_at,raw_payload)
@@ -57,6 +60,7 @@ export async function importWebullOrders(accountId:string,start:string,end:strin
       DO UPDATE SET symbol=EXCLUDED.symbol,side=EXCLUDED.side,quantity=EXCLUDED.quantity,price=EXCLUDED.price,
       executed_at=EXCLUDED.executed_at,raw_payload=EXCLUDED.raw_payload`,[localId,orderId,snapshot.symbol,snapshot.side,snapshot.quantity,snapshot.price,snapshot.executedAt,JSON.stringify(detail)]);
       savedExecutions++;
+      if(!existed)newExecutions++;
      } else {
       // If an order was corrected or cancelled, remove an earlier stale snapshot.
       await conn.query("DELETE FROM executions WHERE brokerage_order_id=$1 AND source='webull_order_snapshot'",[orderId]);
@@ -70,7 +74,7 @@ export async function importWebullOrders(accountId:string,start:string,end:strin
    if(cursor) { if(cursors.has(cursor))throw new Error('Duplicate pagination cursor');cursors.add(cursor); }
   } while(cursor);
   await conn.query(`UPDATE import_runs SET status='completed',finished_at=now(),scanned_orders=$2,saved_orders=$3,saved_executions=$4 WHERE id=$1`,[runId,scanned,savedOrders,savedExecutions]);
-  return {runId,pages,scanned,savedOrders,savedExecutions,skippedSnapshots,status:'completed'};
+  return {runId,pages,scanned,savedOrders,savedExecutions,newExecutions,skippedSnapshots,status:'completed'};
  }catch(e){
   if(runId){try{await conn.query(`UPDATE import_runs SET status='failed',finished_at=now(),message=$2 WHERE id=$1`,[runId,e instanceof Error? e.message.slice(0,500):'Import error']);}catch{/* log failure without masking initial error */}}
   throw e;

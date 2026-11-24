@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import {usePathname,useRouter} from 'next/navigation';
 import {NewTradeModal} from '@/components/new-trade-modal';
+import {ImportTodayButton} from '@/components/import-today-button';
 import {ACCOUNT_COOKIE,type WorkspaceAccount} from '@/lib/review/account-scope-shared';
 import {useEffect,useState,type FormEvent} from 'react';
 type Item={href:string;label:string;glyph:string};
@@ -114,6 +115,7 @@ export default function Navigation({accounts,selected}:{accounts:WorkspaceAccoun
     <input id="sj-search-symbol" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search ticker"/>
     <button type="submit" aria-label="Search trades">↵</button>
    </form>
+   <ImportTodayButton accounts={accounts} selected={selected}/>
    <button className="sj-topbar-quick" type="button" onClick={()=>setTradeOpen(true)}>＋ New Trade</button>
   </div>
   {tradeOpen&&<NewTradeModal accounts={accounts} selected={selected} onClose={()=>setTradeOpen(false)}/>}

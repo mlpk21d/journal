@@ -79,3 +79,41 @@ export async function syncWebullFromBrowser(accountId: string, start: string, en
     return {ok:false,error:'Import failed. Check the Next.js terminal output for details.'};
   }
 }
+
+import {db} from '@/lib/db';
+import {activeAccountId} from '@/lib/review/account-scope';
+import {todayEasternRange} from '@/lib/webull/today-range';
+
+export type TodayImportResult=
+ | {ok:true;account:string;date:string;newTrades:number;updatedTrades:number;processedTrades:number;scanned:number}
+ | {ok:false;error:string};
+
+/** Header action: one explicitly selected, cached Webull account only.
+ * This is enforced server-side; an all-accounts or manual account selection
+ * can never be promoted into a bulk sync.
+ */
+export async function importTodayForSelectedAccount():Promise<TodayImportResult>{
+ try{
+  await assertLocalBrowser();
+  const selected=await activeAccountId();
+  if(!selected)return {ok:false,error:'Select one Webull brokerage account in the sidebar first.'};
+  const result=await db().query<{broker:string;external_account_id:string}>(
+   'SELECT broker,external_account_id FROM brokerage_accounts WHERE id=$1::bigint',[selected]);
+  const account=result.rows[0];
+  if(!account||account.broker!=='webull')
+   return {ok:false,error:'Only Webull brokerage accounts can use Import Today. Manual accounts are not supported.'};
+  const available=await cachedAccounts();
+  const found=available.find(a=>a.id===account.external_account_id);
+  if(!found)return {ok:false,error:'The selected Webull account is not in the saved account cache. Visit Import Trades first.'};
+  const {date,start,end}=todayEasternRange();
+  const response=await importWebullOrders(found.id,start,end);
+  return {ok:true,account:found.label,date,
+   newTrades:response.newExecutions,updatedTrades:response.savedExecutions-response.newExecutions,
+   processedTrades:response.savedExecutions,scanned:response.scanned};
+ }catch(e){
+  console.error('[Webull UI] Import Today failed:',e);
+  return {ok:false,error:e instanceof WebullRateLimitError?
+   'Webull rate limit reached. Try again after the cooldown.':
+   'Today’s import could not finish. Check the server log and import history.'};
+ }
+}
