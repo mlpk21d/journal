@@ -129,7 +129,7 @@ test('a purchase in another taxable account receives carried basis, not a new wa
   row('s1','SELL','10','8','2026-01-02'),
   row('b2','BUY','10','9','2026-01-03','2')];
  const r=buildTaxLotPreview(rows,accounts,'2026-03-01');
- assert.equal(r.adjustments[0].replacementAccountId,'2');
+ assert.equal(r.adjustments[0].purchaseAccountId,'2');
  assert.equal(r.adjustments[0].treatment,'basis-carry');
  assert.equal(r.openLots[0].accountId,'2');
  assert.equal(r.openLots[0].basisIncrease,'20');
