@@ -138,3 +138,50 @@
 .risk-chart svg{width:100%;height:auto;max-height:370px;display:block}
 .risk-duration-table{min-width:880px}
 .risk-duration-table td:first-child{font-weight:600}
+
+/* Trading dashboard */
+.dashboard-shell{padding-bottom:45px}
+.dashboard-intro{padding:48px 0 25px;display:flex;justify-content:space-between;align-items:flex-end;gap:25px}
+.dashboard-intro h1{font-size:clamp(36px,4vw,58px);letter-spacing:-.035em;margin:12px 0}
+.dashboard-intro .intro{font-size:15px;max-width:730px;margin-bottom:0}
+.dashboard-actions{display:flex;gap:10px;flex-shrink:0;flex-wrap:wrap}
+.dashboard-actions a{border:1px solid #416172;border-radius:8px;padding:12px 16px;font-size:13px}
+.dashboard-actions a:first-child{background:#91d2c5;border-color:#91d2c5;color:#102420;font-weight:700}
+.dashboard-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin:22px 0 24px}
+.dashboard-kpi{background:#121f2b;border:1px solid #2a4253;border-radius:12px;padding:20px 19px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.dashboard-kpi small{color:#9bb2bf;font-size:12px}
+.dashboard-kpi strong{font-size:clamp(21px,2.2vw,30px);letter-spacing:-.03em;overflow-wrap:anywhere}
+.dashboard-kpi span{font-size:11px;color:#849ca9;line-height:1.5}
+.dashboard-two-up{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;margin-bottom:16px}
+.dashboard-panel{background:#111d29;border:1px solid #2b4252;padding:22px;border-radius:13px;min-width:0}
+.dashboard-panel-head{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:22px}
+.dashboard-panel-head h2{font-size:21px;margin:7px 0 0}
+.dashboard-panel-head .eyebrow{margin:0;font-size:10px}
+.dashboard-panel-head a{font-size:12px;white-space:nowrap}
+.dashboard-panel .daily-chart{background:transparent;border:none;padding:0}
+.dashboard-bars-plot{display:flex;gap:4px;align-items:stretch;height:205px;padding:5px 0 0}
+.dashboard-bar-day{flex:1;min-width:4px;display:flex;flex-direction:column}
+.dashboard-bar-upper,.dashboard-bar-lower{height:50%;display:flex;justify-content:center;align-items:flex-end}
+.dashboard-bar-lower{align-items:flex-start}
+.dashboard-bar-day span{display:block;width:75%;border-radius:3px 3px 0 0}
+.dashboard-bar-positive{background:#68c79d}
+.dashboard-bar-negative{background:#e08080;border-radius:0 0 3px 3px!important}
+.dashboard-bar-unverified{background:#d6aa63;height:7px}
+.dashboard-bar-flat{background:#819eaf;height:2px}
+.dashboard-bar-axis{border-top:1px solid #506577}
+.dashboard-chart-labels{display:flex;justify-content:space-between;font-size:11px;color:#9ab0be;margin:12px 0}
+.dashboard-group-list{display:grid;gap:18px}
+.dashboard-group-top{display:flex;justify-content:space-between;gap:12px;font-size:14px}
+.dashboard-group-track{height:8px;background:#203441;border-radius:8px;overflow:hidden;margin:10px 0 7px}
+.dashboard-group-track span{display:block;height:100%;border-radius:8px}
+.dashboard-positive-track{background:#70caa6}.dashboard-negative-track{background:#d87b7b}
+.dashboard-group small{color:#91aab7;font-size:11px}
+.dashboard-recent{margin:0 0 16px}.dashboard-recent table{min-width:650px}
+.dashboard-recent th,.dashboard-recent td{padding:13px 11px}
+.dashboard-bottom-links{display:flex;gap:20px;flex-wrap:wrap;margin:20px 0 35px;font-size:13px}
+.dashboard-empty-state{padding:45px 30px;border:1px solid #344958;background:#132331;border-radius:14px}
+.dashboard-empty-state h2{margin:0 0 12px}.dashboard-empty-state p{line-height:1.7;color:#aabdc9}
+.dashboard-empty{color:#a9bec9;font-size:13px}
+@media(max-width:1100px){.dashboard-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.dashboard-two-up{grid-template-columns:1fr}}
+@media(max-width:690px){.dashboard-kpis{grid-template-columns:1fr 1fr}.dashboard-intro{align-items:flex-start;flex-direction:column}.dashboard-panel{padding:16px}.dashboard-kpi{padding:15px}.dashboard-kpi strong{font-size:20px}}
+@media(max-width:440px){.dashboard-kpis{grid-template-columns:1fr}}

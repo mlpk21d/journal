@@ -77,7 +77,7 @@ Webull may omit recently executed orders from historical data for a period, so r
 All API routes require `Authorization: Bearer <JOURNAL_API_TOKEN>`. UI pages must be restricted to trusted networks until session authentication exists.
 
 Pages (accessible through the global top-right hamburger menu and right-side drawer):
-- `/` — overview
+- `/` — local-development-only live trading dashboard with KPI cards, cumulative verified realized P&L, daily P&L bars, long/short and ticker comparison, and recent trading sessions
 - `/import` — local-only import interface, automatic account discovery and multi-account sync
 - `/manual` — local-only generic manual stock BUY/SELL and historical opening entries, with create/edit/delete
 - `/trades` — read-only imported and manually entered transactions in six columns: Symbol, Side (green BUY/red SELL), Quantity (whole shares without trailing zeroes; fractional shares preserved), Avg Price (2 decimals), Fees (2 decimals), Filled Time (UTC); case-insensitive exact ticker filter (`/trades?symbol=NVDA`) applied to all stored history before limiting to the latest 100 matches
@@ -212,3 +212,11 @@ Groups overlap across dimensions: a single trade contributes to its strategy, di
 Open `/risk` from the homepage or navigation menu. Results use completed flat-to-flat FIFO trades and share the same verified-net exclusion policy as Strategy Analytics. The page reports average winner (positive net trades), average loser (negative net trades), payoff ratio (average winner divided by the absolute average loser), largest individual winner/loser, largest winner's percentage of all positive trade P&L, longest/current consecutive losing trades, and average net trade. A position that is only partially exited does not count as completed; see `/daily` for partially realized activity.
 
 Drawdown is **maximum realized P&L peak-to-trough loss inside contiguous verified completed-trade segments**, not account-equity or mark-to-market drawdown. Unknown-net trades break the curve and reset peak/streak calculations; they are never silently treated as zero. Flat trades also reset loss streaks. Filters reconstruct FIFO from full available account history **before** selecting trade exits; changing a filter changes the starting observation point for drawdown. Holding-duration buckets are under 5m, 5–15m, 15–60m, 1–4h, 4–24h, and 24h+, with lower-inclusive/upper-exclusive boundaries. No database migration, external chart dependency, or broker writes are required.
+
+### Home trading dashboard
+
+The homepage (`/`) now loads the current local PostgreSQL trade history and displays a read-only trading dashboard in development on localhost. It reuses the same full-history FIFO engine, completed trades, and Eastern Time realized sessions as `/review`, `/analytics` and `/daily`. Metrics include known realized daily net subtotal, completed-trade win rate, profit factor and average trade, active exit days, open FIFO positions, and unknown-net data counts. Charts show cumulative known daily net, active trading-day bars for the latest 30 calendar days relative to the most recent exit date, completed-trade net by direction, top symbols, and recent exit-day summaries.
+
+The chart and daily net subtotal include realized partial exits of positions still open. Completed-trade win rate, average trade and symbol/direction comparisons include only fully completed flat-to-flat trades. Daily totals for any date with unknown net are excluded entirely from the cumulative known net subtotal; completed trades with unknown net are excluded from financial averages and counts of verified winners. Consequently daily realized sums and completed-trade totals can legitimately differ. This report is not an account equity curve, reconciled tax return, or wash-sale-adjusted ledger.
+
+The homepage uses the same 20,000-execution safeguard as other reports and shows an informative empty/error state. For now it stays restricted to localhost development; production authentication is required before exposing private trade performance data. No new database migration or external charting library is needed.
