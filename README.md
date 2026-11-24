@@ -77,7 +77,7 @@ Webull may omit recently executed orders from historical data for a period, so r
 All API routes require `Authorization: Bearer <JOURNAL_API_TOKEN>`. UI pages must be restricted to trusted networks until session authentication exists.
 
 Pages (accessible through the global top-right hamburger menu and right-side drawer):
-- `/` — local-only trade-history Dashboard with compact win/loss summary, completed FIFO trades paginated 50 per page, click-to-edit journal modal (shared with Trade Review), trading calendar, and full-width Top Symbols by Known Net panel; successful note saves close the modal without resetting failed drafts
+- `/` — local-only trade-history Dashboard with compact win/loss summary, completed FIFO trades paginated 50 per page, click-to-edit journal modal (shared with Trade Review), trading calendar, and Long vs Short and weekday performance panels; successful note saves close the modal without resetting failed drafts
 - `/stats` — Statistics page: compact performance cards, verified FIFO trade metrics, rolling win-rate chart, daily realized bar chart, and data-quality notes
 - `/calendar` — full-width Eastern Time realized trading calendar with month navigation, per-week known-net subtotals, monthly subtotal, and account selection
 - `/settings` — local-only workspace settings, starting with brokerage account listing and new manual brokerage account creation
@@ -328,3 +328,8 @@ Use `/fees` to add separate charges, such as an $8 Webull fee, Schwab $15 fees, 
 ## Dashboard symbol panel layout
 
 The Dashboard no longer shows the Daily P&L component beneath the Trading Calendar. The remaining **Top symbols by known net** panel occupies the full available width (no two-column grid), with its **All tickers** link preserved. The separate `/daily` reporting page and its underlying calculations are unchanged.
+
+
+## Dashboard Long vs Short and weekday performance
+
+The Dashboard former Top Symbols panel is replaced by side-by-side Long vs Short and Day of Week panels. Metrics use completed flat-to-flat FIFO cycles. Long/Short shows trade count, verified known net, win rate and average win/loss. The weekday chart shows Monday to Friday only, net P&L, trades and win rate by **entry weekday in Eastern Time**, excluding weekend entries from the chart. Trades with unknown net contribute to trade count but not known P&L or win rate. Other analysis routes remain available. Favicon uses a diamond emblem matching the existing sidebar brand mark. No migration needed.

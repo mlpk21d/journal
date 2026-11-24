@@ -66,7 +66,7 @@ export default function Navigation({accounts,selected}:{accounts:WorkspaceAccoun
   {open&&<button className="sj-mobile-overlay" aria-label="Close navigation" onClick={()=>setOpen(false)}/>}
   <aside className={'sj-sidebar'+(open?' sj-sidebar-open':'')} aria-label="Main navigation">
    <Link href="/" className="sj-brand" onClick={()=>setOpen(false)}>
-    <span className="sj-brand-mark" aria-hidden="true">◈</span><span>Trade Journal</span>
+    <span className="sj-brand-mark" aria-hidden="true"><img src="/icon.svg" alt="" className="sj-brand-icon"/></span><span>Trade Journal</span>
    </Link>
    <div className="sj-account-select">
     <button className="sj-account-picker" type="button" aria-expanded={accountOpen} aria-controls="sj-account-options" onClick={()=>setAccountOpen(v=>!v)}>

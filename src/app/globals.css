@@ -565,3 +565,40 @@ button,input,select,textarea{font:inherit}
 .sj-fee-history .sj-section-heading{gap:18px;align-items:center}
 .sj-fee-history .sj-section-heading>strong{color:#e2edf9;font-size:20px;font-variant-numeric:tabular-nums}
 .sj-settings-form select{width:100%;max-width:400px;display:block;margin:8px 0 17px;background:#1a2230;color:#e7eef9;border:1px solid #465369;padding:10px;border-radius:7px}
+
+/* Completed-trade direction and entry-weekday breakdown */
+.sj-breakdown-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.sj-breakdown-panel{border:1px solid #343d4c;background:#1c2028;border-radius:9px;min-width:0;overflow:hidden;color:#dce5f3}
+.sj-breakdown-heading{display:flex;justify-content:space-between;align-items:center;padding:15px 17px;border-bottom:1px solid #303a4a;font-size:11px;font-weight:800;letter-spacing:.1em;color:#b5cfff;min-height:45px}
+.sj-breakdown-subheading{color:#97aac8;font-weight:400;font-size:11px;letter-spacing:normal}
+.sj-breakdown-directions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));background:#14171c;min-height:248px}
+.sj-breakdown-direction{padding:17px;min-width:0}
+.sj-breakdown-direction+.sj-breakdown-direction{border-left:1px solid #313846}
+.sj-breakdown-counter{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:15px}
+.sj-breakdown-counter>span:last-child{color:#99b0d1;font-size:11px;white-space:nowrap}
+.sj-direction-pill{display:inline-flex;padding:3px 7px;border-radius:3px;font-size:11px;font-weight:800;letter-spacing:.05em}
+.sj-direction-long{background:#193e35;color:#40deb0}
+.sj-direction-short{background:#45212c;color:#ff7d89}
+.sj-direction-net{font-size:23px;letter-spacing:-.025em;font-weight:800;display:block;margin:0 0 15px;white-space:nowrap}
+.sj-positive{color:#43dca8!important}
+.sj-negative{color:#ff657d!important}
+.sj-muted-net{color:#94a3b8!important}
+.sj-breakdown-line{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:13px;margin:0 0 10px}
+.sj-breakdown-line span{color:#97afd0}
+.sj-breakdown-line strong{color:#f1f6ff;font-weight:800;font-variant-numeric:tabular-nums}
+.sj-breakdown-unverified{display:block;margin:9px 0;color:#e7ba83;font-size:10px;line-height:1.5}
+.sj-weekdays-body{background:#14171c;padding:15px 16px 12px}
+.sj-weekday-row{display:grid;grid-template-columns:35px minmax(90px,1fr) 66px 68px;align-items:center;gap:10px;min-height:32px}
+.sj-weekday-name{font-size:12px;color:#b1cefb}
+.sj-weekday-track{height:10px;background:#0b0e12;border-radius:20px;position:relative;overflow:hidden}
+.sj-weekday-center{position:absolute;left:50%;height:100%;width:1px;background:#455062;z-index:1}
+.sj-weekday-bar{position:absolute;top:0;height:100%;border-radius:20px}
+.sj-weekday-positive{background:#43d5a4}
+.sj-weekday-negative{background:#f66b82}
+.sj-weekday-net{text-align:right;font-size:12px;font-weight:800;white-space:nowrap;font-variant-numeric:tabular-nums}
+.sj-weekday-detail{color:#94abd1;font-size:11px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.sj-weekday-footnote{color:#94a9c7;font-size:11px;margin:12px 0 0;line-height:1.6}
+@media(max-width:1150px){.sj-breakdown-grid{grid-template-columns:1fr}}
+@media(max-width:600px){.sj-breakdown-direction{padding:12px}.sj-direction-net{font-size:19px}.sj-weekdays-body{padding:10px}.sj-weekday-row{grid-template-columns:30px minmax(55px,1fr) 56px 54px;gap:6px}.sj-weekday-detail{font-size:10px}.sj-breakdown-counter{flex-wrap:wrap}.sj-breakdown-line{font-size:12px}}
+
+.sj-brand-icon{display:block;width:26px;height:26px;object-fit:contain}

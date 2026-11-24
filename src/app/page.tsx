@@ -1,7 +1,9 @@
 import Link from 'next/link';
 import {reviewIsLocal,loadReviewLedger} from '@/lib/review/server';
 import {buildTradeReview,type ReviewedTrade} from '@/lib/review/trade-review';
-import {buildDashboardData,type DashboardGroup} from '@/lib/review/dashboard';
+import {buildDashboardData} from '@/lib/review/dashboard';
+import {buildDashboardBreakdown} from '@/lib/review/dashboard-breakdown';
+import {DashboardBreakdownPanels} from '@/components/dashboard-breakdown-panels';
 import {DashboardTrades} from '@/components/dashboard-trades';
 import {TradingCalendar} from '@/components/trading-calendar';
 import {NewTradeButton} from '@/components/new-trade-button';
@@ -50,15 +52,6 @@ function DashboardSummary({data,washSales}:{data:ReturnType<typeof buildDashboar
  </section>;
 }
 function moneyAverage(n:string,count:number){return String(Number(n)/count);}
-function Groups({rows}:{rows:DashboardGroup[]}){
- if(!rows.length)return <p className="dashboard-empty">No completed trades yet.</p>;
- const max=Math.max(1,...rows.map(r=>Math.abs(Number(r.net))));
- return <div className="dashboard-group-list">{rows.map(r=><div className="dashboard-group" key={r.name}>
-  <div className="dashboard-group-top"><strong>{r.name}</strong><span className={Number(r.net)<0?'trade-side-sell':'trade-side-buy'}>{r.verified?money(r.net):'Unverified'}</span></div>
-  <div className="dashboard-group-track"><span className={Number(r.net)<0?'dashboard-negative-track':'dashboard-positive-track'} style={{width:(Math.abs(Number(r.net))/max*100)+'%'}}/></div>
-  <small>{r.count} trades · {r.verified} verified · {percent(r.winRate)} win rate</small>
- </div>)}</div>;
-}
 export default async function Home(){
  if(!await reviewIsLocal())return <main className="shell"><p className="notice">Dashboard data is restricted to the local development workspace.</p></main>;
  let data:ReturnType<typeof buildDashboardData>|null=null,trades:ReviewedTrade[]=[];
@@ -96,12 +89,7 @@ export default async function Home(){
     <div className="sj-section-heading"><div><h2>Trading Calendar</h2><p>Realized exit activity by Eastern Time date</p></div><Link href="/calendar">Full calendar ↗</Link></div>
     <TradingCalendar days={data.daily.days} initialMonth={data.daily.days.at(-1)?.date.slice(0,7)??new Date().toISOString().slice(0,7)}/>
    </div>
-   <div className="sj-dashboard-panels">
-    <section className="dashboard-panel">
-     <div className="dashboard-panel-head"><div><p className="eyebrow">SYMBOL PERFORMANCE</p><h2>Top symbols by known net</h2></div><Link href="/ticker-pnl">All tickers ↗</Link></div>
-     <Groups rows={data.symbols}/>
-    </section>
-   </div>
+   <DashboardBreakdownPanels data={buildDashboardBreakdown(trades)}/>
    <p className="helper sj-dashboard-disclaimer">*Known realized net subtotal includes verified FIFO exit days and partial closes. It is not account equity or a tax ledger. Unknown net days are excluded, and completed-trade metrics may differ from daily realized results.</p>
   </>}
  </main>;
