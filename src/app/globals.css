@@ -606,3 +606,22 @@ button,input,select,textarea{font:inherit}
 /* Stretch the weekday panel's dark chart background through the card's full height. */
 .sj-breakdown-panel{display:flex;flex-direction:column}
 .sj-weekdays-body{flex:1}
+
+/* Risk Management: scoped responsive fields and explicit refresh feedback. */
+.shell .rm-calculator .rm-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));align-items:end;gap:14px;margin:14px 0;}
+.rm-field{display:flex;flex-direction:column;gap:7px;min-width:0}
+.shell .rm-calculator .rm-field label{font-size:12px;line-height:1.4}
+.shell .rm-calculator .rm-field input,.shell .rm-calculator .rm-field select{width:100%;min-width:0;max-width:none;height:42px;padding:10px 12px}
+.shell .rm-calculator .rm-refresh button{width:100%;min-height:42px;white-space:normal}
+.rm-refresh button:disabled{opacity:.65;cursor:wait}
+.rm-refresh-status{min-height:42px;margin:8px 0 14px}
+.rm-refresh-status .helper{margin:8px 0}
+.rm-status{display:flex;align-items:center;gap:10px;padding:12px 14px;border:1px solid #41495c;border-radius:8px;background:#242935;font-size:13px;line-height:1.5}
+.rm-status-loading{color:#b9d4ed}
+.rm-status-success{color:#91d2b5}
+.rm-status-error{color:#ffb4b4}
+.rm-spinner{flex:0 0 15px;width:15px;height:15px;border:2px solid #526278;border-top-color:#b9d4ed;border-radius:50%;animation:rm-spin .8s linear infinite}
+@keyframes rm-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.rm-spinner{animation:none}}
+.shell .rm-calculator .rm-metrics{grid-template-columns:repeat(auto-fit,minmax(min(100%,175px),1fr));gap:12px;margin:16px 0}
+.rm-calculator .rm-metrics strong+small{margin-top:8px;margin-bottom:0}

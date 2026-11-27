@@ -18,7 +18,9 @@ export async function loadRiskInputs(symbol:string,category:'US_STOCK'|'US_ETF',
   const {rows}=await db().query<{external_account_id:string;broker:string}>('SELECT external_account_id,broker FROM brokerage_accounts WHERE id=$1::bigint',[selected]);
   const account=rows[0];
   if(!account||account.broker!=='webull')return {ok:false as const,error:'Select a Webull brokerage account.'};
+  console.info('[Risk Management] Refresh started',{symbol});
   const [balance,quote]=await Promise.all([balanceFor(account.external_account_id),quoteFor(symbol)]);
+  console.info('[Risk Management] Refresh completed',{symbol,quoteFetchedAt:quote.quoteFetchedAt,balanceFetchedAt:balance.balanceFetchedAt});
   return {ok:true as const,data:{...balance,...quote,symbol,accountId:selected}};
  }catch(e){
   if(e instanceof FmpQuoteError){
