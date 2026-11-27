@@ -104,35 +104,3 @@ export function RiskCalculator({accountId,label}:{accountId:string;label:string}
  <p className="notice">Risk mode, dollar amount, account risk % and precise ATR multiplier are saved per account in this browser. FMP quotes are snapshots, not executable bid/ask prices; latency depends on your subscription. Extended-hours quotes are not explicitly requested. Margin ratio is a per-trade assumption (defaults to 2:1); estimated exposure is capped at equity × ratio and Webull buying power when available. This is not a guarantee of stock-specific margin or short availability. Verify actual entry, buying power, short locates and stop in Webull. Stops can slip or gap; losses can exceed estimates. No orders are placed.</p>
  </section>;
 }
-+data.atr.value.toFixed(4):'—'}</strong>{data?.atr&&<small>Last closed bar: {stamp(data.atr.barClosedAt)}</small>}</div>
- </div>
- {quick&&data?<div className="analytics-metrics">
- <div><small>{stale?'Stale quote · illustrative shares':'Estimated whole shares'}</small><strong style={{fontSize:'2rem'}}>{quick.shares.toLocaleString()}</strong></div>
- <div><small>Dollar risk budget</small><strong>{money(quick.budget)}</strong></div>
- <div><small>Assumed adverse move/share</small><strong>{money(quick.distance)}</strong></div>
- <div><small>Estimated position value</small><strong>{money(quick.notional)}</strong></div>
- <div><small>Estimated loss incl. costs</small><strong>{money(quick.estimatedLoss)}</strong></div>
- </div>:<p className="helper">{data?'Enter valid risk, adverse move and cost assumptions.':'Retrieve a ticker quote and account balance to see the estimate immediately.'}</p>}
- <p className="notice">Quick sizing uses the quoted price, assumed adverse move, slippage and fees below, and the selected margin ratio plus buying power when available. It does not require or place a stop. Actual risk is unknown until a technical stop and execution price are established. Use the precise calculator below before placing a trade.</p>
- <h2>Precise Position Sizing (optional stop-loss)</h2>
- <div className="performance-filter rm-fields">
- <div className="rm-field"><label htmlFor="rm-risk-mode">Risk per trade</label><select id="rm-risk-mode" value={riskMode} onChange={e=>setRiskMode(e.target.value as typeof riskMode)}><option value="dollars">Dollar amount ($)</option><option value="percent">Account percentage (%)</option></select></div>
- <div className="rm-field"><label htmlFor="rm-risk">{riskMode==='dollars'?'Risk amount ($)':'Account risk (%)'}</label><input id="rm-risk" type="number" min="0.01" max={riskMode==='percent'?100:undefined} step="0.01" value={riskMode==='dollars'?dollars:risk} onChange={e=>riskMode==='dollars'?setDollars(e.target.value):setRisk(e.target.value)}/></div>
- <div className="rm-field"><label htmlFor="rm-dir">Direction</label><select id="rm-dir" value={direction} onChange={e=>{setDirection(e.target.value as typeof direction);setStop('');}}><option>LONG</option><option>SHORT</option></select></div>
- <div className="rm-field"><label htmlFor="rm-entry">Planned entry ($)</label><input id="rm-entry" type="number" min="0.0001" step="any" value={entry} onChange={e=>setEntry(e.target.value)}/></div>
- <div className="rm-field"><label htmlFor="rm-stop">Stop-loss ($)</label><input id="rm-stop" type="number" min="0.0001" step="any" value={stop} onChange={e=>setStop(e.target.value)} placeholder="Technical stop"/></div>
- <div className="rm-field"><label htmlFor="rm-slip">Slippage/share ($)</label><input id="rm-slip" type="number" min="0" step="any" value={slippage} onChange={e=>setSlippage(e.target.value)}/></div>
- <div className="rm-field"><label htmlFor="rm-fees">Estimated round-trip fees ($)</label><input id="rm-fees" type="number" min="0" step="any" value={fees} onChange={e=>setFees(e.target.value)}/></div>
- </div>
- {data&&!size&&<p className="helper">Enter a positive risk budget no greater than account equity, valid costs, and a stop below the long entry or above the short entry.</p>}
- {size&&<div className="analytics-metrics">
- <div><small>{stale?'Illustrative share count':'Calculated whole shares'}</small><strong>{size.shares.toLocaleString()}</strong></div>
- <div><small>Dollar risk budget</small><strong>{money(size.budget)}</strong></div>
- <div><small>Stop distance/share</small><strong>{money(size.distance)}</strong></div>
- <div><small>Risk-only shares</small><strong>{size.riskShares.toLocaleString()}</strong></div>
- <div><small>Estimated position value</small><strong>{money(size.notional)}</strong></div>
- <div><small>Estimated loss incl. costs</small><strong>{money(size.estimatedLoss)}</strong></div>
- </div>}
- <p className="notice">Risk mode, dollar amount, account risk % and assumed adverse move % are saved per account in this browser. FMP quotes are snapshots, not executable bid/ask prices; latency depends on your subscription. Extended-hours quotes are not explicitly requested. Margin ratio is a per-trade assumption (defaults to 2:1); estimated exposure is capped at equity × ratio and Webull buying power when available. This is not a guarantee of stock-specific margin or short availability. Verify actual entry, buying power, short locates and stop in Webull. Stops can slip or gap; losses can exceed estimates. No orders are placed.</p>
- </section>;
-}
