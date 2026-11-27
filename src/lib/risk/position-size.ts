@@ -23,3 +23,11 @@ export function quickPositionSize(i:Omit<SizeInput,'stop'|'riskPercent'|'riskDol
  const stop=inputs.entry+(inputs.direction==='LONG'?-distance:distance);
  return positionSize({...inputs,stop});
 }
+
+export function atrPositionSize(i:Omit<SizeInput,'stop'|'riskPercent'|'riskDollars'> & RiskBudget & {atr:number;multiplier:number}){
+ const {atr,multiplier,...inputs}=i;
+ if(!Number.isFinite(atr)||atr<=0||!Number.isFinite(multiplier)||multiplier<=0)return null;
+ const distance=atr*multiplier;
+ const stop=inputs.entry+(inputs.direction==='LONG'?-distance:distance);
+ return positionSize({...inputs,stop});
+}

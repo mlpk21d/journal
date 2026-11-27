@@ -4,7 +4,7 @@ import {db} from '@/lib/db';
 import {activeAccountId} from '@/lib/review/account-scope';
 import {reviewIsLocal} from '@/lib/review/server';
 import {balanceFor} from '@/lib/risk/webull-data';
-import {quoteFor} from '@/lib/risk/fmp-data';
+import {quoteFor,atrFor} from '@/lib/risk/fmp-data';
 import {FmpQuoteError} from '@/lib/risk/fmp-quote';
 import {WebullApiError} from '@/lib/webull/client';
 export async function loadRiskInputs(symbol:string,category:'US_STOCK'|'US_ETF',expectedAccount:string){
@@ -19,9 +19,9 @@ export async function loadRiskInputs(symbol:string,category:'US_STOCK'|'US_ETF',
   const account=rows[0];
   if(!account||account.broker!=='webull')return {ok:false as const,error:'Select a Webull brokerage account.'};
   console.info('[Risk Management] Refresh started',{symbol});
-  const [balance,quote]=await Promise.all([balanceFor(account.external_account_id),quoteFor(symbol)]);
+  const [balance,quote,atr]=await Promise.all([balanceFor(account.external_account_id),quoteFor(symbol),atrFor(symbol).catch(e=>{console.warn('[Risk Management] FMP ATR unavailable',e instanceof FmpQuoteError?{code:e.code,status:e.status}:'Unknown');return null;})]);
   console.info('[Risk Management] Refresh completed',{symbol,quoteFetchedAt:quote.quoteFetchedAt,balanceFetchedAt:balance.balanceFetchedAt});
-  return {ok:true as const,data:{...balance,...quote,symbol,accountId:selected}};
+  return {ok:true as const,data:{...balance,...quote,atr,symbol,accountId:selected}};
  }catch(e){
   if(e instanceof FmpQuoteError){
    console.warn('[Risk Management] FMP quote failed',{code:e.code,status:e.status});

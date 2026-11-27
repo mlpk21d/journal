@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {positionSize,quickPositionSize} from '../src/lib/risk/position-size.ts';
+import {positionSize,quickPositionSize,atrPositionSize} from '../src/lib/risk/position-size.ts';
 const base={equity:25000,buyingPower:25000,entry:150,stop:149.6,riskPercent:.25,slippage:.02,fees:0,direction:'LONG'};
 test('uses account equity and rounds down whole shares',()=>{const r=positionSize(base);assert.equal(r.shares,148);assert.equal(r.budget,62.5);assert.ok(r.estimatedLoss<=r.budget);});
 test('caps by buying power',()=>assert.equal(positionSize({...base,buyingPower:1000}).shares,6));
@@ -35,4 +35,14 @@ test('margin ratio caps exposure without multiplying reported buying power',()=>
  assert.equal(positionSize({...i,marginRatio:1,buyingPower:null}).shares,100);
  assert.equal(positionSize({...i,marginRatio:3}),null);
  const {stop,...quick}=i;assert.equal(quickPositionSize({...quick,marginRatio:1,movePercent:.1}).shares,100);
+});
+
+test('ATR sizing respects volatility, risk, direction and buying power',()=>{
+ const {stop,...inputs}=base;
+ assert.equal(atrPositionSize({...inputs,atr:.5,multiplier:1.5}).shares,81);
+ assert.equal(atrPositionSize({...inputs,atr:1,multiplier:1.5}).shares,41);
+ assert.equal(atrPositionSize({...inputs,atr:.5,multiplier:1.5,direction:'SHORT'}).shares,81);
+ assert.equal(atrPositionSize({...inputs,atr:0,multiplier:1.5}),null);
+ assert.equal(atrPositionSize({...inputs,atr:.5,multiplier:0}),null);
+ assert.equal(atrPositionSize({...inputs,atr:.5,multiplier:1.5,buyingPower:1000}).shares,6);
 });
