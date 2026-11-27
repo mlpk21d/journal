@@ -754,3 +754,8 @@ button,input,select,textarea{font:inherit}
 .rm-summary-panel .rm-summary-actions .rm-direction{box-sizing:border-box;height:var(--rm-action-height);min-width:128px;align-items:stretch}
 .rm-summary-panel .rm-summary-actions .rm-direction button{padding:0 12px}
 @media(max-width:480px){.rm-summary-panel .rm-summary-actions .rm-summary-refresh button{white-space:normal;max-width:100%;line-height:1.2}}
+
+/* Distinct pre-trade risk icon, shared by sidebar and quick rail. */
+.sj-risk-nav-icon{display:block;width:19px;height:19px;flex-shrink:0}
+.sj-nav-icon .sj-risk-nav-icon{margin:auto}
+.sj-icon-rail .sj-risk-nav-icon{width:21px;height:21px}

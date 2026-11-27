@@ -6,6 +6,11 @@ import {ImportTodayButton} from '@/components/import-today-button';
 import {ACCOUNT_COOKIE,type WorkspaceAccount} from '@/lib/review/account-scope-shared';
 import {useEffect,useState,type FormEvent} from 'react';
 type Item={href:string;label:string;glyph:string};
+const riskManagement:Item={href:'/risk-management',label:'Risk Management',glyph:'shield'};
+function NavGlyph({glyph}:{glyph:string}){
+ if(glyph==='shield')return <svg className="sj-risk-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false"><path d="M12 3 20 6v5c0 5-3.3 8.4-8 10-4.7-1.6-8-5-8-10V6l8-3Z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></svg>;
+ return <>{glyph}</>;
+}
 const primary:Item[]=[
  {href:'/',label:'Dashboard',glyph:'▦'},
  {href:'/stats',label:'Statistics',glyph:'◔'},
@@ -25,7 +30,7 @@ const research:Item[]=[
  {href:'/wash-sales/basis',label:'Tax Lot Preview',glyph:'▧'}
 ];
 const actions:Item[]=[
- {href:'/risk-management',label:'Risk Management',glyph:'◎'},
+ riskManagement,
  {href:'/manual',label:'Manual Entries',glyph:'⊞'},
  {href:'/import',label:'Import Trades',glyph:'⇧'},
  {href:'/import/schwab',label:'Import Schwab CSV',glyph:'↥'},
@@ -34,7 +39,7 @@ const actions:Item[]=[
 function NavItem({item,pathname,onNavigate}:{item:Item;pathname:string;onNavigate:()=>void}){
  const active=item.href==='/'?pathname==='/':pathname===item.href||pathname.startsWith(item.href+'/');
  return <Link href={item.href} aria-current={active?'page':undefined} className={'sj-nav-link'+(active?' sj-nav-active':'')} onClick={onNavigate}>
-  <span className="sj-nav-icon" aria-hidden="true">{item.glyph}</span><span>{item.label}</span>
+  <span className="sj-nav-icon" aria-hidden="true"><NavGlyph glyph={item.glyph}/></span><span>{item.label}</span>
  </Link>;
 }
 export default function Navigation({accounts,selected}:{accounts:WorkspaceAccount[];selected:string|null}){
@@ -102,9 +107,9 @@ export default function Navigation({accounts,selected}:{accounts:WorkspaceAccoun
    <div className="sj-sidebar-footer"><span className="sj-account-dot"/> Local workspace <small>Read-only brokerage connection</small></div>
   </aside>
   <div className="sj-icon-rail" aria-label="Quick navigation">
-   {[...primary.slice(0,3),...actions,...research.slice(0,3)].map(item=>
-    <Link key={item.href} href={item.href} title={item.label} aria-label={item.label} className={pathname===item.href?'sj-rail-active':''}>
-     {item.glyph}
+   {[...primary.slice(0,3),riskManagement,...actions.filter(item=>item.href!==riskManagement.href),...research.slice(0,3)].map(item=>
+    <Link key={item.href} href={item.href} title={item.label} aria-label={item.label} aria-current={pathname===item.href?'page':undefined} className={pathname===item.href?'sj-rail-active':''}>
+     <NavGlyph glyph={item.glyph}/>
     </Link>)}
   </div>
   <div className="sj-topbar">
