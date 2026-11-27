@@ -16,3 +16,13 @@ test('quick quote-based sizing needs no manual stop',()=>{
  assert.equal(quickPositionSize({...inputs,movePercent:0}),null);
  assert.equal(quickPositionSize({...inputs,movePercent:100}),null);
 });
+
+test('fixed dollar risk works for precise and quick sizing',()=>{
+ const {riskPercent,...inputs}=base;
+ const fixed={...inputs,riskDollars:50};
+ const r=positionSize(fixed);assert.equal(r.budget,50);assert.equal(r.shares,119);assert.ok(r.estimatedLoss<=50);
+ assert.equal(positionSize({...fixed,equity:50000}).shares,119);
+ assert.equal(positionSize({...fixed,riskDollars:0}),null);
+ assert.equal(positionSize({...fixed,riskDollars:25001}),null);
+ const {stop,...quick}=fixed;assert.equal(quickPositionSize({...quick,movePercent:.5}).shares,64);
+});

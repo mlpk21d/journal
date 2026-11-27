@@ -13,10 +13,13 @@ export function RiskCalculator({accountId,label}:{accountId:string;label:string}
  const [now,setNow]=useState(0),[entry,setEntry]=useState('');
  const [ready,setReady]=useState(false);
  const [move,setMove]=useState('0.50');
+ const [riskMode,setRiskMode]=useState<'percent'|'dollars'>('percent');
+ const [dollars,setDollars]=useState('50');
  const key='journal-risk-percent:'+accountId;
- useEffect(()=>{try{const saved=localStorage.getItem(key);if(saved&&Number(saved)>0&&Number(saved)<=100)setRisk(saved);const m=localStorage.getItem(key+':move');if(m&&Number(m)>0&&Number(m)<100)setMove(m);}catch{}setReady(true);},[key]);
+ useEffect(()=>{try{const saved=localStorage.getItem(key);if(saved&&Number(saved)>0&&Number(saved)<=100)setRisk(saved);const m=localStorage.getItem(key+':move');if(m&&Number(m)>0&&Number(m)<100)setMove(m);const mode=localStorage.getItem(key+':mode');if(mode==='dollars'||mode==='percent')setRiskMode(mode);const d=localStorage.getItem(key+':dollars');if(d&&Number.isFinite(Number(d))&&Number(d)>0)setDollars(d);}catch{}setReady(true);},[key]);
  useEffect(()=>{if(ready&&Number(risk)>0&&Number(risk)<=100)try{localStorage.setItem(key,risk);}catch{}},[ready,key,risk]);
  useEffect(()=>{if(ready&&Number(move)>0&&Number(move)<100)try{localStorage.setItem(key+':move',move);}catch{}},[ready,key,move]);
+ useEffect(()=>{if(ready)try{localStorage.setItem(key+':mode',riskMode);if(Number.isFinite(Number(dollars))&&Number(dollars)>0)localStorage.setItem(key+':dollars',dollars);}catch{}},[ready,key,riskMode,dollars]);
  useEffect(()=>{const tick=()=>setNow(Date.now());tick();const timer=setInterval(tick,1000);return()=>clearInterval(timer);},[]);
  async function lookup(e:FormEvent){
   e.preventDefault();if(busy)return;
@@ -27,8 +30,10 @@ export function RiskCalculator({accountId,label}:{accountId:string;label:string}
   }catch{setError('Lookup failed. Refresh and try again.');}finally{setBusy(false);}
  }
  const stale=!!data&&(data.quoteTime===null||now-data.quoteTime>60000||now-data.balanceFetchedAt>60000);
- const quick=data&&risk.trim()&&move.trim()&&slippage.trim()&&fees.trim()?quickPositionSize({equity:data.equity,buyingPower:data.buyingPower,entry:data.price,riskPercent:Number(risk),movePercent:Number(move),slippage:Number(slippage),fees:Number(fees),direction}):null;
- const size=data&&stop.trim()&&entry.trim()&&risk.trim()&&slippage.trim()&&fees.trim()?positionSize({equity:data.equity,buyingPower:data.buyingPower,entry:Number(entry),stop:Number(stop),riskPercent:Number(risk),slippage:Number(slippage),fees:Number(fees),direction}):null;
+ const riskInput=riskMode==='dollars'?{riskDollars:Number(dollars)}:{riskPercent:Number(risk)};
+ const riskFilled=(riskMode==='dollars'?dollars:risk).trim();
+ const quick=data&&riskFilled&&move.trim()&&slippage.trim()&&fees.trim()?quickPositionSize({equity:data.equity,buyingPower:data.buyingPower,entry:data.price,...riskInput,movePercent:Number(move),slippage:Number(slippage),fees:Number(fees),direction}):null;
+ const size=data&&stop.trim()&&entry.trim()&&riskFilled&&slippage.trim()&&fees.trim()?positionSize({equity:data.equity,buyingPower:data.buyingPower,entry:Number(entry),stop:Number(stop),...riskInput,slippage:Number(slippage),fees:Number(fees),direction}):null;
  return <section>
  <p className="helper">Account: <strong>{label}</strong> (sidebar selection)</p>
  <form className="performance-filter" onSubmit={lookup}>
@@ -44,7 +49,8 @@ export function RiskCalculator({accountId,label}:{accountId:string;label:string}
  </div>{stale&&<p role="status" className="notice">Quote or balance is older than 60 seconds, or the trade timestamp is missing. Refresh and verify in Webull before trading. Results below are illustrative only.</p>}</>}
  <h2>Quick Position Size</h2>
  <div className="performance-filter">
- <label htmlFor="rm-quick-risk">Account risk %</label><input id="rm-quick-risk" type="number" min="0.01" max="100" step="0.01" value={risk} onChange={e=>setRisk(e.target.value)}/>
+ <label htmlFor="rm-quick-risk-mode">Risk per trade</label><select id="rm-quick-risk-mode" value={riskMode} onChange={e=>setRiskMode(e.target.value as typeof riskMode)}><option value="dollars">Dollar amount ($)</option><option value="percent">Account percentage (%)</option></select>
+ <label htmlFor="rm-quick-risk">{riskMode==='dollars'?'Risk amount ($)':'Account risk (%)'}</label><input id="rm-quick-risk" type="number" min="0.01" max={riskMode==='percent'?100:undefined} step="0.01" value={riskMode==='dollars'?dollars:risk} onChange={e=>riskMode==='dollars'?setDollars(e.target.value):setRisk(e.target.value)}/>
  <label htmlFor="rm-move">Assumed adverse move (%)</label><input id="rm-move" type="number" min="0.01" max="99.99" step="0.01" value={move} onChange={e=>setMove(e.target.value)}/>
  </div>
  {quick&&data?<div className="analytics-metrics">
@@ -57,14 +63,15 @@ export function RiskCalculator({accountId,label}:{accountId:string;label:string}
  <p className="notice">Quick sizing uses the quoted price, assumed adverse move, slippage and fees below, and buying power when available. It does not require or place a stop. Actual risk is unknown until a technical stop and execution price are established. Use the precise calculator below before placing a trade.</p>
  <h2>Precise Position Sizing (optional stop-loss)</h2>
  <div className="performance-filter">
- <label htmlFor="rm-risk">Account risk %</label><input id="rm-risk" type="number" min="0.01" max="100" step="0.01" value={risk} onChange={e=>setRisk(e.target.value)}/>
+ <label htmlFor="rm-risk-mode">Risk per trade</label><select id="rm-risk-mode" value={riskMode} onChange={e=>setRiskMode(e.target.value as typeof riskMode)}><option value="dollars">Dollar amount ($)</option><option value="percent">Account percentage (%)</option></select>
+ <label htmlFor="rm-risk">{riskMode==='dollars'?'Risk amount ($)':'Account risk (%)'}</label><input id="rm-risk" type="number" min="0.01" max={riskMode==='percent'?100:undefined} step="0.01" value={riskMode==='dollars'?dollars:risk} onChange={e=>riskMode==='dollars'?setDollars(e.target.value):setRisk(e.target.value)}/>
  <label htmlFor="rm-dir">Direction</label><select id="rm-dir" value={direction} onChange={e=>{setDirection(e.target.value as typeof direction);setStop('');}}><option>LONG</option><option>SHORT</option></select>
  <label htmlFor="rm-entry">Planned entry ($)</label><input id="rm-entry" type="number" min="0.0001" step="any" value={entry} onChange={e=>setEntry(e.target.value)}/>
  <label htmlFor="rm-stop">Stop-loss ($)</label><input id="rm-stop" type="number" min="0.0001" step="any" value={stop} onChange={e=>setStop(e.target.value)} placeholder="Technical stop"/>
  <label htmlFor="rm-slip">Slippage/share ($)</label><input id="rm-slip" type="number" min="0" step="any" value={slippage} onChange={e=>setSlippage(e.target.value)}/>
  <label htmlFor="rm-fees">Estimated round-trip fees ($)</label><input id="rm-fees" type="number" min="0" step="any" value={fees} onChange={e=>setFees(e.target.value)}/>
  </div>
- {data&&!size&&<p className="helper">Enter valid risk and cost inputs and a stop below the long entry or above the short entry.</p>}
+ {data&&!size&&<p className="helper">Enter a positive risk budget no greater than account equity, valid costs, and a stop below the long entry or above the short entry.</p>}
  {size&&<div className="analytics-metrics">
  <div><small>{stale?'Illustrative share count':'Calculated whole shares'}</small><strong>{size.shares.toLocaleString()}</strong></div>
  <div><small>Dollar risk budget</small><strong>{money(size.budget)}</strong></div>
@@ -73,6 +80,6 @@ export function RiskCalculator({accountId,label}:{accountId:string;label:string}
  <div><small>Estimated position value</small><strong>{money(size.notional)}</strong></div>
  <div><small>Estimated loss incl. costs</small><strong>{money(size.estimatedLoss)}</strong></div>
  </div>}
- <p className="notice">Risk % and assumed adverse move % are saved per account in this browser. Quotes are regular-session snapshots, not executable bid/ask prices. Buying power is a conservative notional cap when available, not proof of margin or short availability. Verify actual entry, buying power, short locates and stop in Webull. Stops can slip or gap; losses can exceed estimates. No orders are placed.</p>
+ <p className="notice">Risk mode, dollar amount, account risk % and assumed adverse move % are saved per account in this browser. Quotes are regular-session snapshots, not executable bid/ask prices. Buying power is a conservative notional cap when available, not proof of margin or short availability. Verify actual entry, buying power, short locates and stop in Webull. Stops can slip or gap; losses can exceed estimates. No orders are placed.</p>
  </section>;
 }
