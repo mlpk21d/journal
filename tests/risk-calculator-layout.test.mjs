@@ -29,3 +29,10 @@ test('shared risk controls belong in trade setup above margin and summary preced
  assert.match(component,/const activeSize=sizingTab==='quick'\?quick:size/);
  for(const label of ['Risk budget','Position value','Estimated loss incl. costs'])assert.equal(component.split('<small>'+label+'</small>').length-1,1);
 });
+
+test('risk calculator TSX parses without syntax errors and contains one sizing workspace',async()=>{
+ const ts=await import('typescript');
+ const source=ts.createSourceFile('risk-calculator.tsx',component,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
+ assert.deepEqual(source.parseDiagnostics.map(d=>ts.flattenDiagnosticMessageText(d.messageText,'\n')),[]);
+ for(const marker of ['aria-label="Position sizing mode"','id="rm-quick-title"','id="rm-precise-title"','id="rm-summary-title"'])assert.equal(component.split(marker).length-1,1);
+});

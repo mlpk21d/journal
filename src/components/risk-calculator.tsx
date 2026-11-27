@@ -85,46 +85,7 @@ export function RiskCalculator({accountId,label}:{accountId:string;label:string}
  <strong className="rm-share-count">{activeSize?activeSize.shares.toLocaleString()+' shares':'—'}</strong>
  <div className="rm-result-metrics rm-summary-metrics">
  <div><small>Risk budget</small><strong>{activeSize?money(activeSize.budget):'—'}</strong></div>
- <div><small>{sizingTab==='quick'?'Assumed stop distance':'Stop distance/share'}</small><strong>{activeSize?'
- <div className="rm-tabs" role="group" aria-label="Position sizing mode">
- <button type="button" aria-pressed={sizingTab==='quick'} onClick={()=>setSizingTab('quick')}>Quick Position Size</button>
- <button type="button" aria-pressed={sizingTab==='precise'} onClick={()=>setSizingTab('precise')}>Precise Position Sizing</button>
- </div>
- <section className="rm-tab-panel" hidden={sizingTab!=='quick'} aria-labelledby="rm-quick-title">
- <div className="rm-card-heading"><h2 id="rm-quick-title">Quick Position Size</h2><span className="rm-card-tag">Automatic ATR</span></div>
- <p className="rm-card-description">Volatility-adjusted share count from the latest FMP quote. No stop entry required.</p>
- <div className="rm-card-fields">
- <div className="rm-field"><label>Current stock price</label><div className="rm-readonly">{data?money(data.price):'—'}</div></div>
- <div className="rm-field"><label>5-minute ATR(14) · FMP</label><div className="rm-readonly">{data?.atr?'$'+data.atr.value.toFixed(4):'—'}</div></div>
- <div className="rm-field"><label>ATR multiplier</label><div className="rm-readonly">{ATR_MULTIPLIER.toFixed(1)}×</div></div>
- </div>
- <p className="rm-card-note">{data?.atr?'Last closed bar: '+stamp(data.atr.barClosedAt):'ATR is retrieved automatically with the quote.'}</p>
- {!quick&&<p className="rm-card-note">{data?(data.atr?'Enter valid risk and cost assumptions.':'FMP ATR unavailable. Use a manual stop or ATR override in the precise calculator.'):'Retrieve a ticker quote and account balance to calculate shares.'}</p>}
- {atrStale&&<p className="rm-card-note rm-warning">ATR is from an older session or delayed feed. Verify the timestamp.</p>}
- <p className="rm-card-note rm-card-footer">Uses 1.5× automatic ATR, shared risk and cost settings, margin ratio and available buying power. This is an estimate, not a technical stop.</p>
- </section>
- <section className="rm-tab-panel" hidden={sizingTab!=='precise'} aria-labelledby="rm-precise-title">
- <div className="rm-card-heading"><h2 id="rm-precise-title">Precise Position Sizing</h2><span className="rm-card-tag">Editable</span></div>
- <p className="rm-card-description">Adjust the ATR or enter your technical stop to calculate a trade-specific share count.</p>
- <div className="rm-card-fields">
- <div className="rm-field"><label htmlFor="rm-entry">Planned entry ($)</label><input id="rm-entry" type="number" min="0.0001" step="any" value={entry} onChange={e=>setEntry(e.target.value)}/></div>
- <div className="rm-field"><label htmlFor="rm-atr">ATR ($)</label><input id="rm-atr" type="number" min="0.0001" step="any" value={manualAtr} placeholder={data?.atr?String(Number(data.atr.value.toFixed(6))):'Enter ATR'} onChange={e=>setManualAtr(e.target.value)}/><small>{manualAtr.trim()?'Manual override':'Automatic FMP ATR'}</small></div>
- <div className="rm-field"><label htmlFor="rm-atr-mult">ATR multiplier</label><input id="rm-atr-mult" type="number" min="0.01" step="0.1" value={multiplier} onChange={e=>setMultiplier(e.target.value)}/><button className="rm-reset" type="button" onClick={()=>{setManualAtr('');setMultiplier(String(ATR_MULTIPLIER));}}>Restore automatic ATR</button></div>
- <div className="rm-field rm-full"><label>Direction</label><div className="rm-segments rm-direction" role="group" aria-label="Trade direction"><button type="button" aria-pressed={direction==='LONG'} onClick={()=>{if(direction!=='LONG'){setDirection('LONG');setStop('');}}}>Long</button><button type="button" aria-pressed={direction==='SHORT'} onClick={()=>{if(direction!=='SHORT'){setDirection('SHORT');setStop('');}}}>Short</button></div></div>
- <div className="rm-field rm-full"><label htmlFor="rm-stop">Manual stop-loss price ($) · optional</label><input id="rm-stop" type="number" min="0.0001" step="any" value={stop} onChange={e=>setStop(e.target.value)} placeholder="Leave blank to use ATR"/></div>
- <div className="rm-field"><label htmlFor="rm-slip">Slippage/share ($)</label><input id="rm-slip" type="number" min="0" step="any" value={slippage} onChange={e=>setSlippage(e.target.value)}/></div>
- <div className="rm-field"><label htmlFor="rm-fees">Round-trip fees ($)</label><input id="rm-fees" type="number" min="0" step="any" value={fees} onChange={e=>setFees(e.target.value)}/></div>
- </div>
- {data&&!size&&<p className="rm-card-note rm-warning">Enter a positive risk budget no greater than equity, valid costs, and a valid stop or ATR.</p>}
- <p className="rm-card-note rm-card-footer">A manual stop takes precedence. ATR overrides and multiplier changes affect this card only; risk, direction and costs are shared.</p>
- </section>
- </div>
- </div>
- </div>
- <p className="notice">Risk mode, dollar amount, account risk % and precise ATR multiplier are saved per account in this browser. FMP quotes are snapshots, not executable bid/ask prices; latency depends on your subscription. Extended-hours quotes are not explicitly requested. Margin ratio is a per-trade assumption (1:1 through 6:1; defaults to 2:1); estimated exposure is capped at equity × ratio and Webull buying power when available. This is not a guarantee of stock-specific margin or short availability. Verify actual entry, buying power, short locates and stop in Webull. Stops can slip or gap; losses can exceed estimates. No orders are placed.</p>
- </section>;
-}
-+activeSize.distance.toFixed(4):'—'}</strong></div>
+ <div><small>{sizingTab==='quick'?'Assumed stop distance':'Stop distance/share'}</small><strong>{activeSize?'$'+activeSize.distance.toFixed(4):'—'}</strong></div>
  <div><small>Position value</small><strong>{activeSize?money(activeSize.notional):'—'}</strong></div>
  <div><small>Estimated loss incl. costs</small><strong className="rm-loss">{activeSize?money(activeSize.estimatedLoss):'—'}</strong></div>
  {sizingTab==='precise'&&<div><small>Risk-only shares</small><strong>{activeSize?activeSize.riskShares.toLocaleString():'—'}</strong></div>}
@@ -164,6 +125,7 @@ export function RiskCalculator({accountId,label}:{accountId:string;label:string}
  {data&&!size&&<p className="rm-card-note rm-warning">Enter a positive risk budget no greater than equity, valid costs, and a valid stop or ATR.</p>}
  <p className="rm-card-note rm-card-footer">A manual stop takes precedence. ATR overrides and multiplier changes affect this card only; risk, direction and costs are shared.</p>
  </section>
+ </div>
  </div>
  </div>
  <p className="notice">Risk mode, dollar amount, account risk % and precise ATR multiplier are saved per account in this browser. FMP quotes are snapshots, not executable bid/ask prices; latency depends on your subscription. Extended-hours quotes are not explicitly requested. Margin ratio is a per-trade assumption (1:1 through 6:1; defaults to 2:1); estimated exposure is capped at equity × ratio and Webull buying power when available. This is not a guarantee of stock-specific margin or short availability. Verify actual entry, buying power, short locates and stop in Webull. Stops can slip or gap; losses can exceed estimates. No orders are placed.</p>
