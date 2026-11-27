@@ -64,43 +64,59 @@ export function RiskCalculator({accountId,label}:{accountId:string;label:string}
  {busy?<div className="rm-status rm-status-loading" role="status"><span className="rm-spinner" aria-hidden="true"/> <span>Refreshing FMP quote, ATR and Webull balance… {Math.max(0,Math.floor((now-refreshStarted)/1000))}s elapsed. {now-refreshStarted>10000?'Webull may be queued or cooling down due to rate limits.':''}</span></div>:error?<div className="rm-status rm-status-error" role="alert">{error}{data?' Previous values retained for reference only.':''}</div>:feedback?<div className="rm-status rm-status-success" role="status">{feedback}</div>:<p className="helper">Enter a ticker and retrieve the latest available quote and account balance.</p>}
  </div>
  {stale&&<p role="status" className="notice">{busy?'Refresh in progress. Previous values are illustrative only.':refreshFailed?'Refresh failed. Previous values are illustrative only.':'Quote or balance is older than 60 seconds, or the trade timestamp is missing. Refresh and verify in Webull before trading. Results below are illustrative only.'}</p>}
- <h2>Quick Position Size</h2>
- <div className="performance-filter rm-fields">
- <div className="rm-field"><label htmlFor="rm-quick-risk-mode">Risk per trade</label><select id="rm-quick-risk-mode" value={riskMode} onChange={e=>setRiskMode(e.target.value as typeof riskMode)}><option value="dollars">Dollar amount ($)</option><option value="percent">Account percentage (%)</option></select></div>
+ <div className="rm-card-grid">
+ <section className="rm-card" aria-labelledby="rm-quick-title">
+ <div className="rm-card-heading"><h2 id="rm-quick-title">Quick Position Size</h2><span className="rm-card-tag">Automatic ATR</span></div>
+ <p className="rm-card-description">Volatility-adjusted share count from the latest FMP quote. No stop entry required.</p>
+ <div className="rm-card-fields">
+ <div className="rm-field rm-full"><label>Risk per trade</label><div className="rm-segments" role="group" aria-label="Quick risk mode"><button type="button" aria-pressed={riskMode==='dollars'} onClick={()=>setRiskMode('dollars')}>Dollar amount ($)</button><button type="button" aria-pressed={riskMode==='percent'} onClick={()=>setRiskMode('percent')}>Account percentage (%)</button></div></div>
  <div className="rm-field"><label htmlFor="rm-quick-risk">{riskMode==='dollars'?'Risk amount ($)':'Account risk (%)'}</label><input id="rm-quick-risk" type="number" min="0.01" max={riskMode==='percent'?100:undefined} step="0.01" value={riskMode==='dollars'?dollars:risk} onChange={e=>riskMode==='dollars'?setDollars(e.target.value):setRisk(e.target.value)}/></div>
- <div className="rm-field"><label>5-minute ATR(14) · FMP</label><strong>{data?.atr?money(data.atr.value):'—'}</strong>{data?.atr&&<small>Last closed bar: {stamp(data.atr.barClosedAt)}</small>}</div>
+ <div className="rm-field"><label>Current stock price</label><div className="rm-readonly">{data?money(data.price):'—'}</div></div>
+ <div className="rm-field"><label>5-minute ATR(14) · FMP</label><div className="rm-readonly">{data?.atr?'$'+data.atr.value.toFixed(4):'—'}</div></div>
+ <div className="rm-field"><label>ATR multiplier</label><div className="rm-readonly">{ATR_MULTIPLIER.toFixed(1)}×</div></div>
  </div>
- {quick&&data?<div className="analytics-metrics">
- <div><small>{stale||atrStale?'Stale data · illustrative shares':'Estimated whole shares'}</small><strong style={{fontSize:'2rem'}}>{quick.shares.toLocaleString()}</strong></div>
- <div><small>Dollar risk budget</small><strong>{money(quick.budget)}</strong></div>
- <div><small>Assumed stop distance (1.5× ATR)</small><strong>{money(quick.distance)}</strong></div>
- <div><small>Estimated position value</small><strong>{money(quick.notional)}</strong></div>
- <div><small>Estimated loss incl. costs</small><strong>{money(quick.estimatedLoss)}</strong></div>
- </div>:<p className="helper">{data?(data.atr?'Enter valid risk and cost assumptions.':'FMP ATR unavailable; no automatic snapshot. You can still use a manual stop or ATR override below.'):'Retrieve a ticker quote and account balance to see the estimate immediately.'}</p>}
- <p className="notice">Quick sizing uses the quoted price, 1.5× automatic five-minute Wilder ATR(14), slippage and fees below, and the selected margin ratio plus buying power when available. It does not require or place a stop. Actual risk is unknown until a technical stop and execution price are established. Use the precise calculator below before placing a trade.</p>
- {atrStale&&<p className="notice">ATR is from an older session or delayed feed. Verify the timestamp; ATR-based results are illustrative only.</p>}
- <h2>Precise Position Sizing (optional stop-loss)</h2>
- <div className="performance-filter rm-fields">
- <div className="rm-field"><label htmlFor="rm-risk-mode">Risk per trade</label><select id="rm-risk-mode" value={riskMode} onChange={e=>setRiskMode(e.target.value as typeof riskMode)}><option value="dollars">Dollar amount ($)</option><option value="percent">Account percentage (%)</option></select></div>
+ <p className="rm-card-note">{data?.atr?'Last closed bar: '+stamp(data.atr.barClosedAt):'ATR is retrieved automatically with the quote.'}</p>
+ <div className="rm-result" aria-live="polite">
+ <span className="rm-result-label">{stale||atrStale?'Illustrative share count':'Volatility-adjusted position size'}</span>
+ <strong className="rm-share-count">{quick?quick.shares.toLocaleString()+' shares':'—'}</strong>
+ <div className="rm-result-metrics">
+ <div><small>Risk budget</small><strong>{quick?money(quick.budget):'—'}</strong></div>
+ <div><small>Assumed stop distance</small><strong>{quick?'$'+quick.distance.toFixed(4):'—'}</strong></div>
+ <div><small>Position value</small><strong>{quick?money(quick.notional):'—'}</strong></div>
+ <div><small>Estimated loss incl. costs</small><strong className="rm-loss">{quick?money(quick.estimatedLoss):'—'}</strong></div>
+ </div></div>
+ {!quick&&<p className="rm-card-note">{data?(data.atr?'Enter valid risk and cost assumptions.':'FMP ATR unavailable. Use a manual stop or ATR override in the precise calculator.'):'Retrieve a ticker quote and account balance to calculate shares.'}</p>}
+ {atrStale&&<p className="rm-card-note rm-warning">ATR is from an older session or delayed feed. Verify the timestamp.</p>}
+ <p className="rm-card-note rm-card-footer">Uses 1.5× automatic ATR, shared risk and cost settings, margin ratio and available buying power. This is an estimate, not a technical stop.</p>
+ </section>
+ <section className="rm-card" aria-labelledby="rm-precise-title">
+ <div className="rm-card-heading"><h2 id="rm-precise-title">Precise Position Sizing</h2><span className="rm-card-tag">Editable</span></div>
+ <p className="rm-card-description">Adjust the ATR or enter your technical stop to calculate a trade-specific share count.</p>
+ <div className="rm-card-fields">
+ <div className="rm-field rm-full"><label>Risk per trade</label><div className="rm-segments" role="group" aria-label="Precise risk mode"><button type="button" aria-pressed={riskMode==='dollars'} onClick={()=>setRiskMode('dollars')}>Dollar amount ($)</button><button type="button" aria-pressed={riskMode==='percent'} onClick={()=>setRiskMode('percent')}>Account percentage (%)</button></div></div>
  <div className="rm-field"><label htmlFor="rm-risk">{riskMode==='dollars'?'Risk amount ($)':'Account risk (%)'}</label><input id="rm-risk" type="number" min="0.01" max={riskMode==='percent'?100:undefined} step="0.01" value={riskMode==='dollars'?dollars:risk} onChange={e=>riskMode==='dollars'?setDollars(e.target.value):setRisk(e.target.value)}/></div>
- <div className="rm-field"><label htmlFor="rm-dir">Direction</label><select id="rm-dir" value={direction} onChange={e=>{setDirection(e.target.value as typeof direction);setStop('');}}><option>LONG</option><option>SHORT</option></select></div>
  <div className="rm-field"><label htmlFor="rm-entry">Planned entry ($)</label><input id="rm-entry" type="number" min="0.0001" step="any" value={entry} onChange={e=>setEntry(e.target.value)}/></div>
- <div className="rm-field"><label htmlFor="rm-atr">ATR ($) — optional override</label><input id="rm-atr" type="number" min="0.0001" step="any" value={manualAtr} placeholder={data?.atr?String(Number(data.atr.value.toFixed(6))):'Enter ATR'} onChange={e=>setManualAtr(e.target.value)}/><small>{manualAtr.trim()?'Manual ATR override':'Automatic FMP ATR'} · clear to restore automatic</small></div>
- <div className="rm-field"><label htmlFor="rm-atr-mult">ATR multiplier</label><input id="rm-atr-mult" type="number" min="0.01" step="0.1" value={multiplier} onChange={e=>setMultiplier(e.target.value)}/></div>
- <div className="rm-field"><label htmlFor="rm-stop">Stop-loss ($)</label><input id="rm-stop" type="number" min="0.0001" step="any" value={stop} onChange={e=>setStop(e.target.value)} placeholder="Technical stop"/></div>
+ <div className="rm-field"><label htmlFor="rm-atr">ATR ($)</label><input id="rm-atr" type="number" min="0.0001" step="any" value={manualAtr} placeholder={data?.atr?String(Number(data.atr.value.toFixed(6))):'Enter ATR'} onChange={e=>setManualAtr(e.target.value)}/><small>{manualAtr.trim()?'Manual override':'Automatic FMP ATR'}</small></div>
+ <div className="rm-field"><label htmlFor="rm-atr-mult">ATR multiplier</label><input id="rm-atr-mult" type="number" min="0.01" step="0.1" value={multiplier} onChange={e=>setMultiplier(e.target.value)}/><button className="rm-reset" type="button" onClick={()=>{setManualAtr('');setMultiplier(String(ATR_MULTIPLIER));}}>Restore automatic ATR</button></div>
+ <div className="rm-field rm-full"><label>Direction</label><div className="rm-segments rm-direction" role="group" aria-label="Trade direction"><button type="button" aria-pressed={direction==='LONG'} onClick={()=>{if(direction!=='LONG'){setDirection('LONG');setStop('');}}}>Long</button><button type="button" aria-pressed={direction==='SHORT'} onClick={()=>{if(direction!=='SHORT'){setDirection('SHORT');setStop('');}}}>Short</button></div></div>
+ <div className="rm-field rm-full"><label htmlFor="rm-stop">Manual stop-loss price ($) · optional</label><input id="rm-stop" type="number" min="0.0001" step="any" value={stop} onChange={e=>setStop(e.target.value)} placeholder="Leave blank to use ATR"/></div>
  <div className="rm-field"><label htmlFor="rm-slip">Slippage/share ($)</label><input id="rm-slip" type="number" min="0" step="any" value={slippage} onChange={e=>setSlippage(e.target.value)}/></div>
- <div className="rm-field"><label htmlFor="rm-fees">Estimated round-trip fees ($)</label><input id="rm-fees" type="number" min="0" step="any" value={fees} onChange={e=>setFees(e.target.value)}/></div>
+ <div className="rm-field"><label htmlFor="rm-fees">Round-trip fees ($)</label><input id="rm-fees" type="number" min="0" step="any" value={fees} onChange={e=>setFees(e.target.value)}/></div>
  </div>
- {data&&!size&&<p className="helper">Enter a positive risk budget no greater than equity, valid costs, and either a valid technical stop or ATR. A nonblank manual stop takes precedence.</p>}
- {size&&<div className="analytics-metrics">
- <div><small>{stale||(!stop.trim()&&!manualAtr.trim()&&atrStale)?'Illustrative share count':stop.trim()?'Calculated whole shares':'ATR-estimated whole shares'}</small><strong>{size.shares.toLocaleString()}</strong></div>
- <div><small>Dollar risk budget</small><strong>{money(size.budget)}</strong></div>
- <div><small>Stop distance/share</small><strong>{money(size.distance)}</strong></div>
- <div><small>Risk-only shares</small><strong>{size.riskShares.toLocaleString()}</strong></div>
- <div><small>Estimated position value</small><strong>{money(size.notional)}</strong></div>
- <div><small>Estimated loss incl. costs</small><strong>{money(size.estimatedLoss)}</strong></div>
- </div>}
- <p className="helper">A manual stop overrides ATR. With no stop, the precise calculator uses the automatic ATR or your override and adjustable multiplier. The quick snapshot always uses the automatic ATR and fixed 1.5× multiplier.</p>
+ <div className="rm-result" aria-live="polite">
+ <span className="rm-result-label">{stale||(!stop.trim()&&!manualAtr.trim()&&atrStale)?'Illustrative share count':stop.trim()?'Manual stop-loss sizing':'ATR-based sizing'}</span>
+ <strong className="rm-share-count">{size?size.shares.toLocaleString()+' shares':'—'}</strong>
+ <div className="rm-result-metrics">
+ <div><small>Risk budget</small><strong>{size?money(size.budget):'—'}</strong></div>
+ <div><small>Stop distance/share</small><strong>{size?'$'+size.distance.toFixed(4):'—'}</strong></div>
+ <div><small>Position value</small><strong>{size?money(size.notional):'—'}</strong></div>
+ <div><small>Estimated loss incl. costs</small><strong className="rm-loss">{size?money(size.estimatedLoss):'—'}</strong></div>
+ <div><small>Risk-only shares</small><strong>{size?size.riskShares.toLocaleString():'—'}</strong></div>
+ </div></div>
+ {data&&!size&&<p className="rm-card-note rm-warning">Enter a positive risk budget no greater than equity, valid costs, and a valid stop or ATR.</p>}
+ <p className="rm-card-note rm-card-footer">A manual stop takes precedence. ATR overrides and multiplier changes affect this card only; risk, direction and costs are shared.</p>
+ </section>
+ </div>
  <p className="notice">Risk mode, dollar amount, account risk % and precise ATR multiplier are saved per account in this browser. FMP quotes are snapshots, not executable bid/ask prices; latency depends on your subscription. Extended-hours quotes are not explicitly requested. Margin ratio is a per-trade assumption (defaults to 2:1); estimated exposure is capped at equity × ratio and Webull buying power when available. This is not a guarantee of stock-specific margin or short availability. Verify actual entry, buying power, short locates and stop in Webull. Stops can slip or gap; losses can exceed estimates. No orders are placed.</p>
  </section>;
 }
