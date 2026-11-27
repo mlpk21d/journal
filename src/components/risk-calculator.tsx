@@ -31,6 +31,7 @@ export function RiskCalculator({accountId,label}:{accountId:string;label:string}
  useEffect(()=>{const tick=()=>setNow(Date.now());tick();const timer=setInterval(tick,1000);return()=>clearInterval(timer);},[]);
  async function lookup(e:FormEvent){
   e.preventDefault();if(busy)return;
+  if(!symbol.trim()){setError('Enter a ticker before refreshing.');return;}
   setBusy(true);setError('');setFeedback('');setRefreshFailed(false);const started=Date.now();setRefreshStarted(started);setNow(started);
   try{const r=await loadRiskInputs(symbol.trim().toUpperCase(),category,accountId);
    if(r.ok){const completed=Date.now();const cached=data&&data.quoteFetchedAt===r.data.quoteFetchedAt&&data.balanceFetchedAt===r.data.balanceFetchedAt;setData(r.data);setEntry(previous=>!data||previous===String(data.price)?String(r.data.price):previous);setNow(completed);setFeedback((cached?'Refresh completed using recent cached data':'Quote, ATR and balance refreshed')+' at '+stamp(completed)+'.');}
@@ -45,6 +46,7 @@ export function RiskCalculator({accountId,label}:{accountId:string;label:string}
  const preciseInputs=data&&entry.trim()&&riskFilled&&slippage.trim()&&fees.trim()?{equity:data.equity,buyingPower:data.buyingPower,marginRatio,entry:Number(entry),...riskInput,slippage:Number(slippage),fees:Number(fees),direction}:null;
  const effectiveAtr=manualAtr.trim()?Number(manualAtr):data?.atr?.value??NaN;
  const size=preciseInputs?(stop.trim()?positionSize({...preciseInputs,stop:Number(stop)}):atrPositionSize({...preciseInputs,atr:effectiveAtr,multiplier:Number(multiplier)})):null;
+ const estimatedBuyingPower=data?Math.min(data.equity*marginRatio,data.buyingPower??Infinity):null;
  const activeSize=sizingTab==='quick'?quick:size;
  const activeStale=stale||(sizingTab==='quick'?atrStale:!stop.trim()&&!manualAtr.trim()&&atrStale);
  return <section className="rm-calculator">
@@ -52,7 +54,7 @@ export function RiskCalculator({accountId,label}:{accountId:string;label:string}
  <section className="page-title"><p className="eyebrow">TRADE MANAGEMENT / PRE-TRADE</p><h1>Risk Management</h1><p className="intro">Size a trade using Webull account equity, an FMP market snapshot and your technical stop.</p></section>
  <div className="analytics-metrics rm-header-metrics" aria-label="Account and quote summary">
  <div><small>Account equity</small><strong>{data?money(data.equity):'—'}</strong>{data&&<small>Fetched {stamp(data.balanceFetchedAt)}</small>}</div>
- <div><small>Buying power</small><strong>{data&&data.buyingPower!==null?money(data.buyingPower):'—'}</strong></div>
+ <div><small>Buying power</small><strong>{estimatedBuyingPower!==null?money(estimatedBuyingPower):'—'}</strong><small>Estimated buying power · {marginRatio}:1{data?.buyingPower===null?' · broker limit unavailable':''}</small>{data?.buyingPower!=null&&<small>Webull reported: {money(data.buyingPower)}</small>}</div>
  <div><small>{data?data.symbol+' price (FMP)':'Ticker price (FMP)'}</small><strong>{data?money(data.price):'—'}</strong>{data&&<small>Trade {stamp(data.quoteTime)} · fetched {stamp(data.quoteFetchedAt)}</small>}</div>
  </div></div>
  <nav className="pill-row"><Link href="/risk">Risk &amp; Trade Quality ↗</Link></nav>
@@ -60,21 +62,16 @@ export function RiskCalculator({accountId,label}:{accountId:string;label:string}
  <aside className="rm-card rm-market-panel" aria-label="Market and account inputs">
  <div className="rm-card-heading"><h2>Trade setup</h2></div>
  <p className="helper">Account: <strong>{label}</strong> (sidebar selection)</p>
- <form className="performance-filter rm-fields rm-market-fields" onSubmit={lookup}>
+ <form id="rm-trade-setup" className="performance-filter rm-fields rm-market-fields" onSubmit={lookup} noValidate>
  <div className="rm-field"><label htmlFor="rm-symbol">Ticker</label><input id="rm-symbol" required maxLength={15} placeholder="NVDA" value={symbol} disabled={busy} onChange={e=>{setSymbol(e.target.value.toUpperCase());setData(null);setManualAtr('');setEntry('');setStop('');setFeedback('');setError('');setRefreshFailed(false);}}/></div>
  <div className="rm-field"><label htmlFor="rm-category">Asset</label><select id="rm-category" value={category} disabled={busy} onChange={e=>{setCategory(e.target.value as typeof category);setData(null);setManualAtr('');setStop('');setEntry('');setFeedback('');setError('');setRefreshFailed(false);}}><option value="US_STOCK">Stock</option><option value="US_ETF">ETF</option></select></div>
- <div className="rm-risk-tabs"><p className="rm-card-note">Risk per trade</p><div className="rm-tabs" role="group" aria-label="Risk mode">
- <button type="button" aria-pressed={riskMode==='dollars'} onClick={()=>setRiskMode('dollars')}>Dollar amount ($)</button>
- <button type="button" aria-pressed={riskMode==='percent'} onClick={()=>setRiskMode('percent')}>Account Percentage (%)</button>
- </div>
+ <div className="rm-risk-tabs"><p className="rm-card-note">Risk per trade</p>
+ <div className="rm-risk-toggle-row"><span className={riskMode==='dollars'?'rm-toggle-active':undefined}>Dollar amount ($)</span><button type="button" className="rm-risk-toggle" role="switch" aria-label="Risk mode" aria-checked={riskMode==='percent'} aria-describedby="rm-risk-toggle-help" onClick={()=>setRiskMode(riskMode==='dollars'?'percent':'dollars')}><span aria-hidden="true"/></button><span className={riskMode==='percent'?'rm-toggle-active':undefined}>Account Percentage (%)</span></div>
+ <small id="rm-risk-toggle-help" className="rm-sr-only">Off: dollar amount. On: account percentage.</small>
  <div className="rm-field"><label htmlFor="rm-shared-risk">{riskMode==='dollars'?'Risk amount ($)':'Account risk (%)'}</label><input id="rm-shared-risk" type="number" min="0.01" max={riskMode==='percent'?100:undefined} step="0.01" value={riskMode==='dollars'?dollars:risk} onChange={e=>riskMode==='dollars'?setDollars(e.target.value):setRisk(e.target.value)}/></div>
  </div>
  <div className="rm-field"><label htmlFor="rm-margin">Margin ratio</label><select id="rm-margin" value={marginRatio} onChange={e=>setMarginRatio(Number(e.target.value) as MarginRatio)}>{MARGIN_RATIOS.map(r=><option key={r} value={r}>{r}:1</option>)}</select></div>
- <div className="rm-field rm-refresh"><button disabled={busy} type="submit" aria-busy={busy}>{busy?'Loading FMP & Webull…':data?'Refresh quote, ATR & balance':'Get quote, ATR & balance'}</button></div>
  </form>
- <div className="rm-refresh-status" aria-live="polite" aria-atomic="true">
- {busy?<div className="rm-status rm-status-loading" role="status"><span className="rm-spinner" aria-hidden="true"/> <span>Refreshing FMP quote, ATR and Webull balance… {Math.max(0,Math.floor((now-refreshStarted)/1000))}s elapsed. {now-refreshStarted>10000?'Webull may be queued or cooling down due to rate limits.':''}</span></div>:error?<div className="rm-status rm-status-error" role="alert">{error}{data?' Previous values retained for reference only.':''}</div>:feedback?<div className="rm-status rm-status-success" role="status">{feedback}</div>:<p className="helper">Enter a ticker and retrieve the latest available quote and account balance.</p>}
- </div>
  {stale&&<p role="status" className="notice">{busy?'Refresh in progress. Previous values are illustrative only.':refreshFailed?'Refresh failed. Previous values are illustrative only.':'Quote or balance is older than 60 seconds, or the trade timestamp is missing. Refresh and verify in Webull before trading. Results below are illustrative only.'}</p>}
  </aside>
  <div className="rm-sizing-column">
@@ -88,8 +85,12 @@ export function RiskCalculator({accountId,label}:{accountId:string;label:string}
  <div><small>{sizingTab==='quick'?'Assumed stop distance':'Stop distance/share'}</small><strong>{activeSize?'$'+activeSize.distance.toFixed(4):'—'}</strong></div>
  <div><small>Position value</small><strong>{activeSize?money(activeSize.notional):'—'}</strong></div>
  <div><small>Estimated loss incl. costs</small><strong className="rm-loss">{activeSize?money(activeSize.estimatedLoss):'—'}</strong></div>
+ <div className="rm-summary-refresh"><button form="rm-trade-setup" disabled={busy} type="submit" aria-busy={busy}>{busy?'Loading FMP & Webull…':'Refresh Quote, ATR & Balance'}</button></div>
  {sizingTab==='precise'&&<div><small>Risk-only shares</small><strong>{activeSize?activeSize.riskShares.toLocaleString():'—'}</strong></div>}
  </div></div>
+ <div className="rm-refresh-status" aria-live="polite" aria-atomic="true">
+ {busy?<div className="rm-status rm-status-loading" role="status"><span className="rm-spinner" aria-hidden="true"/> <span>Refreshing FMP quote, ATR and Webull balance… {Math.max(0,Math.floor((now-refreshStarted)/1000))}s elapsed. {now-refreshStarted>10000?'Webull may be queued or cooling down due to rate limits.':''}</span></div>:error?<div className="rm-status rm-status-error" role="alert">{error}{data?' Previous values retained for reference only.':''}</div>:feedback?<div className="rm-status rm-status-success" role="status">{feedback}</div>:<p className="helper">Enter a ticker and retrieve the latest available quote and account balance.</p>}
+ </div>
  {activeStale&&<p className="rm-card-note rm-warning">Quote, balance or automatic ATR may be stale, or a refresh is pending or failed. Verify before trading.</p>}
  </section>
  <div className="rm-card rm-sizing-panel">

@@ -36,3 +36,12 @@ test('risk calculator TSX parses without syntax errors and contains one sizing w
  assert.deepEqual(source.parseDiagnostics.map(d=>ts.flattenDiagnosticMessageText(d.messageText,'\n')),[]);
  for(const marker of ['aria-label="Position sizing mode"','id="rm-quick-title"','id="rm-precise-title"','id="rm-summary-title"'])assert.equal(component.split(marker).length-1,1);
 });
+
+test('risk switch and summary refresh use shared setup form and margin-adjusted buying power',()=>{
+ assert.match(component,/role="switch" aria-label="Risk mode"/);
+ assert.match(component,/id="rm-trade-setup"[^\n]*onSubmit=\{lookup\}/);
+ const summary=component.slice(component.indexOf('id="rm-summary-title"'),component.indexOf('className="rm-card rm-sizing-panel"'));
+ assert.ok(summary.indexOf('form="rm-trade-setup"')>summary.indexOf('Estimated loss incl. costs'));
+ assert.match(component,/Math.min\(data.equity\*marginRatio,data.buyingPower\?\?Infinity\)/);
+ assert.match(component,/Estimated buying power/);
+});
