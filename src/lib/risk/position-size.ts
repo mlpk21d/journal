@@ -11,3 +11,12 @@ export function positionSize(i:SizeInput){
  if(!Number.isSafeInteger(shares))return null;
  return {budget,distance,perShare,riskShares,buyingPowerShares,shares,notional:shares*entry,estimatedLoss:shares?shares*perShare+fees:0};
 }
+
+/** Quote-based preview only: an assumed adverse move, not a technical stop. */
+export function quickPositionSize(i:Omit<SizeInput,'stop'> & {movePercent:number}){
+ const {movePercent,...inputs}=i;
+ if(!Number.isFinite(movePercent)||movePercent<=0||movePercent>=100)return null;
+ const distance=inputs.entry*movePercent/100;
+ const stop=inputs.entry+(inputs.direction==='LONG'?-distance:distance);
+ return positionSize({...inputs,stop});
+}
