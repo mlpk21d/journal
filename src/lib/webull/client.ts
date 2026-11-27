@@ -93,6 +93,9 @@ async function get(path:string,params:Record<string,string>={}):Promise<JsonValu
 }
 export const webull = {
   accounts: () => get(PATHS.accounts),
+  balance: (accountId:string) => get('/trading/assets/balances/get',{account_id:accountId}),
+  stockSnapshot: (symbol:string,category:'US_STOCK'|'US_ETF') =>
+    get('/market-data/stocks/snapshots/list',{symbols:symbol,category,extend_hour_required:'false',overnight_required:'false'}),
   orders: (accountId: string, start: string, end: string, paginationKey?: string) =>
     get(PATHS.orderHistory, { account_id: accountId, start_time: start, end_time: end, ...(paginationKey ? {pagination_key:paginationKey}: {}) }),
   orderDetail: (accountId: string, clientOrderId?: string, orderId?: string) =>

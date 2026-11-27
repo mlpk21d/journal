@@ -25,6 +25,7 @@ const research:Item[]=[
  {href:'/wash-sales/basis',label:'Tax Lot Preview',glyph:'▧'}
 ];
 const actions:Item[]=[
+ {href:'/risk-management',label:'Risk Management',glyph:'◎'},
  {href:'/manual',label:'Manual Entries',glyph:'⊞'},
  {href:'/import',label:'Import Trades',glyph:'⇧'},
  {href:'/import/schwab',label:'Import Schwab CSV',glyph:'↥'},
