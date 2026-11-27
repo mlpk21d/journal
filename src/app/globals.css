@@ -723,3 +723,13 @@ button,input,select,textarea{font:inherit}
 .rm-summary-metrics .rm-summary-refresh{align-items:flex-end;justify-self:end}
 .rm-summary-refresh button{width:108px;max-width:100%;min-height:90px;padding:10px;white-space:normal;line-height:1.35}
 @media(max-width:1250px){.rm-summary-metrics .rm-summary-refresh{grid-column:auto;justify-self:end}}
+
+/* Position Summary: header actions and a single row of metrics. */
+.rm-summary-panel .rm-card-heading{justify-content:flex-start;gap:12px}
+.rm-summary-panel .rm-summary-refresh{flex:0 1 155px;min-width:0}
+.rm-summary-panel .rm-summary-refresh button{width:155px;max-width:100%;min-height:64px;padding:10px 14px}
+.rm-summary-panel .rm-summary-metrics{grid-template-columns:repeat(4,minmax(0,1fr));align-items:start;gap:12px}
+.rm-summary-panel .rm-summary-metrics[data-sizing-mode=precise]{grid-template-columns:repeat(5,minmax(0,1fr))}
+.rm-summary-panel .rm-summary-metrics small{min-height:2.8em;line-height:1.4}
+.rm-atr-settings .rm-reset{margin-top:10px}
+@media(max-width:600px){.rm-summary-panel .rm-summary-metrics,.rm-summary-panel .rm-summary-metrics[data-sizing-mode=precise]{grid-template-columns:repeat(2,minmax(0,1fr))}.rm-summary-panel .rm-summary-metrics small{min-height:0}}

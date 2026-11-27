@@ -86,16 +86,15 @@ export function RiskCalculator({accountId,label}:{accountId:string;label:string}
  </aside>
  <div className="rm-sizing-column">
  <section className="rm-card rm-summary-panel" aria-labelledby="rm-summary-title" aria-live="polite">
- <div className="rm-card-heading"><h2 id="rm-summary-title">Position Summary</h2><div className="rm-segments rm-direction" role="group" aria-label="Trade direction"><button type="button" aria-pressed={direction==='LONG'} onClick={()=>{if(direction!=='LONG'){setDirection('LONG');setStop('');}}}>Long</button><button type="button" aria-pressed={direction==='SHORT'} onClick={()=>{if(direction!=='SHORT'){setDirection('SHORT');setStop('');}}}>Short</button></div></div>
+ <div className="rm-card-heading"><h2 id="rm-summary-title">Position Summary</h2><div className="rm-summary-refresh"><button form="rm-trade-setup" disabled={busy} type="submit" aria-busy={busy}>{busy?'Loading FMP & Webull…':'Refresh Quote, ATR & Balance'}</button></div><div className="rm-segments rm-direction" role="group" aria-label="Trade direction"><button type="button" aria-pressed={direction==='LONG'} onClick={()=>{if(direction!=='LONG'){setDirection('LONG');setStop('');}}}>Long</button><button type="button" aria-pressed={direction==='SHORT'} onClick={()=>{if(direction!=='SHORT'){setDirection('SHORT');setStop('');}}}>Short</button></div></div>
  <div className="rm-result rm-summary-result">
  <span className="rm-result-label">{activeStale?'Illustrative share count':'Calculated position size'}</span>
  <strong className="rm-share-count">{activeSize?activeSize.shares.toLocaleString()+' shares':'—'}</strong>
- <div className="rm-result-metrics rm-summary-metrics">
+ <div className="rm-result-metrics rm-summary-metrics" data-sizing-mode={sizingTab}>
  <div><small>Risk budget</small><strong>{activeSize?money(activeSize.budget):'—'}</strong></div>
  <div><small>{sizingTab==='quick'?'Assumed stop distance':'Stop distance/share'}</small><strong>{activeSize?'$'+activeSize.distance.toFixed(4):'—'}</strong></div>
  <div><small>Position value</small><strong>{activeSize?money(activeSize.notional):'—'}</strong></div>
  <div><small>Estimated loss incl. costs</small><strong className="rm-loss">{activeSize?money(activeSize.estimatedLoss):'—'}</strong></div>
- <div className="rm-summary-refresh"><button form="rm-trade-setup" disabled={busy} type="submit" aria-busy={busy}>{busy?'Loading FMP & Webull…':'Refresh Quote, ATR & Balance'}</button></div>
  {sizingTab==='precise'&&<div><small>Risk-only shares</small><strong>{activeSize?activeSize.riskShares.toLocaleString():'—'}</strong></div>}
  </div></div>
  <div className="rm-refresh-status" aria-live="polite" aria-atomic="true">
@@ -124,7 +123,7 @@ export function RiskCalculator({accountId,label}:{accountId:string;label:string}
  <p className="rm-card-description">Adjust the ATR or enter your technical stop to calculate a trade-specific share count.</p>
  <div className="rm-card-fields">
  <div className="rm-field"><label htmlFor="rm-entry">Planned entry ($)</label><input id="rm-entry" type="number" min="0.0001" step="any" value={entry} onChange={e=>setEntry(e.target.value)}/></div>
- <div className="rm-field rm-full"><label htmlFor="rm-stop">Manual stop-loss price ($) · optional</label><input id="rm-stop" type="number" min="0.0001" step="any" value={stop} onChange={e=>setStop(e.target.value)} placeholder="Leave blank to use ATR"/></div>
+ <div className="rm-field"><label htmlFor="rm-stop">Manual stop-loss price ($) · optional</label><input id="rm-stop" type="number" min="0.0001" step="any" value={stop} onChange={e=>setStop(e.target.value)} placeholder="Leave blank to use ATR"/></div>
  <div className="rm-field"><label htmlFor="rm-slip">Slippage/share ($)</label><input id="rm-slip" type="number" min="0" step="any" value={slippage} onChange={e=>setSlippage(e.target.value)}/></div>
  <div className="rm-field"><label htmlFor="rm-fees">Round-trip fees ($)</label><input id="rm-fees" type="number" min="0" step="any" value={fees} onChange={e=>setFees(e.target.value)}/></div>
  </div>

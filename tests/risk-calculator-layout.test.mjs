@@ -41,7 +41,8 @@ test('risk dropdown and summary refresh use shared setup form and margin-adjuste
  assert.match(component,/<select id="rm-risk-mode" aria-label="Risk mode"/);
  assert.match(component,/id="rm-trade-setup"[^\n]*onSubmit=\{lookup\}/);
  const summary=component.slice(component.indexOf('id="rm-summary-title"'),component.indexOf('className="rm-card rm-sizing-panel"'));
- assert.ok(summary.indexOf('form="rm-trade-setup"')>summary.indexOf('Estimated loss incl. costs'));
+ assert.ok(summary.indexOf('form="rm-trade-setup"')>=0);
+ assert.ok(summary.indexOf('form="rm-trade-setup"')<summary.indexOf('className="rm-result rm-summary-result"'));
  assert.match(component,/Math.min\(data.equity\*marginRatio,data.buyingPower\?\?Infinity\)/);
  assert.match(component,/Estimated buying power/);
 });
@@ -56,4 +57,13 @@ test('ATR settings follow margin in setup and direction is in summary header',()
  assert.match(summary,/aria-label="Trade direction"/);
  assert.doesNotMatch(summary,/rm-card-tag/);
  assert.equal(component.split('aria-label="Trade direction"').length-1,1);
+});
+
+test('summary metrics occupy one desktop row and precise entry and stop share the grid',()=>{
+ const header=component.slice(component.indexOf('id="rm-summary-title"'),component.indexOf('className="rm-result rm-summary-result"'));
+ assert.match(header,/className="rm-summary-refresh"/);
+ assert.match(header,/aria-label="Trade direction"/);
+ assert.match(css,/\.rm-summary-panel \.rm-summary-metrics\[data-sizing-mode=precise\]\{grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/);
+ assert.match(component,/<div className="rm-field"><label htmlFor="rm-entry">[^\n]*\n <div className="rm-field"><label htmlFor="rm-stop">/);
+ assert.match(css,/\.rm-atr-settings \.rm-reset\{margin-top:10px\}/);
 });
