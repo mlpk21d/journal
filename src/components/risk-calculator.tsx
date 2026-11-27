@@ -39,13 +39,13 @@ export function RiskCalculator({accountId,label}:{accountId:string;label:string}
  <form className="performance-filter" onSubmit={lookup}>
  <label htmlFor="rm-symbol">Ticker</label><input id="rm-symbol" required maxLength={15} placeholder="NVDA" value={symbol} disabled={busy} onChange={e=>{setSymbol(e.target.value.toUpperCase());setData(null);setEntry('');setStop('');}}/>
  <label htmlFor="rm-category">Asset</label><select id="rm-category" value={category} disabled={busy} onChange={e=>{setCategory(e.target.value as typeof category);setData(null);setStop('');setEntry('');}}><option value="US_STOCK">Stock</option><option value="US_ETF">ETF</option></select>
- <button disabled={busy} type="submit">{busy?'Loading Webull…':data?'Refresh quote & balance':'Get quote & balance'}</button>
+ <button disabled={busy} type="submit">{busy?'Loading FMP & Webull…':data?'Refresh quote & balance':'Get quote & balance'}</button>
  </form>
  {error&&<p role="alert" className="notice">{error}</p>}
  {data&&<><div className="analytics-metrics">
  <div><small>Account equity (net liquidation)</small><strong>{money(data.equity)}</strong><small>Fetched {stamp(data.balanceFetchedAt)}</small></div>
  <div><small>Buying power</small><strong>{data.buyingPower===null?'Unavailable':money(data.buyingPower)}</strong></div>
- <div><small>{data.symbol} last traded price</small><strong>{money(data.price)}</strong><small>Trade {stamp(data.quoteTime)} · fetched {stamp(data.quoteFetchedAt)}</small></div>
+ <div><small>{data.symbol} price (FMP)</small><strong>{money(data.price)}</strong><small>Trade {stamp(data.quoteTime)} · fetched {stamp(data.quoteFetchedAt)}</small></div>
  </div>{stale&&<p role="status" className="notice">Quote or balance is older than 60 seconds, or the trade timestamp is missing. Refresh and verify in Webull before trading. Results below are illustrative only.</p>}</>}
  <h2>Quick Position Size</h2>
  <div className="performance-filter">
@@ -80,6 +80,6 @@ export function RiskCalculator({accountId,label}:{accountId:string;label:string}
  <div><small>Estimated position value</small><strong>{money(size.notional)}</strong></div>
  <div><small>Estimated loss incl. costs</small><strong>{money(size.estimatedLoss)}</strong></div>
  </div>}
- <p className="notice">Risk mode, dollar amount, account risk % and assumed adverse move % are saved per account in this browser. Quotes are regular-session snapshots, not executable bid/ask prices. Buying power is a conservative notional cap when available, not proof of margin or short availability. Verify actual entry, buying power, short locates and stop in Webull. Stops can slip or gap; losses can exceed estimates. No orders are placed.</p>
+ <p className="notice">Risk mode, dollar amount, account risk % and assumed adverse move % are saved per account in this browser. FMP quotes are snapshots, not executable bid/ask prices; latency depends on your subscription. Extended-hours quotes are not explicitly requested. Buying power is a conservative notional cap when available, not proof of margin or short availability. Verify actual entry, buying power, short locates and stop in Webull. Stops can slip or gap; losses can exceed estimates. No orders are placed.</p>
  </section>;
 }

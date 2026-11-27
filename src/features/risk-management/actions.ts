@@ -3,7 +3,9 @@ import {headers} from 'next/headers';
 import {db} from '@/lib/db';
 import {activeAccountId} from '@/lib/review/account-scope';
 import {reviewIsLocal} from '@/lib/review/server';
-import {balanceFor,quoteFor} from '@/lib/risk/webull-data';
+import {balanceFor} from '@/lib/risk/webull-data';
+import {quoteFor} from '@/lib/risk/fmp-data';
+import {FmpQuoteError} from '@/lib/risk/fmp-quote';
 import {WebullApiError} from '@/lib/webull/client';
 export async function loadRiskInputs(symbol:string,category:'US_STOCK'|'US_ETF',expectedAccount:string){
  try{
@@ -16,10 +18,15 @@ export async function loadRiskInputs(symbol:string,category:'US_STOCK'|'US_ETF',
   const {rows}=await db().query<{external_account_id:string;broker:string}>('SELECT external_account_id,broker FROM brokerage_accounts WHERE id=$1::bigint',[selected]);
   const account=rows[0];
   if(!account||account.broker!=='webull')return {ok:false as const,error:'Select a Webull brokerage account.'};
-  const [balance,quote]=await Promise.all([balanceFor(account.external_account_id),quoteFor(symbol,category)]);
+  const [balance,quote]=await Promise.all([balanceFor(account.external_account_id),quoteFor(symbol)]);
   return {ok:true as const,data:{...balance,...quote,symbol,accountId:selected}};
  }catch(e){
+  if(e instanceof FmpQuoteError){
+   console.warn('[Risk Management] FMP quote failed',{code:e.code,status:e.status});
+   const error=e.code==='MISSING_KEY'?'Set FMP_API_KEY in .env.local and restart Next.js.':e.status===429?'FMP rate limit reached. Try after the cooldown.':[401,402,403].includes(e.status??0)?'FMP quote access denied. Verify API key and subscription.':e.code==='INVALID_QUOTE'?'FMP returned no valid price for this ticker.':'FMP quote unavailable. Try again.';
+   return {ok:false as const,error};
+  }
   console.error('[Risk Management] Lookup failed',e instanceof WebullApiError?{status:e.status,code:e.code}:e instanceof Error?e.name:'Unknown');
-  return {ok:false as const,error:e instanceof WebullApiError&&e.status===429?'Webull rate limit reached. Try after the cooldown.': 'Quote or balance unavailable. Verify ticker, Webull market-data permissions and server logs.'};
+  return {ok:false as const,error:e instanceof WebullApiError&&e.status===429?'Webull rate limit reached. Try after the cooldown.': 'Webull account balance unavailable. Verify trading API credentials and server logs.'};
  }
 }

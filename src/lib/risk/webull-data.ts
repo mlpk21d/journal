@@ -28,16 +28,3 @@ export function balanceFor(id:string){
   return {equity,buyingPower:bp!==null&&bp>=0?bp:null,balanceFetchedAt:Date.now()};
  });
 }
-export function quoteFor(symbol:string,category:'US_STOCK'|'US_ETF'){
- return cached('quote:'+category+':'+symbol,5000,async()=>{
-  const raw=await webull.stockSnapshot(symbol,category);
-  const row=Array.isArray(raw)?raw.map(obj).find(r=>r.symbol===symbol):undefined;
-  const price=num(row?.price);
-  if(price===null||price<=0)throw new Error('No quote');
-  const t=num(row?.last_trade_time);
-  const parsed=typeof row?.last_trade_time==='string'?Date.parse(row.last_trade_time):NaN;
-  const stamp=t!==null?(t<1e12?t*1000:t):parsed;
-  const quoteTime=Number.isFinite(stamp)&&stamp>0&&stamp<=Date.now()+60000?stamp:null;
-  return {price,quoteTime,quoteFetchedAt:Date.now()};
- });
-}
