@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import {useEffect,useState,type FormEvent} from 'react';
 import {loadRiskInputs} from '@/features/risk-management/actions';
-import {positionSize,atrPositionSize} from '@/lib/risk/position-size';
+import {positionSize,atrPositionSize,MARGIN_RATIOS,type MarginRatio} from '@/lib/risk/position-size';
 import {ATR_MULTIPLIER} from '@/lib/risk/intraday-atr';
 type Data=Extract<Awaited<ReturnType<typeof loadRiskInputs>>,{ok:true}>['data'];
 const money=(n:number)=>n.toLocaleString('en-US',{style:'currency',currency:'USD'});
@@ -17,7 +17,8 @@ export function RiskCalculator({accountId,label}:{accountId:string;label:string}
  const [refreshFailed,setRefreshFailed]=useState(false);
  const [now,setNow]=useState(0),[entry,setEntry]=useState('');
  const [ready,setReady]=useState(false);
- const [marginRatio,setMarginRatio]=useState<1|2>(2);
+ const [marginRatio,setMarginRatio]=useState<MarginRatio>(2);
+ const [sizingTab,setSizingTab]=useState<'quick'|'precise'>('quick');
  const [manualAtr,setManualAtr]=useState('');
  const [multiplier,setMultiplier]=useState(String(ATR_MULTIPLIER));
  const [riskMode,setRiskMode]=useState<'percent'|'dollars'>('percent');
@@ -53,24 +54,36 @@ export function RiskCalculator({accountId,label}:{accountId:string;label:string}
  <div><small>{data?data.symbol+' price (FMP)':'Ticker price (FMP)'}</small><strong>{data?money(data.price):'—'}</strong>{data&&<small>Trade {stamp(data.quoteTime)} · fetched {stamp(data.quoteFetchedAt)}</small>}</div>
  </div></div>
  <nav className="pill-row"><Link href="/risk">Risk &amp; Trade Quality ↗</Link></nav>
+ <div className="rm-workspace">
+ <aside className="rm-card rm-market-panel" aria-label="Market and account inputs">
+ <div className="rm-card-heading"><h2>Trade setup</h2></div>
  <p className="helper">Account: <strong>{label}</strong> (sidebar selection)</p>
- <form className="performance-filter rm-fields" onSubmit={lookup}>
+ <form className="performance-filter rm-fields rm-market-fields" onSubmit={lookup}>
  <div className="rm-field"><label htmlFor="rm-symbol">Ticker</label><input id="rm-symbol" required maxLength={15} placeholder="NVDA" value={symbol} disabled={busy} onChange={e=>{setSymbol(e.target.value.toUpperCase());setData(null);setManualAtr('');setEntry('');setStop('');setFeedback('');setError('');setRefreshFailed(false);}}/></div>
  <div className="rm-field"><label htmlFor="rm-category">Asset</label><select id="rm-category" value={category} disabled={busy} onChange={e=>{setCategory(e.target.value as typeof category);setData(null);setManualAtr('');setStop('');setEntry('');setFeedback('');setError('');setRefreshFailed(false);}}><option value="US_STOCK">Stock</option><option value="US_ETF">ETF</option></select></div>
- <div className="rm-field"><label htmlFor="rm-margin">Margin ratio</label><select id="rm-margin" value={marginRatio} onChange={e=>setMarginRatio(e.target.value==='1'?1:2)}><option value={2}>2:1</option><option value={1}>1:1</option></select></div>
+ <div className="rm-field"><label htmlFor="rm-margin">Margin ratio</label><select id="rm-margin" value={marginRatio} onChange={e=>setMarginRatio(Number(e.target.value) as MarginRatio)}>{MARGIN_RATIOS.map(r=><option key={r} value={r}>{r}:1</option>)}</select></div>
  <div className="rm-field rm-refresh"><button disabled={busy} type="submit" aria-busy={busy}>{busy?'Loading FMP & Webull…':data?'Refresh quote, ATR & balance':'Get quote, ATR & balance'}</button></div>
  </form>
  <div className="rm-refresh-status" aria-live="polite" aria-atomic="true">
  {busy?<div className="rm-status rm-status-loading" role="status"><span className="rm-spinner" aria-hidden="true"/> <span>Refreshing FMP quote, ATR and Webull balance… {Math.max(0,Math.floor((now-refreshStarted)/1000))}s elapsed. {now-refreshStarted>10000?'Webull may be queued or cooling down due to rate limits.':''}</span></div>:error?<div className="rm-status rm-status-error" role="alert">{error}{data?' Previous values retained for reference only.':''}</div>:feedback?<div className="rm-status rm-status-success" role="status">{feedback}</div>:<p className="helper">Enter a ticker and retrieve the latest available quote and account balance.</p>}
  </div>
  {stale&&<p role="status" className="notice">{busy?'Refresh in progress. Previous values are illustrative only.':refreshFailed?'Refresh failed. Previous values are illustrative only.':'Quote or balance is older than 60 seconds, or the trade timestamp is missing. Refresh and verify in Webull before trading. Results below are illustrative only.'}</p>}
- <div className="rm-card-grid">
- <section className="rm-card" aria-labelledby="rm-quick-title">
+ </aside>
+ <div className="rm-card rm-sizing-panel">
+ <div className="rm-tabs" role="group" aria-label="Position sizing mode">
+ <button type="button" aria-pressed={sizingTab==='quick'} onClick={()=>setSizingTab('quick')}>Quick Position Size</button>
+ <button type="button" aria-pressed={sizingTab==='precise'} onClick={()=>setSizingTab('precise')}>Precise Position Sizing</button>
+ </div>
+ <div className="rm-risk-tabs"><p className="rm-card-note">Risk per trade</p><div className="rm-tabs" role="group" aria-label="Risk mode">
+ <button type="button" aria-pressed={riskMode==='dollars'} onClick={()=>setRiskMode('dollars')}>Dollar amount ($)</button>
+ <button type="button" aria-pressed={riskMode==='percent'} onClick={()=>setRiskMode('percent')}>Account Percentage (%)</button>
+ </div>
+ <div className="rm-field"><label htmlFor="rm-shared-risk">{riskMode==='dollars'?'Risk amount ($)':'Account risk (%)'}</label><input id="rm-shared-risk" type="number" min="0.01" max={riskMode==='percent'?100:undefined} step="0.01" value={riskMode==='dollars'?dollars:risk} onChange={e=>riskMode==='dollars'?setDollars(e.target.value):setRisk(e.target.value)}/></div>
+ </div>
+ <section className="rm-tab-panel" hidden={sizingTab!=='quick'} aria-labelledby="rm-quick-title">
  <div className="rm-card-heading"><h2 id="rm-quick-title">Quick Position Size</h2><span className="rm-card-tag">Automatic ATR</span></div>
  <p className="rm-card-description">Volatility-adjusted share count from the latest FMP quote. No stop entry required.</p>
  <div className="rm-card-fields">
- <div className="rm-field rm-full"><label>Risk per trade</label><div className="rm-segments" role="group" aria-label="Quick risk mode"><button type="button" aria-pressed={riskMode==='dollars'} onClick={()=>setRiskMode('dollars')}>Dollar amount ($)</button><button type="button" aria-pressed={riskMode==='percent'} onClick={()=>setRiskMode('percent')}>Account percentage (%)</button></div></div>
- <div className="rm-field"><label htmlFor="rm-quick-risk">{riskMode==='dollars'?'Risk amount ($)':'Account risk (%)'}</label><input id="rm-quick-risk" type="number" min="0.01" max={riskMode==='percent'?100:undefined} step="0.01" value={riskMode==='dollars'?dollars:risk} onChange={e=>riskMode==='dollars'?setDollars(e.target.value):setRisk(e.target.value)}/></div>
  <div className="rm-field"><label>Current stock price</label><div className="rm-readonly">{data?money(data.price):'—'}</div></div>
  <div className="rm-field"><label>5-minute ATR(14) · FMP</label><div className="rm-readonly">{data?.atr?'$'+data.atr.value.toFixed(4):'—'}</div></div>
  <div className="rm-field"><label>ATR multiplier</label><div className="rm-readonly">{ATR_MULTIPLIER.toFixed(1)}×</div></div>
@@ -89,12 +102,10 @@ export function RiskCalculator({accountId,label}:{accountId:string;label:string}
  {atrStale&&<p className="rm-card-note rm-warning">ATR is from an older session or delayed feed. Verify the timestamp.</p>}
  <p className="rm-card-note rm-card-footer">Uses 1.5× automatic ATR, shared risk and cost settings, margin ratio and available buying power. This is an estimate, not a technical stop.</p>
  </section>
- <section className="rm-card" aria-labelledby="rm-precise-title">
+ <section className="rm-tab-panel" hidden={sizingTab!=='precise'} aria-labelledby="rm-precise-title">
  <div className="rm-card-heading"><h2 id="rm-precise-title">Precise Position Sizing</h2><span className="rm-card-tag">Editable</span></div>
  <p className="rm-card-description">Adjust the ATR or enter your technical stop to calculate a trade-specific share count.</p>
  <div className="rm-card-fields">
- <div className="rm-field rm-full"><label>Risk per trade</label><div className="rm-segments" role="group" aria-label="Precise risk mode"><button type="button" aria-pressed={riskMode==='dollars'} onClick={()=>setRiskMode('dollars')}>Dollar amount ($)</button><button type="button" aria-pressed={riskMode==='percent'} onClick={()=>setRiskMode('percent')}>Account percentage (%)</button></div></div>
- <div className="rm-field"><label htmlFor="rm-risk">{riskMode==='dollars'?'Risk amount ($)':'Account risk (%)'}</label><input id="rm-risk" type="number" min="0.01" max={riskMode==='percent'?100:undefined} step="0.01" value={riskMode==='dollars'?dollars:risk} onChange={e=>riskMode==='dollars'?setDollars(e.target.value):setRisk(e.target.value)}/></div>
  <div className="rm-field"><label htmlFor="rm-entry">Planned entry ($)</label><input id="rm-entry" type="number" min="0.0001" step="any" value={entry} onChange={e=>setEntry(e.target.value)}/></div>
  <div className="rm-field"><label htmlFor="rm-atr">ATR ($)</label><input id="rm-atr" type="number" min="0.0001" step="any" value={manualAtr} placeholder={data?.atr?String(Number(data.atr.value.toFixed(6))):'Enter ATR'} onChange={e=>setManualAtr(e.target.value)}/><small>{manualAtr.trim()?'Manual override':'Automatic FMP ATR'}</small></div>
  <div className="rm-field"><label htmlFor="rm-atr-mult">ATR multiplier</label><input id="rm-atr-mult" type="number" min="0.01" step="0.1" value={multiplier} onChange={e=>setMultiplier(e.target.value)}/><button className="rm-reset" type="button" onClick={()=>{setManualAtr('');setMultiplier(String(ATR_MULTIPLIER));}}>Restore automatic ATR</button></div>
@@ -117,6 +128,7 @@ export function RiskCalculator({accountId,label}:{accountId:string;label:string}
  <p className="rm-card-note rm-card-footer">A manual stop takes precedence. ATR overrides and multiplier changes affect this card only; risk, direction and costs are shared.</p>
  </section>
  </div>
- <p className="notice">Risk mode, dollar amount, account risk % and precise ATR multiplier are saved per account in this browser. FMP quotes are snapshots, not executable bid/ask prices; latency depends on your subscription. Extended-hours quotes are not explicitly requested. Margin ratio is a per-trade assumption (defaults to 2:1); estimated exposure is capped at equity × ratio and Webull buying power when available. This is not a guarantee of stock-specific margin or short availability. Verify actual entry, buying power, short locates and stop in Webull. Stops can slip or gap; losses can exceed estimates. No orders are placed.</p>
+ </div>
+ <p className="notice">Risk mode, dollar amount, account risk % and precise ATR multiplier are saved per account in this browser. FMP quotes are snapshots, not executable bid/ask prices; latency depends on your subscription. Extended-hours quotes are not explicitly requested. Margin ratio is a per-trade assumption (1:1 through 6:1; defaults to 2:1); estimated exposure is capped at equity × ratio and Webull buying power when available. This is not a guarantee of stock-specific margin or short availability. Verify actual entry, buying power, short locates and stop in Webull. Stops can slip or gap; losses can exceed estimates. No orders are placed.</p>
  </section>;
 }

@@ -1,8 +1,10 @@
 export type RiskBudget={riskPercent:number;riskDollars?:never}|{riskDollars:number;riskPercent?:never};
-export type SizeInput=RiskBudget & {equity:number;buyingPower:number|null;marginRatio?:1|2;entry:number;stop:number;slippage:number;fees:number;direction:'LONG'|'SHORT'};
+export const MARGIN_RATIOS=[1,2,3,4,5,6] as const;
+export type MarginRatio=typeof MARGIN_RATIOS[number];
+export type SizeInput=RiskBudget & {equity:number;buyingPower:number|null;marginRatio?:MarginRatio;entry:number;stop:number;slippage:number;fees:number;direction:'LONG'|'SHORT'};
 export function positionSize(i:SizeInput){
  const {equity,buyingPower,marginRatio=2,entry,stop,slippage,fees,direction}=i;
- if(![1,2].includes(marginRatio)||![equity,entry,stop,slippage,fees].every(Number.isFinite)||equity<=0||entry<=0||stop<=0||slippage<0||fees<0||!['LONG','SHORT'].includes(direction)||(direction==='LONG'?stop>=entry:stop<=entry)||(buyingPower!==null&&(!Number.isFinite(buyingPower)||buyingPower<0)))return null;
+ if(!MARGIN_RATIOS.includes(marginRatio)||![equity,entry,stop,slippage,fees].every(Number.isFinite)||equity<=0||entry<=0||stop<=0||slippage<0||fees<0||!['LONG','SHORT'].includes(direction)||(direction==='LONG'?stop>=entry:stop<=entry)||(buyingPower!==null&&(!Number.isFinite(buyingPower)||buyingPower<0)))return null;
  const budget=i.riskDollars!==undefined?i.riskDollars:equity*(i.riskPercent??NaN)/100;
  if(!Number.isFinite(budget)||budget<=0||budget>equity)return null;
  const distance=Math.abs(entry-stop);

@@ -670,3 +670,18 @@ button,input,select,textarea{font:inherit}
 .rm-card button:focus-visible{outline:2px solid #9ec4ff;outline-offset:2px}
 @media(max-width:1000px){.rm-card-grid{grid-template-columns:1fr}}
 @media(max-width:480px){.rm-card{padding:14px}.rm-card-fields{gap:10px}.rm-card-heading h2{font-size:17px}.rm-segments button{font-size:11px}}
+
+/* Risk workspace: vertical setup alongside one tabbed sizing panel. */
+.rm-workspace{display:grid;grid-template-columns:minmax(215px, .8fr) minmax(0,2.2fr);gap:18px;align-items:start;margin:20px 0}
+.shell .rm-calculator .rm-market-fields{grid-template-columns:1fr;background:transparent;border:0;padding:0;margin:12px 0}
+.rm-market-panel .rm-refresh-status{margin:0;min-height:0}
+.rm-market-panel .notice{font-size:12px;line-height:1.5}
+.rm-tabs{display:flex;gap:4px;border-bottom:1px solid #46516a;margin-bottom:16px}
+.rm-tabs button{flex:1;min-width:0;background:transparent;border:0;border-bottom:3px solid transparent;padding:12px 8px;color:#aebdd2;font:600 13px Arial,Helvetica,sans-serif;cursor:pointer}
+.rm-tabs button[aria-pressed=true]{color:#e8f1ff;background:#30394a;border-bottom-color:#9ec4ff}
+.rm-risk-tabs{margin-bottom:22px}
+.rm-risk-tabs .rm-card-note{margin:0 0 8px}
+.rm-risk-tabs .rm-field{max-width:300px}
+.rm-tab-panel[hidden]{display:none}
+.rm-tab-panel .rm-card-footer{margin-top:12px}
+@media(max-width:900px){.rm-workspace{grid-template-columns:1fr}}

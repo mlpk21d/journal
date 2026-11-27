@@ -33,7 +33,9 @@ test('margin ratio caps exposure without multiplying reported buying power',()=>
  assert.equal(positionSize({...i,marginRatio:1}).shares,100);
  assert.equal(positionSize({...i,marginRatio:2,buyingPower:15000}).shares,150);
  assert.equal(positionSize({...i,marginRatio:1,buyingPower:null}).shares,100);
- assert.equal(positionSize({...i,marginRatio:3}),null);
+ for(const ratio of [1,2,3,4,5,6])assert.equal(positionSize({...i,buyingPower:100000,marginRatio:ratio}).shares,ratio*100);
+ assert.equal(positionSize({...i,marginRatio:6}).shares,400);
+ for(const ratio of [0,2.5,7])assert.equal(positionSize({...i,marginRatio:ratio}),null);
  const {stop,...quick}=i;assert.equal(quickPositionSize({...quick,marginRatio:1,movePercent:.1}).shares,100);
 });
 
