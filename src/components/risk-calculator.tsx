@@ -65,18 +65,28 @@ export function RiskCalculator({accountId,label}:{accountId:string;label:string}
  <form id="rm-trade-setup" className="performance-filter rm-fields rm-market-fields" onSubmit={lookup} noValidate>
  <div className="rm-field"><label htmlFor="rm-symbol">Ticker</label><input id="rm-symbol" required maxLength={15} placeholder="NVDA" value={symbol} disabled={busy} onChange={e=>{setSymbol(e.target.value.toUpperCase());setData(null);setManualAtr('');setEntry('');setStop('');setFeedback('');setError('');setRefreshFailed(false);}}/></div>
  <div className="rm-field"><label htmlFor="rm-category">Asset</label><select id="rm-category" value={category} disabled={busy} onChange={e=>{setCategory(e.target.value as typeof category);setData(null);setManualAtr('');setStop('');setEntry('');setFeedback('');setError('');setRefreshFailed(false);}}><option value="US_STOCK">Stock</option><option value="US_ETF">ETF</option></select></div>
- <div className="rm-risk-tabs"><p className="rm-card-note">Risk per trade</p>
- <div className="rm-risk-toggle-row"><span className={riskMode==='dollars'?'rm-toggle-active':undefined}>Dollar amount ($)</span><button type="button" className="rm-risk-toggle" role="switch" aria-label="Risk mode" aria-checked={riskMode==='percent'} aria-describedby="rm-risk-toggle-help" onClick={()=>setRiskMode(riskMode==='dollars'?'percent':'dollars')}><span aria-hidden="true"/></button><span className={riskMode==='percent'?'rm-toggle-active':undefined}>Account Percentage (%)</span></div>
- <small id="rm-risk-toggle-help" className="rm-sr-only">Off: dollar amount. On: account percentage.</small>
+ <div className="rm-field"><label htmlFor="rm-risk-mode">Risk per trade</label><select id="rm-risk-mode" aria-label="Risk mode" value={riskMode} onChange={e=>setRiskMode(e.target.value==='dollars'?'dollars':'percent')}><option value="dollars">Dollar Amount ($)</option><option value="percent">Account Percentage (%)</option></select></div>
  <div className="rm-field"><label htmlFor="rm-shared-risk">{riskMode==='dollars'?'Risk amount ($)':'Account risk (%)'}</label><input id="rm-shared-risk" type="number" min="0.01" max={riskMode==='percent'?100:undefined} step="0.01" value={riskMode==='dollars'?dollars:risk} onChange={e=>riskMode==='dollars'?setDollars(e.target.value):setRisk(e.target.value)}/></div>
- </div>
  <div className="rm-field"><label htmlFor="rm-margin">Margin ratio</label><select id="rm-margin" value={marginRatio} onChange={e=>setMarginRatio(Number(e.target.value) as MarginRatio)}>{MARGIN_RATIOS.map(r=><option key={r} value={r}>{r}:1</option>)}</select></div>
+ <div className="rm-atr-settings" aria-label="ATR settings">
+ <h3>ATR Settings</h3>
+ <div className="rm-atr-mode" hidden={sizingTab!=='quick'}>
+ <div className="rm-field"><label>5-minute ATR(14) · FMP</label><div className="rm-readonly">{data?.atr?'$'+data.atr.value.toFixed(4):'—'}</div></div>
+ <div className="rm-field"><label>ATR multiplier</label><div className="rm-readonly">{ATR_MULTIPLIER.toFixed(1)}×</div></div>
+ <p className="rm-card-note">Quick sizing uses automatic 5-minute ATR(14) and a fixed 1.5× multiplier.</p>
+ </div>
+ <div className="rm-atr-mode" hidden={sizingTab!=='precise'}>
+ <div className="rm-field"><label htmlFor="rm-atr">ATR ($)</label><input id="rm-atr" type="number" min="0.0001" step="any" value={manualAtr} placeholder={data?.atr?String(Number(data.atr.value.toFixed(6))):'Enter ATR'} onChange={e=>setManualAtr(e.target.value)}/><small>{manualAtr.trim()?'Manual override':'Automatic FMP ATR'}</small></div>
+ <div className="rm-field"><label htmlFor="rm-atr-mult">ATR multiplier</label><input id="rm-atr-mult" type="number" min="0.01" step="0.1" value={multiplier} onChange={e=>setMultiplier(e.target.value)}/><button className="rm-reset" type="button" onClick={()=>{setManualAtr('');setMultiplier(String(ATR_MULTIPLIER));}}>Restore automatic ATR</button></div>
+ <p className="rm-card-note">Precise sizing uses automatic ATR unless overridden. A manual stop takes precedence.</p>
+ </div>
+ </div>
  </form>
  {stale&&<p role="status" className="notice">{busy?'Refresh in progress. Previous values are illustrative only.':refreshFailed?'Refresh failed. Previous values are illustrative only.':'Quote or balance is older than 60 seconds, or the trade timestamp is missing. Refresh and verify in Webull before trading. Results below are illustrative only.'}</p>}
  </aside>
  <div className="rm-sizing-column">
  <section className="rm-card rm-summary-panel" aria-labelledby="rm-summary-title" aria-live="polite">
- <div className="rm-card-heading"><h2 id="rm-summary-title">Position Summary</h2><span className="rm-card-tag">{sizingTab==='quick'?'Quick · Automatic ATR':'Precise · '+(stop.trim()?'Manual stop':'ATR')}</span></div>
+ <div className="rm-card-heading"><h2 id="rm-summary-title">Position Summary</h2><div className="rm-segments rm-direction" role="group" aria-label="Trade direction"><button type="button" aria-pressed={direction==='LONG'} onClick={()=>{if(direction!=='LONG'){setDirection('LONG');setStop('');}}}>Long</button><button type="button" aria-pressed={direction==='SHORT'} onClick={()=>{if(direction!=='SHORT'){setDirection('SHORT');setStop('');}}}>Short</button></div></div>
  <div className="rm-result rm-summary-result">
  <span className="rm-result-label">{activeStale?'Illustrative share count':'Calculated position size'}</span>
  <strong className="rm-share-count">{activeSize?activeSize.shares.toLocaleString()+' shares':'—'}</strong>
@@ -103,8 +113,6 @@ export function RiskCalculator({accountId,label}:{accountId:string;label:string}
  <p className="rm-card-description">Volatility-adjusted share count from the latest FMP quote. No stop entry required.</p>
  <div className="rm-card-fields">
  <div className="rm-field"><label>Current stock price</label><div className="rm-readonly">{data?money(data.price):'—'}</div></div>
- <div className="rm-field"><label>5-minute ATR(14) · FMP</label><div className="rm-readonly">{data?.atr?'$'+data.atr.value.toFixed(4):'—'}</div></div>
- <div className="rm-field"><label>ATR multiplier</label><div className="rm-readonly">{ATR_MULTIPLIER.toFixed(1)}×</div></div>
  </div>
  <p className="rm-card-note">{data?.atr?'Last closed bar: '+stamp(data.atr.barClosedAt):'ATR is retrieved automatically with the quote.'}</p>
  {!quick&&<p className="rm-card-note">{data?(data.atr?'Enter valid risk and cost assumptions.':'FMP ATR unavailable. Use a manual stop or ATR override in the precise calculator.'):'Retrieve a ticker quote and account balance to calculate shares.'}</p>}
@@ -116,9 +124,6 @@ export function RiskCalculator({accountId,label}:{accountId:string;label:string}
  <p className="rm-card-description">Adjust the ATR or enter your technical stop to calculate a trade-specific share count.</p>
  <div className="rm-card-fields">
  <div className="rm-field"><label htmlFor="rm-entry">Planned entry ($)</label><input id="rm-entry" type="number" min="0.0001" step="any" value={entry} onChange={e=>setEntry(e.target.value)}/></div>
- <div className="rm-field"><label htmlFor="rm-atr">ATR ($)</label><input id="rm-atr" type="number" min="0.0001" step="any" value={manualAtr} placeholder={data?.atr?String(Number(data.atr.value.toFixed(6))):'Enter ATR'} onChange={e=>setManualAtr(e.target.value)}/><small>{manualAtr.trim()?'Manual override':'Automatic FMP ATR'}</small></div>
- <div className="rm-field"><label htmlFor="rm-atr-mult">ATR multiplier</label><input id="rm-atr-mult" type="number" min="0.01" step="0.1" value={multiplier} onChange={e=>setMultiplier(e.target.value)}/><button className="rm-reset" type="button" onClick={()=>{setManualAtr('');setMultiplier(String(ATR_MULTIPLIER));}}>Restore automatic ATR</button></div>
- <div className="rm-field rm-full"><label>Direction</label><div className="rm-segments rm-direction" role="group" aria-label="Trade direction"><button type="button" aria-pressed={direction==='LONG'} onClick={()=>{if(direction!=='LONG'){setDirection('LONG');setStop('');}}}>Long</button><button type="button" aria-pressed={direction==='SHORT'} onClick={()=>{if(direction!=='SHORT'){setDirection('SHORT');setStop('');}}}>Short</button></div></div>
  <div className="rm-field rm-full"><label htmlFor="rm-stop">Manual stop-loss price ($) · optional</label><input id="rm-stop" type="number" min="0.0001" step="any" value={stop} onChange={e=>setStop(e.target.value)} placeholder="Leave blank to use ATR"/></div>
  <div className="rm-field"><label htmlFor="rm-slip">Slippage/share ($)</label><input id="rm-slip" type="number" min="0" step="any" value={slippage} onChange={e=>setSlippage(e.target.value)}/></div>
  <div className="rm-field"><label htmlFor="rm-fees">Round-trip fees ($)</label><input id="rm-fees" type="number" min="0" step="any" value={fees} onChange={e=>setFees(e.target.value)}/></div>

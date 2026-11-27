@@ -37,11 +37,23 @@ test('risk calculator TSX parses without syntax errors and contains one sizing w
  for(const marker of ['aria-label="Position sizing mode"','id="rm-quick-title"','id="rm-precise-title"','id="rm-summary-title"'])assert.equal(component.split(marker).length-1,1);
 });
 
-test('risk switch and summary refresh use shared setup form and margin-adjusted buying power',()=>{
- assert.match(component,/role="switch" aria-label="Risk mode"/);
+test('risk dropdown and summary refresh use shared setup form and margin-adjusted buying power',()=>{
+ assert.match(component,/<select id="rm-risk-mode" aria-label="Risk mode"/);
  assert.match(component,/id="rm-trade-setup"[^\n]*onSubmit=\{lookup\}/);
  const summary=component.slice(component.indexOf('id="rm-summary-title"'),component.indexOf('className="rm-card rm-sizing-panel"'));
  assert.ok(summary.indexOf('form="rm-trade-setup"')>summary.indexOf('Estimated loss incl. costs'));
  assert.match(component,/Math.min\(data.equity\*marginRatio,data.buyingPower\?\?Infinity\)/);
  assert.match(component,/Estimated buying power/);
+});
+
+test('ATR settings follow margin in setup and direction is in summary header',()=>{
+ const setup=component.slice(component.indexOf('<aside className="rm-card rm-market-panel"'),component.indexOf('</aside>'));
+ assert.ok(setup.indexOf('className="rm-atr-settings"')>setup.indexOf('id="rm-margin"'));
+ assert.match(setup,/id="rm-atr"/);
+ assert.match(setup,/id="rm-atr-mult"/);
+ assert.match(setup,/5-minute ATR\(14\)/);
+ const summary=component.slice(component.indexOf('id="rm-summary-title"'),component.indexOf('className="rm-result rm-summary-result"'));
+ assert.match(summary,/aria-label="Trade direction"/);
+ assert.doesNotMatch(summary,/rm-card-tag/);
+ assert.equal(component.split('aria-label="Trade direction"').length-1,1);
 });

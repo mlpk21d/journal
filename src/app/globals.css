@@ -710,3 +710,16 @@ button,input,select,textarea{font:inherit}
 .rm-summary-refresh button:disabled{opacity:.65;cursor:wait}
 @media(max-width:1250px){.rm-summary-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.rm-summary-refresh{grid-column:1/-1}}
 @media(prefers-reduced-motion:reduce){.rm-risk-toggle>span{transition:none}}
+
+/* Compact risk controls and mode-specific ATR setup. */
+.rm-atr-settings{display:grid;gap:10px;border-top:1px solid #46516a;padding-top:12px;min-width:0}
+.rm-atr-settings h3{font-size:13px;margin:0;color:#e7eef9}
+.rm-atr-mode{display:grid;gap:12px}
+.rm-atr-mode[hidden]{display:none}
+.rm-atr-mode .rm-card-note{margin:0}
+.rm-atr-mode .rm-field small{font-size:11px;color:#a9b7cc}
+.rm-summary-panel .rm-direction{min-width:144px;margin-left:auto}
+.rm-summary-panel .rm-direction button{padding:8px 14px}
+.rm-summary-metrics .rm-summary-refresh{align-items:flex-end;justify-self:end}
+.rm-summary-refresh button{width:108px;max-width:100%;min-height:90px;padding:10px;white-space:normal;line-height:1.35}
+@media(max-width:1250px){.rm-summary-metrics .rm-summary-refresh{grid-column:auto;justify-self:end}}
