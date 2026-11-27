@@ -68,7 +68,7 @@ export function RiskCalculator({accountId,label}:{accountId:string;label:string}
  <div className="performance-filter rm-fields">
  <div className="rm-field"><label htmlFor="rm-quick-risk-mode">Risk per trade</label><select id="rm-quick-risk-mode" value={riskMode} onChange={e=>setRiskMode(e.target.value as typeof riskMode)}><option value="dollars">Dollar amount ($)</option><option value="percent">Account percentage (%)</option></select></div>
  <div className="rm-field"><label htmlFor="rm-quick-risk">{riskMode==='dollars'?'Risk amount ($)':'Account risk (%)'}</label><input id="rm-quick-risk" type="number" min="0.01" max={riskMode==='percent'?100:undefined} step="0.01" value={riskMode==='dollars'?dollars:risk} onChange={e=>riskMode==='dollars'?setDollars(e.target.value):setRisk(e.target.value)}/></div>
- <div className="rm-field"><label>5-minute ATR(14) · FMP</label><strong>{data?.atr?'
+ <div className="rm-field"><label>5-minute ATR(14) · FMP</label><strong>{data?.atr?money(data.atr.value):'—'}</strong>{data?.atr&&<small>Last closed bar: {stamp(data.atr.barClosedAt)}</small>}</div>
  </div>
  {quick&&data?<div className="analytics-metrics">
  <div><small>{stale||atrStale?'Stale data · illustrative shares':'Estimated whole shares'}</small><strong style={{fontSize:'2rem'}}>{quick.shares.toLocaleString()}</strong></div>
