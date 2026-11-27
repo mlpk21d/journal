@@ -1,5 +1,12 @@
 export class FmpQuoteError extends Error {
- constructor(public readonly code:'MISSING_KEY'|'HTTP'|'INVALID_QUOTE'|'CONNECTION',public readonly status?:number){super('FMP quote unavailable');this.name='FmpQuoteError';}
+ readonly code:'MISSING_KEY'|'HTTP'|'INVALID_QUOTE'|'CONNECTION';
+ readonly status?:number;
+ constructor(code:'MISSING_KEY'|'HTTP'|'INVALID_QUOTE'|'CONNECTION',status?:number){
+  super('FMP quote unavailable');
+  this.name='FmpQuoteError';
+  this.code=code;
+  this.status=status;
+ }
 }
 export function parseFmpQuote(raw:unknown,symbol:string,now=Date.now()){
  const row=Array.isArray(raw)?raw.find(r=>r&&typeof r==='object'&&r.symbol===symbol):undefined;
