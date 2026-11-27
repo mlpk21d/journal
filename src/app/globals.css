@@ -745,3 +745,12 @@ button,input,select,textarea{font:inherit}
 .rm-summary-panel .rm-summary-actions .rm-direction{margin-left:0}
 .rm-summary-panel .rm-summary-result{margin-top:18px}
 @media(max-width:600px){.rm-summary-actions{justify-content:flex-start}}
+
+/* Matched-height ticker, refresh and trade direction controls. */
+.rm-summary-panel .rm-summary-actions{--rm-action-height:44px;gap:8px;align-items:center}
+.rm-summary-panel .rm-summary-ticker{box-sizing:border-box;width:100px;min-width:0;max-width:100%;height:var(--rm-action-height);border:1px solid #46516a;border-radius:8px;background:#1a202b;color:#e8f1ff;padding:0 10px;font-size:13px;text-transform:uppercase}
+.rm-summary-panel .rm-summary-ticker::placeholder{text-transform:none;color:#aebdd2}
+.rm-summary-panel .rm-summary-actions .rm-summary-refresh button{height:var(--rm-action-height);min-height:var(--rm-action-height);padding:0 12px;white-space:nowrap;font-size:12px}
+.rm-summary-panel .rm-summary-actions .rm-direction{box-sizing:border-box;height:var(--rm-action-height);min-width:128px;align-items:stretch}
+.rm-summary-panel .rm-summary-actions .rm-direction button{padding:0 12px}
+@media(max-width:480px){.rm-summary-panel .rm-summary-actions .rm-summary-refresh button{white-space:normal;max-width:100%;line-height:1.2}}

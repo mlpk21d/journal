@@ -75,3 +75,15 @@ test('summary heading and share count are grouped beside horizontal refresh cont
  assert.match(header,/form="rm-trade-setup"/);
  assert.match(css,/\.rm-summary-panel \.rm-summary-actions \.rm-summary-refresh button\{width:auto;min-height:42px/);
 });
+
+test('ticker is moved into summary before refresh and controls share height',()=>{
+ const actions=component.slice(component.indexOf('className="rm-summary-actions"'),component.indexOf('className="rm-result rm-summary-result"'));
+ assert.match(actions,/<input id="rm-symbol" className="rm-summary-ticker" form="rm-trade-setup" aria-label="Ticker"/);
+ assert.match(actions,/placeholder="Ticker"/);
+ assert.ok(actions.indexOf('id="rm-symbol"')<actions.indexOf('className="rm-summary-refresh"'));
+ assert.ok(actions.indexOf('className="rm-summary-refresh"')<actions.indexOf('aria-label="Trade direction"'));
+ assert.equal(component.split('id="rm-symbol"').length-1,1);
+ assert.doesNotMatch(component,/<label htmlFor="rm-symbol"/);
+ assert.match(css,/--rm-action-height:44px/);
+ for(const selector of ['.rm-summary-ticker','.rm-summary-refresh button','.rm-direction'])assert.ok(css.split('\n').some(line=>line.includes(selector)&&line.includes('height:var(--rm-action-height)')));
+});
