@@ -26,3 +26,13 @@ test('fixed dollar risk works for precise and quick sizing',()=>{
  assert.equal(positionSize({...fixed,riskDollars:25001}),null);
  const {stop,...quick}=fixed;assert.equal(quickPositionSize({...quick,movePercent:.5}).shares,64);
 });
+
+test('margin ratio caps exposure without multiplying reported buying power',()=>{
+ const i={...base,equity:10000,buyingPower:40000,entry:100,stop:99.9,riskPercent:1,slippage:0};
+ assert.equal(positionSize(i).shares,200);
+ assert.equal(positionSize({...i,marginRatio:1}).shares,100);
+ assert.equal(positionSize({...i,marginRatio:2,buyingPower:15000}).shares,150);
+ assert.equal(positionSize({...i,marginRatio:1,buyingPower:null}).shares,100);
+ assert.equal(positionSize({...i,marginRatio:3}),null);
+ const {stop,...quick}=i;assert.equal(quickPositionSize({...quick,marginRatio:1,movePercent:.1}).shares,100);
+});

@@ -625,3 +625,14 @@ button,input,select,textarea{font:inherit}
 @media(prefers-reduced-motion:reduce){.rm-spinner{animation:none}}
 .shell .rm-calculator .rm-metrics{grid-template-columns:repeat(auto-fit,minmax(min(100%,175px),1fr));gap:12px;margin:16px 0}
 .rm-calculator .rm-metrics strong+small{margin-top:8px;margin-bottom:0}
+
+/* Risk Management header: summary metrics beside page title. */
+.rm-title-row{display:grid;grid-template-columns:minmax(240px,1fr) minmax(0,1.6fr);gap:20px;align-items:center}
+.shell .rm-title-row .page-title{padding:30px 0 12px}
+.shell .rm-title-row .page-title h1{font-size:clamp(28px,3vw,44px)}
+.shell .rm-title-row .rm-header-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:20px 0 8px}
+.shell .rm-title-row .rm-header-metrics>div{padding:14px;min-width:0}
+.rm-header-metrics strong+small{margin:8px 0 0;overflow-wrap:anywhere}
+.rm-header-metrics strong{font-size:clamp(17px,1.5vw,25px)}
+@media(max-width:1100px){.rm-title-row{grid-template-columns:1fr;gap:0}.shell .rm-title-row .rm-header-metrics{margin-top:0}}
+@media(max-width:540px){.shell .rm-title-row .rm-header-metrics{grid-template-columns:1fr}}
