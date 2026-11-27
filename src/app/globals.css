@@ -685,3 +685,13 @@ button,input,select,textarea{font:inherit}
 .rm-tab-panel[hidden]{display:none}
 .rm-tab-panel .rm-card-footer{margin-top:12px}
 @media(max-width:900px){.rm-workspace{grid-template-columns:1fr}}
+
+/* Shared risk setup and independent position summary. */
+.rm-sizing-column{display:flex;flex-direction:column;gap:18px;min-width:0}
+.rm-market-panel .rm-risk-tabs{margin:0;min-width:0}
+.rm-market-panel .rm-risk-tabs .rm-tabs{margin-bottom:10px}
+.rm-market-panel .rm-risk-tabs .rm-tabs button{font-size:11px;line-height:1.35;padding:9px 4px;overflow-wrap:anywhere}
+.rm-market-panel .rm-risk-tabs .rm-field{max-width:none}
+.rm-summary-result{border-top:0;margin-top:10px;padding-top:0}
+.rm-summary-metrics{grid-template-columns:repeat(auto-fit,minmax(min(100%,130px),1fr));gap:14px}
+.rm-summary-panel .rm-share-count{margin-bottom:14px}

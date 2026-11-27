@@ -20,3 +20,12 @@ test('calculator cards preserve fixed automatic ATR and manual stop precedence',
  assert.match(component,/Restore automatic ATR/);
  assert.equal((component.match(/await loadRiskInputs\(/g)||[]).length,1);
 });
+
+test('shared risk controls belong in trade setup above margin and summary precedes sizing tabs',()=>{
+ const setup=component.slice(component.indexOf('<aside className="rm-card rm-market-panel"'),component.indexOf('</aside>'));
+ assert.ok(setup.indexOf('id="rm-shared-risk"')>=0);
+ assert.ok(setup.indexOf('id="rm-shared-risk"')<setup.indexOf('id="rm-margin"'));
+ assert.ok(component.indexOf('id="rm-summary-title"')<component.indexOf('aria-label="Position sizing mode"'));
+ assert.match(component,/const activeSize=sizingTab==='quick'\?quick:size/);
+ for(const label of ['Risk budget','Position value','Estimated loss incl. costs'])assert.equal(component.split('<small>'+label+'</small>').length-1,1);
+});
