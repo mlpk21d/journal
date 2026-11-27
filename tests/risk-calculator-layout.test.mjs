@@ -67,3 +67,11 @@ test('summary metrics occupy one desktop row and precise entry and stop share th
  assert.match(component,/<div className="rm-field"><label htmlFor="rm-entry">[^\n]*\n <div className="rm-field"><label htmlFor="rm-stop">/);
  assert.match(css,/\.rm-atr-settings \.rm-reset\{margin-top:10px\}/);
 });
+
+test('summary heading and share count are grouped beside horizontal refresh controls',()=>{
+ const header=component.slice(component.indexOf('className="rm-card-heading rm-summary-header"'),component.indexOf('className="rm-result rm-summary-result"'));
+ assert.ok(header.indexOf('id="rm-summary-title"')<header.indexOf('className="rm-result-label"'));
+ assert.ok(header.indexOf('className="rm-share-count"')<header.indexOf('className="rm-summary-actions"'));
+ assert.match(header,/form="rm-trade-setup"/);
+ assert.match(css,/\.rm-summary-panel \.rm-summary-actions \.rm-summary-refresh button\{width:auto;min-height:42px/);
+});

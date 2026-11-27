@@ -733,3 +733,15 @@ button,input,select,textarea{font:inherit}
 .rm-summary-panel .rm-summary-metrics small{min-height:2.8em;line-height:1.4}
 .rm-atr-settings .rm-reset{margin-top:10px}
 @media(max-width:600px){.rm-summary-panel .rm-summary-metrics,.rm-summary-panel .rm-summary-metrics[data-sizing-mode=precise]{grid-template-columns:repeat(2,minmax(0,1fr))}.rm-summary-panel .rm-summary-metrics small{min-height:0}}
+
+/* Position summary: stacked heading and share count, horizontal refresh action. */
+.rm-summary-panel .rm-summary-header{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.rm-summary-title-block{min-width:0;flex:1 1 190px}
+.rm-summary-title-block .rm-result-label{margin-top:6px}
+.rm-summary-panel .rm-summary-title-block .rm-share-count{margin:4px 0 0}
+.rm-summary-actions{display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap;max-width:100%}
+.rm-summary-panel .rm-summary-actions .rm-summary-refresh{flex:0 1 auto}
+.rm-summary-panel .rm-summary-actions .rm-summary-refresh button{width:auto;min-height:42px;padding:11px 16px;white-space:normal}
+.rm-summary-panel .rm-summary-actions .rm-direction{margin-left:0}
+.rm-summary-panel .rm-summary-result{margin-top:18px}
+@media(max-width:600px){.rm-summary-actions{justify-content:flex-start}}

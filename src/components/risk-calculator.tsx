@@ -86,10 +86,14 @@ export function RiskCalculator({accountId,label}:{accountId:string;label:string}
  </aside>
  <div className="rm-sizing-column">
  <section className="rm-card rm-summary-panel" aria-labelledby="rm-summary-title" aria-live="polite">
- <div className="rm-card-heading"><h2 id="rm-summary-title">Position Summary</h2><div className="rm-summary-refresh"><button form="rm-trade-setup" disabled={busy} type="submit" aria-busy={busy}>{busy?'Loading FMP & Webull…':'Refresh Quote, ATR & Balance'}</button></div><div className="rm-segments rm-direction" role="group" aria-label="Trade direction"><button type="button" aria-pressed={direction==='LONG'} onClick={()=>{if(direction!=='LONG'){setDirection('LONG');setStop('');}}}>Long</button><button type="button" aria-pressed={direction==='SHORT'} onClick={()=>{if(direction!=='SHORT'){setDirection('SHORT');setStop('');}}}>Short</button></div></div>
- <div className="rm-result rm-summary-result">
+ <div className="rm-card-heading rm-summary-header">
+ <div className="rm-summary-title-block"><h2 id="rm-summary-title">Position Summary</h2>
  <span className="rm-result-label">{activeStale?'Illustrative share count':'Calculated position size'}</span>
  <strong className="rm-share-count">{activeSize?activeSize.shares.toLocaleString()+' shares':'—'}</strong>
+ </div>
+ <div className="rm-summary-actions"><div className="rm-summary-refresh"><button form="rm-trade-setup" disabled={busy} type="submit" aria-busy={busy}>{busy?'Loading FMP & Webull…':'Refresh Quote, ATR & Balance'}</button></div><div className="rm-segments rm-direction" role="group" aria-label="Trade direction"><button type="button" aria-pressed={direction==='LONG'} onClick={()=>{if(direction!=='LONG'){setDirection('LONG');setStop('');}}}>Long</button><button type="button" aria-pressed={direction==='SHORT'} onClick={()=>{if(direction!=='SHORT'){setDirection('SHORT');setStop('');}}}>Short</button></div></div>
+ </div>
+ <div className="rm-result rm-summary-result">
  <div className="rm-result-metrics rm-summary-metrics" data-sizing-mode={sizingTab}>
  <div><small>Risk budget</small><strong>{activeSize?money(activeSize.budget):'—'}</strong></div>
  <div><small>{sizingTab==='quick'?'Assumed stop distance':'Stop distance/share'}</small><strong>{activeSize?'$'+activeSize.distance.toFixed(4):'—'}</strong></div>
